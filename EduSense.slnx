@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/EduSense.Test/">
+    <Project Path="EduSense.API.Test/EduSense.API.Test.csproj" />
+    <Project Path="EduSense.BLL.Test/EduSense.BLL.Test.csproj" />
+    <Project Path="EduSense.DAL.Test/EduSense.DAL.Test.csproj" />
+    <Project Path="EduSense.Ui.Test/EduSense.Ui.Test.csproj" />
+  </Folder>
+  <Project Path="EduSense.API/EduSense.API.csproj" />
+  <Project Path="EduSense.BLL/EduSense.BLL.csproj" />
+  <Project Path="EduSense.DAL/EduSense.DAL.csproj" />
+  <Project Path="EduSense.Shared/EduSense.Shared.csproj" />
+  <Project Path="EduSense.UI/EduSense.UI.Client/EduSense.UI.Client.csproj" />
+  <Project Path="EduSense.UI/EduSense.UI/EduSense.UI.csproj" />
+  <Project Path="EduSense/EduSense.csproj" />
+</Solution>
