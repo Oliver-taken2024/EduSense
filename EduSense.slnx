@@ -11,5 +11,4 @@
   <Project Path="EduSense.Shared/EduSense.Shared.csproj" />
   <Project Path="EduSense.UI/EduSense.UI.Client/EduSense.UI.Client.csproj" />
   <Project Path="EduSense.UI/EduSense.UI/EduSense.UI.csproj" />
-  <Project Path="EduSense/EduSense.csproj" />
 </Solution>

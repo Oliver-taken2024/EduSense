@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\EduSense.Shared\EduSense.Shared.csproj" />
+    <ProjectReference Include="..\EduSense.UI.Client\EduSense.UI.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.11" />
   </ItemGroup>
 
