@@ -1,0 +1,42 @@
+﻿
+
+
+background1{
+    color:#04262A;
+}
+
+background2 {
+    color:#0F2E33;
+}
+
+Yellow-fill{
+    color:#D4AF37;
+}
+
+button-loggin {
+    color: #2E6B5E;
+}
+
+button-loggout {
+    color: #6B2E2E;
+}
+
+TextColor {
+    color: #F3EAD7;
+}
+
+button-Link {
+    color: #3371E4;
+}
+
+p {
+    font-family: 'Lora', serif;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+}
+
+body {
+    font-family: 'Inter',sans-serif;
+}
