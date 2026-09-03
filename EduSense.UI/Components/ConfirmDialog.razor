@@ -1,0 +1,54 @@
+@if (IsVisible)
+{
+    <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" 
+    aria-describedBy="confirmDialogMessage" @onkeydown="HandleKeyDown" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" id="confirmDialogTitle">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDialogMessage">@Message</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"  @ref="_cancelButtonRef" @onclick="() => OnCancelled.InvokeAsync()">
+                        Avbryt
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="() => OnConfirmed.InvokeAsync()">
+                        Ta bort
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+
+    private ElementReference _cancelButtonRef;
+    private bool _previouslyVisible;
+
+    [Parameter] public string Title { get; set; } = "Bekräfta";
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnConfirmed { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsVisible && !_previouslyVisible)
+        {
+            await _cancelButtonRef.FocusAsync();
+        }
+        _previouslyVisible = IsVisible;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            await OnCancelled.InvokeAsync();
+        }
+    }
+
+}

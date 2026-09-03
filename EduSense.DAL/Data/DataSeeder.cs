@@ -1,6 +1,7 @@
 ﻿using EduSense.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -73,84 +74,157 @@ namespace EduSense.DAL.Data
         {
             var context = services.GetRequiredService<EduSenseDbContext>();
 
+           
             // Organisationer
-            var org1 = new OrganisationModel { Name = "EduSense AB" };
-            var org2 = new OrganisationModel { Name = "Test Organisation" };
+            var org1 = await context.Organisations
+                .SingleOrDefaultAsync(o => o.Name == "EduSense AB");
 
-            context.Organisations.AddRange(org1, org2);
+            if (org1 is null)
+            {
+                org1 = new OrganisationModel { Name = "EduSense AB" };
+                context.Organisations.Add(org1);
+            }
+
+            var org2 = await context.Organisations
+                .SingleOrDefaultAsync(o => o.Name == "Test Organisation");
+
+            if (org2 is null)
+            {
+                org2 = new OrganisationModel { Name = "Test Organisation" };
+                context.Organisations.Add(org2);
+            }
+
             await context.SaveChangesAsync();
 
             // Frågor
-            var q1 = new QuestionModel
+            var q1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur nöjd är du med tjänsten?");
+            if (q1 is null)
             {
-                Text = "Hur nöjd är du med tjänsten?",
-                CreatedByUserId = "admin@edusense.se"
-            };
-            var q2 = new QuestionModel
-            {
-                Text = "Skulle du rekommendera oss?",
-                CreatedByUserId = "admin@edusense.se"
-            };
+                q1 = new QuestionModel { Text = "Hur nöjd är du med tjänsten?", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q1);
+            }
 
-            context.Questions.AddRange(q1, q2);
+            var q2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Skulle du rekommendera oss?");
+            if (q2 is null)
+            {
+                q2 = new QuestionModel { Text = "Skulle du rekommendera oss?", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q2);
+            }
+
+
             await context.SaveChangesAsync();
 
-            // Svaralternativ
-            var ans1 = new AnswerOptionModel { Description = "Mycket nöjd", Value = 5 };
-            var ans2 = new AnswerOptionModel { Description = "Nöjd", Value = 4 };
-            var ans3 = new AnswerOptionModel { Description = "Neutral", Value = 3 };
-            var ans4 = new AnswerOptionModel { Description = "Missnöjd", Value = 2 };
-            var ans5 = new AnswerOptionModel { Description = "Mycket missnöjd", Value = 1 };
+            // Svarsalternativ
+            var ans1 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Mycket nöjd" && x.Value == 5);
+            if (ans1 is null)
+            {
+                ans1 = new AnswerOptionModel { Description = "Mycket nöjd", Value = 5 };
+                context.AnswerOptions.Add(ans1);
+            }
 
-            context.AnswerOptions.AddRange(ans1, ans2, ans3, ans4, ans5);
+            var ans2 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Nöjd" && x.Value == 4);
+            if (ans2 is null)
+            {
+                ans2 = new AnswerOptionModel { Description = "Nöjd", Value = 4 };
+                context.AnswerOptions.Add(ans2);
+            }
+
+            var ans3 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Neutral" && x.Value == 3);
+            if (ans3 is null)
+            {
+                ans3 = new AnswerOptionModel { Description = "Neutral", Value = 3 };
+                context.AnswerOptions.Add(ans3);
+            }
+
+            var ans4 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Missnöjd" && x.Value == 2);
+            if (ans4 is null)
+            {
+                ans4 = new AnswerOptionModel { Description = "Missnöjd", Value = 2 };
+                context.AnswerOptions.Add(ans4);
+            }
+
+            var ans5 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Mycket missnöjd" && x.Value == 1);
+            if (ans5 is null)
+            {
+                ans5 = new AnswerOptionModel { Description = "Mycket missnöjd", Value = 1 };
+                context.AnswerOptions.Add(ans5);
+            }
+
             await context.SaveChangesAsync();
 
-            // Länka frågor och svaralternativ
-            context.QuestionAnswerOptions.AddRange(
-                new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans1.Id },
-                new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans2.Id },
-                new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans3.Id },
-                new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans4.Id },
-                new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans5.Id }
-            );
+            // Länka frågor och svarsalternativ
+            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans1.Id))
+            {
+                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans1.Id });
+            }
+            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans2.Id))
+            {
+                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans2.Id });
+            }
+            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans3.Id))
+            {
+                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans3.Id });
+            }
+            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans4.Id))
+            {
+                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans4.Id });
+            }
+            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans5.Id))
+            {
+                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans5.Id });
+            }
+
             await context.SaveChangesAsync();
 
             // Enkät
-            var survey1 = new SurveyModel
+            var survey1 = await context.Surveys
+                .SingleOrDefaultAsync(x => x.Title == "Kundnöjdhetsenkät" && x.OrganisationId == org1.Id);
+            if (survey1 is null)
             {
-                Title = "Kundnöjdhetsenkät",
-                CreatedByUserId = "admin@edusense.se",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
-                OrganisationId = org1.Id
-            };
+                survey1 = new SurveyModel
+                {
+                    Title = "Kundnöjdhetsenkät",
+                    CreatedByUserId = "admin@edusense.se",
+                    SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
+                    OrganisationId = org1.Id
+                };
 
-            context.Surveys.Add(survey1);
-            await context.SaveChangesAsync();
+                context.Surveys.Add(survey1);
+                await context.SaveChangesAsync();
+            }
 
             // Länka frågor till enkät
-            context.SurveyQuestions.AddRange(
-                new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q1.Id },
-                new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q2.Id }
-            );
+            if (!await context.SurveyQuestions.AnyAsync(x => x.SurveyId == survey1.Id && x.QuestionId == q1.Id))
+            {
+                context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q1.Id });
+            }
+            if (!await context.SurveyQuestions.AnyAsync(x => x.SurveyId == survey1.Id && x.QuestionId == q2.Id))
+            {
+                context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q2.Id });
+            }
             await context.SaveChangesAsync();
 
             // Respondenter
-            var respondent1 = new RespondentModel
+            if (!await context.Respondents.AnyAsync(x => x.Email == "respondent1@test.com" && x.SurveyId == survey1.Id))
             {
-                Email = "respondent1@test.com",
-                Token = "token-123",
-                SurveyId = survey1.Id,
-                TokenIsUsed = false
-            };
-            var respondent2 = new RespondentModel
+                context.Respondents.Add(new RespondentModel
+                {
+                    Email = "respondent1@test.com",
+                    Token = "token-123",
+                    SurveyId = survey1.Id,
+                    TokenIsUsed = false
+                });
+            }
+            if (!await context.Respondents.AnyAsync(x => x.Email == "respondent2@test.com" && x.SurveyId == survey1.Id))
             {
-                Email = "respondent2@test.com",
-                Token = "token-456",
-                SurveyId = survey1.Id,
-                TokenIsUsed = false
-            };
-
-            context.Respondents.AddRange(respondent1, respondent2);
+                context.Respondents.Add(new RespondentModel
+                {
+                    Email = "respondent2@test.com",
+                    Token = "token-456",
+                    SurveyId = survey1.Id,
+                    TokenIsUsed = false
+                });
+            }
             await context.SaveChangesAsync();
         }
     }

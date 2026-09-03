@@ -1,0 +1,128 @@
+﻿@page "/survey-management"
+
+<PageTitle>Enkäthantering</PageTitle>
+
+<h3>Enkäthanteringssida</h3>
+
+@if (_isLoading)
+{
+    <p>Laddar...</p>
+}
+else if (_loadError is not null)
+{
+    <p class="text-danger">@_loadError</p>
+}
+else
+{
+    @if (_showForm)
+    {
+        <SurveyForm Survey="_editingSurvey"
+                    Organisations="_organisations"
+                    Questions="_questions"
+                    OnSaved="HandleSavedAsync"
+                    OnCancelled="HandleCancelled" />
+    }
+    else
+    {
+        <SurveyList Surveys="_surveys"
+                    OnCreateNew="ShowCreateForm"
+                    OnEdit="EditSurvey"
+                    OnDelete="RequestDelete" />
+    }
+}
+
+<ConfirmDialog IsVisible="_pendingDeleteId is not null"
+               Title="Ta bort enkät"
+               Message="Är du säker på att du vill ta bort enkäten? Det går inte att ångra."
+               OnConfirmed="ConfirmDeleteAsync"
+               OnCancelled="CancelDelete" />
+
+@code {
+    [Inject] private ApiService Api { get; set; } = default!;
+
+    private List<SurveyDto> _surveys = [];
+    private List<OrganisationDto> _organisations = [];
+    private List<QuestionDto> _questions = [];
+    private SurveyDto? _editingSurvey;
+    private bool _showForm;
+    private bool _isLoading = true;
+    private string? _loadError;
+    private int? _pendingDeleteId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllAsync();
+    }
+
+    private async Task LoadAllAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            var surveysTask = Api.GetAsync<List<SurveyDto>>("api/Survey");
+            var organisationsTask = Api.GetAsync<List<OrganisationDto>>("api/Organisation");
+            var questionsTask = Api.GetAsync<List<QuestionDto>>("api/Question");
+
+            await Task.WhenAll(surveysTask, organisationsTask, questionsTask);
+
+            _surveys = surveysTask.Result ?? [];
+            _organisations = organisationsTask.Result ?? [];
+            _questions = questionsTask.Result ?? [];
+        }
+        catch (ApiException ex)
+        {
+            _loadError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        _editingSurvey = null;
+        _showForm = true;
+    }
+
+    private void EditSurvey(SurveyDto survey)
+    {
+        _editingSurvey = survey;
+        _showForm = true;
+    }
+
+    private void RequestDelete(int id)
+    {
+        _pendingDeleteId = id;
+    }
+
+    private void CancelDelete()
+    {
+        _pendingDeleteId = null;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (_pendingDeleteId is null)
+        {
+            return;
+        }
+
+        await Api.DeleteAsync($"api/Survey/{_pendingDeleteId}");
+        _pendingDeleteId = null;
+        await LoadAllAsync();
+    }
+
+    private async Task HandleSavedAsync()
+    {
+        _showForm = false;
+        await LoadAllAsync();
+    }
+
+    private void HandleCancelled()
+    {
+        _showForm = false;
+    }
+}
