@@ -1,10 +1,30 @@
 ﻿@page "/forum"
+@rendermode InteractiveServer
 
 <h3>Forum</h3>
 
+<div>
 <img src="/Images/Arrow.png"  />
-<img src="/Images/Arrow.png" style="transform: scaleX(-1);" />
+    <div>@counter</div>
+    <div>@total</div>
+    <button @onclick="IncrementCounter">
+        <img src="/Images/Arrow.png" style="transform: scaleX(-1);" /> 
+</button>
 
+</div>
 @code {
+    public int counter = 1;
 
+    public int total = 3;
+
+
+    private void IncrementCounter()
+    {
+        Console.WriteLine("Knappen klickades");
+        
+        if (counter < total)
+        {
+            counter++;
+        }
+    }
 }
