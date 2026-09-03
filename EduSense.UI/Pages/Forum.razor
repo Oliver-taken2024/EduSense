@@ -1,0 +1,49 @@
+﻿@page "/forum"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<h3>Forum</h3>
+
+@if (counter == 1)
+{
+    <p>Question 1: What is the capital of France?</p>
+}
+else if (counter == 2)
+{
+    <p>Question 2: What is the largest planet in our solar system?</p>
+}
+else if (counter == 3)
+{
+    <p>Question 3: Who wrote 'To Kill a Mockingbird'?</p>
+}
+
+
+<div>
+<img src="/Images/Arrow.png"  />
+    <div>@counter</div>
+    <div>@total</div>
+    <button @onclick="IncrementCounter">
+        <img src="/Images/Arrow.png" style="transform: scaleX(-1);" /> 
+</button>
+
+</div>
+@code {
+    public int counter = 1;
+
+    public int total = 3;
+
+
+    private void IncrementCounter()
+    {
+
+        if (counter < total)
+        {
+            counter++;
+        }
+        else
+        {
+            Navigation.NavigateTo("/result");
+        }
+    }
+}
+ 
