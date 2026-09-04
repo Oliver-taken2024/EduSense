@@ -35,7 +35,7 @@ namespace EduSense.BLL.Services
 
         public async Task<QuestionDto?> GetByIdAsync(int id)
         {
-            var question = await _questionRepository.GetByIdAsync(id);
+            var question = await _questionRepository.GetByIdWithOrganisationAsync(id);
             if (question is null)
             {
                 return null;
@@ -47,8 +47,8 @@ namespace EduSense.BLL.Services
                 Text = question.Question.Text,
                 CreatedByUserId = question.Question.CreatedByUserId,
                 Organisation = question.Organisation is null
-                    ? null
-                    : new OrganisationDto { Id = question.Organisation.Id, Name = question.Organisation.Name }
+            ? null
+            : new OrganisationDto { Id = question.Organisation.Id, Name = question.Organisation.Name }
             };
         }
 
@@ -103,7 +103,7 @@ namespace EduSense.BLL.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var question = await _questionRepository.GetByIdWithOrganisationAsync(id);
+            var question = await _questionRepository.GetByIdAsync(id);
             if (question is null)
             {
                 return false;
