@@ -1,0 +1,65 @@
+﻿<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Frågor</h4>
+    <button type="button" class="btn btn-primary" @onclick="() => OnCreateNew.InvokeAsync()">
+        Ny fråga
+    </button>
+</div>
+
+<div class="mb-3">
+    <input class="form-control" placeholder="Sök fråga..." @bind="_filterText" @bind:event="oninput" />
+</div>
+
+@if (FilteredQuestions.Count == 0)
+{
+    <p>Inga frågor hittades.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Text</th>
+                <th>Organisation</th>   
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var question in FilteredQuestions)
+            {
+                <tr>
+                    <td>@question.Text</td>
+                    <td>@question.Organisation?.Name</td>   
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                @onclick="() => OnEdit.InvokeAsync(question)">
+                            Redigera
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                @onclick="() => OnCopy.InvokeAsync(question)">
+                            Kopiera
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                @onclick="() => OnDelete.InvokeAsync(question.Id)">
+                            Ta bort
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<QuestionDto> Questions { get; set; } = [];
+    [Parameter] public EventCallback<QuestionDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<QuestionDto> OnCopy { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public EventCallback OnCreateNew { get; set; }
+
+    private string _filterText = string.Empty;
+
+    private IReadOnlyList<QuestionDto> FilteredQuestions =>
+        string.IsNullOrWhiteSpace(_filterText)
+            ? Questions
+            : Questions.Where(q => q.Text.Contains(_filterText, StringComparison.OrdinalIgnoreCase)).ToList();
+}

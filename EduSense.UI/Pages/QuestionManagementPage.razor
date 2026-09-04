@@ -1,0 +1,129 @@
+﻿@page "/question-management"
+
+<PageTitle>Frågehantering</PageTitle>
+
+<h3>Frågehanteringssida</h3>
+
+@if (_isLoading)
+{
+    <p>Laddar...</p>
+}
+else if (_loadError is not null)
+{
+    <p class="text-danger">@_loadError</p>
+}
+else
+{
+    @if (_showForm)
+    {
+        <QuestionForm Question="_editingQuestion"
+                      OnSaved="HandleSavedAsync"
+                      OnCancelled="HandleCancelled" />
+    }
+    else
+    {
+        <QuestionList Questions="_questions"
+                      OnCreateNew="ShowCreateForm"
+                      OnEdit="EditQuestion"
+                      OnCopy="CopyQuestion"
+                      OnDelete="RequestDelete" />
+    }
+}
+
+<ConfirmDialog IsVisible="_pendingDeleteId is not null"
+               Title="Ta bort fråga"
+               Message="Är du säker på att du vill ta bort frågan? Det går inte att ångra."
+               OnConfirmed="ConfirmDeleteAsync"
+               OnCancelled="CancelDelete" />
+
+
+
+@code {
+     [Inject] private ApiService Api { get; set; } = default!;
+
+    private List<QuestionDto> _questions = [];
+    private QuestionDto? _editingQuestion;
+    private bool _showForm;
+    private bool _isLoading = true;
+    private string? _loadError;
+    private int? _pendingDeleteId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllAsync();
+    }
+
+    private async Task LoadAllAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            _questions = await Api.GetAsync<List<QuestionDto>>("api/Question") ?? [];
+        }
+        catch (ApiException ex)
+        {
+            _loadError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        _editingQuestion = null;
+        _showForm = true;
+    }
+
+    //Förifyllt frågeformulär med den valda frågan som ska redigeras.
+    private void EditQuestion(QuestionDto question)
+    {
+        _editingQuestion = question;
+        _showForm = true;
+    }
+
+    private void CopyQuestion(QuestionDto question)
+    {
+        // Id = 0 gör att QuestionForm behandlar den som en ny fråga (POST isf PUT) vid spara.
+        _editingQuestion = new QuestionDto { Id = 0, Text = question.Text + " (kopia)" };
+        _showForm = true;
+    }
+
+    private void RequestDelete(int id)
+    {
+        _pendingDeleteId = id;
+    }
+
+    private void CancelDelete()
+    {
+        _pendingDeleteId = null;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (_pendingDeleteId is null)
+        {
+            return;
+        }
+
+        await Api.DeleteAsync($"api/Question/{_pendingDeleteId}");
+        _pendingDeleteId = null;
+        //ladda om frågorna efter borttagning så att listan alltid är uppdaterad
+        await LoadAllAsync();
+    }
+
+    private async Task HandleSavedAsync()
+    {
+        _showForm = false;
+        //ladda om frågorna efter sparande så att listan alltid är uppdaterad
+        await LoadAllAsync();
+    }
+
+    private void HandleCancelled()
+    {
+        _showForm = false;
+    }
+}
