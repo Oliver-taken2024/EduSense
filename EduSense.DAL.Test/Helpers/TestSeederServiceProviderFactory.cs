@@ -12,8 +12,7 @@ namespace EduSense.DAL.Test.Helpers;
 
 public static class TestSeederServiceProviderFactory
 {
-    private static SqliteConnection? _sharedConnection;
-
+   
     public static IServiceProvider CreateServiceProvider()
     {
         var services = new ServiceCollection();
