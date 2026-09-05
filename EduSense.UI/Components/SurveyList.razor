@@ -1,0 +1,53 @@
+﻿<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Enkäter</h4>
+    <button type="button" class="btn btn-primary" @onclick="() => OnCreateNew.InvokeAsync()">
+        Ny enkät
+    </button>
+</div>
+
+@if (Surveys.Count == 0)
+{
+    <p>Inga enkäter ännu.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Titel</th>
+                <th>Organisation</th>
+                <th>Sista svarsdatum</th>
+                <th>Antal frågor</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var survey in Surveys)
+            {
+                <tr>
+                    <td>@survey.Title</td>
+                    <td>@survey.Organisation?.Name</td>
+                    <td>@survey.SurveyExpiryDate.ToString("yyyy-MM-dd")</td>
+                    <td>@survey.SurveyQuestions.Count</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                @onclick="() => OnEdit.InvokeAsync(survey)">
+                            Redigera
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                @onclick="() => OnDelete.InvokeAsync(survey.Id)">
+                            Ta bort
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<SurveyDto> Surveys { get; set; } = [];
+    [Parameter] public EventCallback<SurveyDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public EventCallback OnCreateNew { get; set; }
+}
