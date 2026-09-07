@@ -19,6 +19,12 @@ namespace EduSense.DAL.Data
             base.OnModelCreating(builder);
 
             // builder.Entity<ApplicationUser>().ToTable("Users");
+
+            builder.Entity<RefreshTokenModel>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
         }
+
+        public DbSet<RefreshTokenModel> RefreshTokens => Set<RefreshTokenModel>();
     }
 }

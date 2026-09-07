@@ -1,12 +1,14 @@
-﻿using EduSense.DAL.Models;
+using EduSense.DAL.Models;
+using EduSense.DAL.Repositories;
+using EduSense.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Concurrent;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace EduSense.API.Controllers
 {
@@ -14,83 +16,40 @@ namespace EduSense.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private static readonly ConcurrentDictionary<string, RefreshToken> _refreshTokens = [];
+        private const int AccessTokenMinutes = 15;
+        private const int RefreshTokenDays = 7;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IConfiguration _configuration;
 
-        private readonly ILogger _logger;
-
-
-
-
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration)
         {
-            _signInManager = signInManager;
             _userManager = userManager;
+            _refreshTokenRepository = refreshTokenRepository;
+            _configuration = configuration;
         }
-
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult> CreateToken([FromBody] AuthModel authRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
-            
-            if (authRequest.Username == "initializeMaster")
+            var user = await _userManager.FindByNameAsync(dto.Username);
+            if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             {
-                if (!authRequest.AllowInit())
-                {
-                    return BadRequest();
-                }
-
-                try
-                {
-                    return Ok(await _coreRepositoryService.InitMasterUser());
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                }
+                return Unauthorized("Fel användarnamn eller lösenord");
             }
 
-            var user = await Authenticate(authRequest);
-            if (user != null)
-            {
-                return Ok(GenerateToken(user));
-            }
-
-            return Unauthorized();
-        }
-
-
-        //Post: api/auth/login
-        //Tar emot användarnamn och lösenord, autentiserar användaren och returnerar en JWT-token om autentiseringen lyckas.
-
-        //[HttpPost("login")]
-
-        public async Task <IActionResult> Login([FromBody] LoginModel model)
-        {
-            var user = await _signInManager.PasswordSignInAsync(
-                model.Username, model.Password,isPersistent: false, lockoutOnFailure: false);
-
-            if (!user.Succeeded)
-            {
-                return Unauthorized("fel användarnamn eller lösenord");
-            }
-
-            return Ok("Inloggning lyckades");
-
+            var response = await CreateTokenResponseAsync(user);
+            return Ok(response);
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
         {
-            // Skapa ett nytt IdentityUser-objekt
-            var user = new IdentityUser 
-            { UserName = model.Username, Email = model.Email };
+            var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
 
-            // CreateAsync hashar lösenordet och sparar användaren i databasen
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
             {
@@ -101,16 +60,99 @@ namespace EduSense.API.Controllers
             return Ok("Registrering lyckades");
         }
 
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Refresh()
+        {
+            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            {
+                return Unauthorized("Ingen refresh token skickades");
+            }
+
+            var stored = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+
+            if (stored is null || stored.ExpiresAt < DateTime.UtcNow)
+            {
+                return Unauthorized("Ogiltig eller utgången refresh token");
+            }
+
+            await _refreshTokenRepository.RemoveAsync(stored); // rotera - engångsbruk
+
+            var user = await _userManager.FindByIdAsync(stored.UserId);
+            if (user is null)
+            {
+                return Unauthorized();
+            }
+
+            var response = await CreateTokenResponseAsync(user);
+            return Ok(response);
+        }
+
         // POST /api/auth/logout
-        // Loggar ut användaren genom att ta bort Identity-cookien
+        // Loggar ut användaren genom att ta bort refresh-token-cookien
         // [Authorize] krävs, man måste vara inloggad för att logga ut
 
-        [HttpPost("Logout")]
+        [HttpPost("logout")]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            {
+                var stored = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+                if (stored is not null)
+                {
+                    await _refreshTokenRepository.RemoveAsync(stored);
+                }
+
+                Response.Cookies.Delete("refreshToken");
+            }
+
             return Ok("Utloggning lyckades");
         }
-       
+
+        private async Task<CreateTokenResponseDto> CreateTokenResponseAsync(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.UserName!)
+            };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var accessTokenExpiry = DateTime.UtcNow.AddMinutes(AccessTokenMinutes);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: accessTokenExpiry,
+                signingCredentials: credentials);
+
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            var refreshTokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(RefreshTokenDays);
+
+            await _refreshTokenRepository.AddAsync(new RefreshTokenModel
+            {
+                Token = refreshTokenValue,
+                UserId = user.Id,
+                ExpiresAt = refreshTokenExpiry
+            });
+
+            Response.Cookies.Append("refreshToken", refreshTokenValue, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshTokenExpiry
+            });
+
+            return new CreateTokenResponseDto(accessToken, accessTokenExpiry);
+        }
     }
 }

@@ -26,8 +26,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -36,6 +34,7 @@ builder.Services.AddDbContext<EduSenseDbContext>(options => options.UseNpgsql(co
 builder.Services.AddDbContext<EduSenseUserDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddIdentityCore<ApplicationUser>()
+    .AddSignInManager()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<EduSenseUserDbContext>();
 
@@ -45,6 +44,7 @@ builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IOrganisationRepository, OrganisationRepository>();
 builder.Services.AddScoped<IOrganisationService, OrganisationService>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddCors(options =>
 {
