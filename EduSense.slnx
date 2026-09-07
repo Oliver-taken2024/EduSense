@@ -3,7 +3,7 @@
     <Project Path="EduSense.API.Test/EduSense.API.Test.csproj" />
     <Project Path="EduSense.BLL.Test/EduSense.BLL.Test.csproj" />
     <Project Path="EduSense.DAL.Test/EduSense.DAL.Test.csproj" />
-    <Project Path="EduSense.Ui.Test/EduSense.Ui.Test.csproj" />
+    <Project Path="EduSense.UI.Test/EduSense.UI.Test.csproj" />
   </Folder>
   <Project Path="EduSense.API/EduSense.API.csproj" />
   <Project Path="EduSense.BLL/EduSense.BLL.csproj" />
