@@ -73,7 +73,6 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("AnalystOnly", policy => policy.RequireRole("Analyst"));
-    options.AddPolicy("RespondentOnly", policy => policy.RequireRole("Respondent"));
     options.AddPolicy("AdminOrAnalyst", policy => policy.RequireRole("Admin", "Analyst"));
 });
 
