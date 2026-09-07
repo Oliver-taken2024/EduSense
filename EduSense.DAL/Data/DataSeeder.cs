@@ -111,6 +111,69 @@ namespace EduSense.DAL.Data
                 context.Questions.Add(q2);
             }
 
+            var q3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får bra information om vad som händer på skolan");
+            if (q3 is null)
+            {
+                q3 = new QuestionModel { Text = "Jag får bra information om vad som händer på skolan", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q3);
+            }
+
+
+            var q4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Inomhusmiljön är stimulerande och trivsam");
+            if (q4 is null)
+            {
+                q4 = new QuestionModel { Text = "Inomhusmiljön är stimulerande och trivsam", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q4);
+            }
+
+            var q5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Utomhusmiljön är stimulerande för mitt barn");
+            if (q5 is null)
+            {
+                q5 = new QuestionModel { Text = "Utomhusmiljön är stimulerande för mitt barn", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q5);
+            }
+
+            var q6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att mitt barn äter skolmaten");
+            if (q6 is null)
+            {
+                q6 = new QuestionModel { Text = "Jag upplever att mitt barn äter skolmaten", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q6);
+            }
+
+            var q7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Fritidshemmet erbjuder en utvecklande verksamhet för mitt barn");
+            if (q7 is null)
+            {
+                q7 = new QuestionModel { Text = "Fritidshemmet erbjuder en utvecklande verksamhet för mitt barn", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q7);
+            }
+
+            var q8 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att mitt barn trivs på fritids");
+            if (q8 is null)
+            {
+                q8 = new QuestionModel { Text = "Jag upplever att mitt barn trivs på fritids", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q8);
+            }
+
+            var q9 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att skolan arbetar aktivt mot diskriminering och trakasserier");
+            if (q9 is null)
+            {
+                q9 = new QuestionModel { Text = "Jag upplever att skolan arbetar aktivt mot diskriminering och trakasserier", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q9);
+            }
+
+            var q10 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Mitt barn får den arbetsro hen behöver");
+            if (q10 is null)
+            {
+                q10 = new QuestionModel { Text = "Mitt barn får den arbetsro hen behöver", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q10);
+            }
+
+            var q11 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag känner mig trygg med personalens tillsyn över eleverna");
+            if (q11 is null)
+            {
+                q11 = new QuestionModel { Text = "Jag känner mig trygg med personalens tillsyn över eleverna", CreatedByUserId = "admin@edusense.se" };
+                context.Questions.Add(q11);
+            }
 
             await context.SaveChangesAsync();
 
