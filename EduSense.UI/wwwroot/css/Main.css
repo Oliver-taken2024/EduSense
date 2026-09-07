@@ -1,42 +1,67 @@
-﻿
+:root {
+    /* Colors */
+    --text-color: #F3EAD7;
+    --text-color-secondary: #A9C4C0;
+    --accent-color: #2E6B5E;
+    --accent-color-gold: #D4AF37;
+    --background-color-1: #0F2E33;
+    --background-color-2: #134C48;
+    --background-color-3: #2E6B5E;
+    --button-login-color: #2E6B5E;
+    --button-logout-color: #6B2E2E;
+    --button-link-color: #3371E4;
+    --input-background-color: #808080;
 
-
-background1{
-    color:#04262A;
+    /* Typography */
+    --font-family-title: "Playfair Display", serif;
+    --font-family-body: "Lora", serif;
+    --font-family-base: "Inter", sans-serif;
+    --font-size-edusense-title: 4rem; /* 64px */
+    --font-size-text-medium: 0.875rem; /* 14px */
+    --font-size-text-small: 0.625rem; /* 10px */
+    --font-size-question: 2rem; /* 32px */
+    --font-size-small-logo: 4rem; /* 64px */
+    --font-size-edusense-desktop: 6rem; /* 96px */
 }
 
-background2 {
-    color:#0F2E33;
+.background1 {
+    background-color: var(--background-color-1);
 }
 
-Yellow-fill{
-    color:#D4AF37;
+.background2 {
+    background-color: var(--background-color-2);
 }
 
-button-loggin {
-    color: #2E6B5E;
+.yellow-fill {
+    background-color: var(--accent-color-gold);
 }
 
-button-loggout {
-    color: #6B2E2E;
+.button-login {
+    background-color: var(--button-login-color);
 }
 
-TextColor {
-    color: #F3EAD7;
+.button-logout {
+    background-color: var(--button-logout-color);
 }
 
-button-Link {
-    color: #3371E4;
+.text-color {
+    color: var(--text-color);
+}
+
+.button-link {
+    color: var(--button-link-color);
 }
 
 p {
-    font-family: 'Lora', serif;
+    font-family: var(--font-family-body);
 }
 
 h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-family-title);
 }
 
 body {
-    font-family: 'Inter',sans-serif;
+    font-family: var(--font-family-base);
+    background-color: var(--background-color-1);
+    color: var(--text-color);
 }

@@ -3,7 +3,7 @@
     <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" 
     aria-describedBy="confirmDialogMessage" @onkeydown="HandleKeyDown" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
-            <div class="modal-content">
+            <div class="modal-content background2">
                 <div class="modal-header">
                     <h5 id="confirmDialogTitle" class="modal-title">@Title</h5>
                 </div>
@@ -14,8 +14,8 @@
                     <button type="button" class="btn btn-secondary"  @ref="_cancelButtonRef" @onclick="() => OnCancelled.InvokeAsync()">
                         Avbryt
                     </button>
-                    <button type="button" class="btn btn-danger" @onclick="() => OnConfirmed.InvokeAsync()">
-                        Ta bort
+                    <button type="button" class="btn button-logout" @onclick="() => OnConfirmed.InvokeAsync()">
+                        <img src="/Images/Delete.png" alt="" width="14" height="14" /> Ta bort
                     </button>
                 </div>
             </div>

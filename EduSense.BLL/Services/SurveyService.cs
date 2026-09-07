@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.Shared;
