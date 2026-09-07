@@ -13,6 +13,7 @@ namespace EduSense.BLL.Services
     public class SurveyService : ISurveyService
     {
         private readonly ISurveyRepository _surveyRepository;
+        private static DateTime ToUtcDate(DateTime date) => DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
 
         public SurveyService(ISurveyRepository surveyRepository)
         {
@@ -38,7 +39,7 @@ namespace EduSense.BLL.Services
             var survey = new SurveyModel
             {
                 Title = dto.Title,
-                SurveyExpiryDate = dto.SurveyExpiryDate,
+                SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate),
                 OrganisationId = dto.OrganisationId,
                 CreatedByUserId = dto.CreatedByUserId,
                 SurveyQuestions = dto.QuestionIds.Distinct()
@@ -63,7 +64,7 @@ namespace EduSense.BLL.Services
             await ValidateAsync(dto, excludeSurveyId: id);
 
             survey.Title = dto.Title;
-            survey.SurveyExpiryDate = dto.SurveyExpiryDate;
+            survey.SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate);
             survey.OrganisationId = dto.OrganisationId;
 
             survey.SurveyQuestions.Clear();
@@ -122,7 +123,7 @@ namespace EduSense.BLL.Services
             }
 
             var isDuplicate = await _surveyRepository.TitleExistsAsync(
-                dto.Title, dto.SurveyExpiryDate, dto.OrganisationId, excludeSurveyId);
+                dto.Title, ToUtcDate(dto.SurveyExpiryDate), dto.OrganisationId, excludeSurveyId);
 
             if (isDuplicate)
             {

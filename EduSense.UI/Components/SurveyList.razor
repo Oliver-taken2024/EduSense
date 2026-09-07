@@ -18,7 +18,7 @@ else
                 <th>Organisation</th>
                 <th>Sista svarsdatum</th>
                 <th>Antal frågor</th>
-                <th></th>
+                <th><span class="visually-hidden">Åtgärder</span></th>
             </tr>
         </thead>
         <tbody>
@@ -31,11 +31,11 @@ else
                     <td>@survey.SurveyQuestions.Count</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-secondary"
-                                @onclick="() => OnEdit.InvokeAsync(survey)">
+                                aria-label="@($"Redigera enkäten {survey.Title}")" @onclick="() => OnEdit.InvokeAsync(survey)">
                             Redigera
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-danger"
-                                @onclick="() => OnDelete.InvokeAsync(survey.Id)">
+                                aria-label="@($"Ta bort enkäten {survey.Title}")" @onclick="() => OnDelete.InvokeAsync(survey.Id)">
                             Ta bort
                         </button>
                     </td>

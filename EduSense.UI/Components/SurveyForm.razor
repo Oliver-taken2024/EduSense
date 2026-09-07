@@ -2,18 +2,18 @@
 
 <form @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
     <div class="mb-3">
-        <label class="form-label">Titel</label>
-        <input class="form-control" @bind="_title" @bind:event="oninput" />
+        <label class="form-label" for="title">Titel</label>
+        <input id="title" class="form-control" @bind="_title" @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Sista svarsdatum</label>
-        <input type="date" class="form-control" @bind="_surveyExpiryDate" />
+        <label class="form-label" for="expiryDate">Sista svarsdatum</label>
+        <input id="expiryDate" type="date" class="form-control" @bind="_surveyExpiryDate" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Organisation</label>
-        <select class="form-select" @bind="_organisationId">
+        <label class="form-label" for="organisation">Organisation</label>
+        <select id="organisation" class="form-select" @bind="_organisationId">
             <option value="0">Välj organisation</option>
             @foreach (var org in Organisations)
             {
@@ -25,13 +25,13 @@
     @if (!IsEditing)
     {
         <div class="mb-3">
-            <label class="form-label">Skapad av (user id) — tillfälligt fält tills inloggning finns</label>
-            <input class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
+            <label class="form-label" for="createdByUserId">Skapad av (user id) — tillfälligt fält tills inloggning finns</label>
+            <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
         </div>
     }
 
-    <div class="mb-3">
-        <label class="form-label">Frågor</label>
+    <fieldset class="mb-3">
+        <legend class="form-label">Frågor</legend>
         @foreach (var question in Questions)
         {
             <div class="form-check">
@@ -41,11 +41,11 @@
                 <label class="form-check-label" for="@($"question-{question.Id}")">@question.Text</label>
             </div>
         }
-    </div>
+    </fieldset>
 
     @if (_errors.Count > 0)
     {
-        <ul class="text-danger">
+        <ul class="text-danger" role="alert">
             @foreach (var error in _errors)
             {
                 <li>@error</li>
