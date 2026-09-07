@@ -29,11 +29,11 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<EduSenseDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<EduSenseUserDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<EduSenseDbContext>(options => options.UseNpgsql(connectionString));
+
+builder.Services.AddDbContext<EduSenseUserDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -58,16 +58,6 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
-
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<EduSenseDbContext>(o => o.UseNpgsql(connectionString));
-builder.Services.AddDbContext<EduSenseUserDbContext>(o => o.UseNpgsql(connectionString));
-
-//aktivera ASP.NET Identity användar- och rollhantering
-builder.Services.AddIdentityCore<ApplicationUser>()
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<EduSenseUserDbContext>();
 
 builder.Services.AddAuthorization(options =>
 {
