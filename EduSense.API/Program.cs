@@ -55,7 +55,8 @@ builder.Services.AddCors(options =>
             "https://localhost:7289",
             "http://localhost:5107")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -64,7 +65,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<EduSenseDbContext>(o => o.UseNpgsql(connectionString));
 builder.Services.AddDbContext<EduSenseUserDbContext>(o => o.UseNpgsql(connectionString));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)//detta är inte ett smart sätt att ge access till Http
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -112,7 +113,7 @@ using (var scope = app.Services.CreateScope())
         // (som bara kollar "finns databasen") skulle hoppa över Identity-tabellerna
         // eftersom databasen redan finns efter directAppDb:s EnsureCreatedAsync.
         // CreateTablesAsync tvingar fram tabellerna oavsett.
-        await directAppDb.Database.EnsureDeletedAsync();
+        await directAppDb.Database.EnsureDeletedAsync();// ???
         await directAppDb.Database.EnsureCreatedAsync();
         await directUserDb.Database.GetService<IRelationalDatabaseCreator>().CreateTablesAsync();
     }
