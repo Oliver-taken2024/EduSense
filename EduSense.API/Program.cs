@@ -65,7 +65,20 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<EduSenseDbContext>(o => o.UseNpgsql(connectionString));
 builder.Services.AddDbContext<EduSenseUserDbContext>(o => o.UseNpgsql(connectionString));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)//detta är inte ett smart sätt att ge access till Http
+//aktivera ASP.NET Identity användar- och rollhantering
+builder.Services.AddIdentityCore<ApplicationUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<EduSenseUserDbContext>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("AnalystOnly", policy => policy.RequireRole("Analyst"));
+    options.AddPolicy("RespondentOnly", policy => policy.RequireRole("Respondent"));
+    options.AddPolicy("AdminOrAnalyst", policy => policy.RequireRole("Admin", "Analyst"));
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters

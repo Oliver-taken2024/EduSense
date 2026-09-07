@@ -1,0 +1,82 @@
+﻿<h4>@(IsEditing ? "Redigera fråga" : "Ny fråga")</h4>
+
+<form @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
+    <div class="mb-3">
+        <label class="form-label">Frågetext</label>
+        <input class="form-control" @bind="_text" @bind:event="oninput" />
+    </div>
+
+    @if (_errors.Count > 0)
+    {
+        <ul class="text-danger">
+            @foreach (var error in _errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    }
+
+    <button type="submit" class="btn btn-primary" disabled="@_isSaving">Spara</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
+</form>
+
+@code {
+    [Parameter] public QuestionDto? Question { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    [Inject] private ApiService Api { get; set; } = default!;
+
+    private bool IsEditing => Question is not null && Question.Id != 0;
+
+    private string _text = string.Empty;
+    private List<string> _errors = [];
+    private bool _isSaving;
+    private int? _loadedQuestionId;
+
+    protected override void OnParametersSet()
+    {
+        if (Question?.Id == _loadedQuestionId)
+        {
+            return;
+        }
+
+        _loadedQuestionId = Question?.Id;
+        _text = Question?.Text ?? string.Empty;
+    }
+
+    private async Task SaveAsync()
+    {
+        _errors = [];
+        _isSaving = true;
+
+        var dto = new QuestionDto { Id = Question?.Id ?? 0, Text = _text, CreatedByUserId = Question?.CreatedByUserId ?? string.Empty, Organisation = Question?.Organisation };
+
+        try
+        {
+            if (IsEditing)
+            {
+                await Api.PutAsync<QuestionDto>($"api/Question/{Question!.Id}", dto);
+            }
+            else
+            {
+                await Api.PostAsync<QuestionDto>("api/Question", dto);
+            }
+
+            await OnSaved.InvokeAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errors = ex.Errors.ToList();
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancelled.InvokeAsync();
+    }
+}
