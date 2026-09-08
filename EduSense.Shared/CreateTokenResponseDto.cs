@@ -6,12 +6,12 @@ namespace EduSense.Shared
 {
     public class CreateTokenResponseDto
     {
-        public string Token { get; }
-        public DateTime TokenExpiresAt { get; }
+        
+        public DateTime TokenExpiresAt { get; set; }
 
-        public CreateTokenResponseDto(string token, DateTime tokenExpiresAt)
+        public CreateTokenResponseDto(DateTime tokenExpiresAt)
         {
-            Token = token;
+           
             TokenExpiresAt = tokenExpiresAt;
         }
     }
