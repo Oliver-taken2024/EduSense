@@ -1,8 +1,10 @@
 ﻿@page "/login"
 
 @using EduSense.Shared
+@using EduSense.UI.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject CookieAuthenticationStateProvider AuthStateProvider
 
 
 <PageTitle>Login</PageTitle>
@@ -13,7 +15,7 @@
         <h1>Login</h1>
 
         <p class="Login-text">
-            Loggin to continue to EduSense.
+            Login to continue to EduSense.
         </p>
 
         <EditForm Model="@loginModel" OnValidSubmit="@LoginAsync">
@@ -76,8 +78,10 @@
 
             if(response.IsSuccessStatusCode)
             {
-                // Login lyckades.
-                // API:t har satt JWT som HTTP-Only cookie.
+                // Login lyckades. API:t har satt JWT + refresh-token som httpOnly-cookies.
+                // Tala om för Blazor att auth-statusen kan ha ändrats, så AuthorizeRouteView
+                // frågar api/auth/me på nytt istället för att fortsätta tro att vi är utloggade.
+                AuthStateProvider.NotifyAuthenticationChanged();
 
                 Navigation.NavigateTo("/");
             }

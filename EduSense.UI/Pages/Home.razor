@@ -1,16 +1,19 @@
-﻿@page "/"
+@page "/"
+@attribute [Authorize]
 
-<PageTitle>Home</PageTitle>
-
-<h1>Hello, world!</h1>
+<PageTitle>Välkommen</PageTitle>
 
 <div>
     <img src="Images/MainLogo.png" alt="Logo" class="img-fluid" style="max-width: 150px; margin-top: 0px;" />
-
-
 </div>
 
-<a href="/question-page">
-    <button type="button">Go to QuestionPage</button>
-</a>
+<h1>Välkommen till EduSense</h1>
 
+<div class="d-flex gap-2">
+    <a href="/survey-management">
+        <button type="button">Enkäthantering</button>
+    </a>
+    <a href="/question-management">
+        <button type="button">Frågehantering</button>
+    </a>
+</div>

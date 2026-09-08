@@ -103,11 +103,25 @@ namespace EduSense.API.Controllers
                 {
                     await _refreshTokenRepository.RemoveAsync(stored);
                 }
-                Response.Cookies.Delete("accessToken");
-                //Response.Cookies.Delete("refreshToken");
             }
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
 
             return Ok("Utloggning lyckades");
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var username = User.Identity?.Name;
+            if (username is null)
+            {
+                return Unauthorized();
+            }
+
+            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            return Ok(new UserInfoDto { Username = username, Roles = roles });
         }
 
         private async Task<CreateTokenResponseDto> CreateTokenResponseAsync(ApplicationUser user)
