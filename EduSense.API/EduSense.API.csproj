@@ -25,4 +25,8 @@
     <ProjectReference Include="..\EduSense.Shared\EduSense.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>
