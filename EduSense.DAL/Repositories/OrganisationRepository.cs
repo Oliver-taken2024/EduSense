@@ -21,5 +21,26 @@ namespace EduSense.DAL.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<OrganisationModel?> GetByIdAsync(int id)
+        {
+            return await _context.Organisations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public async Task<OrganisationModel> CreateAsync(OrganisationModel organisation)
+        {
+            _context.Organisations.Add(organisation);
+            await _context.SaveChangesAsync();
+            return organisation;
+        }
+
+        public async Task<OrganisationModel> UpdateAsync(OrganisationModel organisation)
+        {
+            _context.Organisations.Update(organisation);
+            await _context.SaveChangesAsync();
+            return organisation;
+        }
     }
 }
