@@ -104,7 +104,7 @@ namespace EduSense.API.Controllers
                     await _refreshTokenRepository.RemoveAsync(stored);
                 }
                 Response.Cookies.Delete("accessToken");
-                //Response.Cookies.Delete("refreshToken");
+                Response.Cookies.Delete("refreshToken");
             }
 
             return Ok("Utloggning lyckades");
