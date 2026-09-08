@@ -21,5 +21,39 @@ namespace EduSense.API.Controllers
             var organisations = await _organisationService.GetAllAsync();
             return Ok(organisations);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<OrganisationDto>> Post([FromBody] OrganisationDto organisation)
+        {
+            // Skapa ny organisation
+            try
+            {
+                var created = await _organisationService.CreateAsync(organisation);
+                return CreatedAtAction(nameof(GetAll), created);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<OrganisationDto>> Put(int id, [FromBody] OrganisationDto organisation)
+        {
+            if (id != organisation.Id)
+            {
+                return BadRequest("ID mismatch");
+            }
+
+            try
+            {
+                var updated = await _organisationService.UpdateAsync(organisation);
+                return Ok(updated);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

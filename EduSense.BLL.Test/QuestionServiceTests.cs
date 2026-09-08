@@ -9,11 +9,11 @@ using Xunit;
 public class QuestionServiceTests
 {
     private readonly Mock<IQuestionRepository> _repoMock = new();
-    private readonly QuestionService _sut;
+    private readonly QuestionService _questionService;
 
     public QuestionServiceTests()
     {
-        _sut = new QuestionService(_repoMock.Object);
+        _questionService = new QuestionService(_repoMock.Object);
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class QuestionServiceTests
     {
         var dto = new QuestionDto { Text = "  " };
 
-        await Assert.ThrowsAsync<ValidationException>(() => _sut.CreateAsync(dto));
+        await Assert.ThrowsAsync<ValidationException>(() => _questionService.CreateAsync(dto));
 
         _repoMock.Verify(r => r.CreateAsync(It.IsAny<QuestionModel>()), Times.Never);
     }
@@ -34,7 +34,7 @@ public class QuestionServiceTests
             .Setup(r => r.CreateAsync(It.IsAny<QuestionModel>()))
             .ReturnsAsync((QuestionModel q) => { q.Id = 42; return q; });
 
-        var result = await _sut.CreateAsync(dto);
+        var result = await _questionService.CreateAsync(dto);
 
         Assert.Equal(42, result.Id);
         Assert.Equal("Hur trivs du?", result.Text);
@@ -47,7 +47,7 @@ public class QuestionServiceTests
         _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(question);
         _repoMock.Setup(r => r.UpdateAsync(question)).ReturnsAsync(question);
 
-        var result = await _sut.UpdateAsync(1, new QuestionDto { Text = "Ny text" });
+        var result = await _questionService.UpdateAsync(1, new QuestionDto { Text = "Ny text" });
 
         Assert.Equal("Ny text", result?.Text);
         _repoMock.Verify(r => r.UpdateAsync(question), Times.Once);
@@ -58,7 +58,7 @@ public class QuestionServiceTests
     {
         _repoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((QuestionModel?)null);
 
-        var result = await _sut.UpdateAsync(99, new QuestionDto { Text = "Text" });
+        var result = await _questionService.UpdateAsync(99, new QuestionDto { Text = "Text" });
 
         Assert.Null(result);
     }
@@ -68,7 +68,7 @@ public class QuestionServiceTests
     {
         var dto = new QuestionDto { Text = "  " };
 
-        await Assert.ThrowsAsync<ValidationException>(() => _sut.UpdateAsync(1, dto));
+        await Assert.ThrowsAsync<ValidationException>(() => _questionService.UpdateAsync(1, dto));
 
         _repoMock.Verify(r => r.UpdateAsync(It.IsAny<QuestionModel>()), Times.Never);
     }
@@ -80,7 +80,7 @@ public class QuestionServiceTests
         var question = new QuestionModel { Id = 1, Text = "X", CreatedByUserId = "u" };
         _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(question);
 
-        var result = await _sut.DeleteAsync(1);
+        var result = await _questionService.DeleteAsync(1);
 
         Assert.True(result);
         _repoMock.Verify(r => r.DeleteAsync(question), Times.Once);
@@ -91,7 +91,7 @@ public class QuestionServiceTests
     {
         _repoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((QuestionModel?)null);
 
-        var result = await _sut.DeleteAsync(99);
+        var result = await _questionService.DeleteAsync(99);
 
         Assert.False(result);
         _repoMock.Verify(r => r.DeleteAsync(It.IsAny<QuestionModel>()), Times.Never);
@@ -109,7 +109,7 @@ public class QuestionServiceTests
             }
         });
 
-        var result = await _sut.GetAllAsync();
+        var result = await _questionService.GetAllAsync();
 
         Assert.Equal("Acme AB", result.Single().Organisation?.Name);
     }
@@ -119,7 +119,7 @@ public class QuestionServiceTests
     {
         _repoMock.Setup(r => r.GetByIdWithOrganisationAsync(99)).ReturnsAsync((QuestionWithOrganisationModel?)null);
 
-        var result = await _sut.GetByIdAsync(99);
+        var result = await _questionService.GetByIdAsync(99);
 
         Assert.Null(result);
     }
@@ -134,7 +134,7 @@ public class QuestionServiceTests
         };
         _repoMock.Setup(r => r.GetByIdWithOrganisationAsync(1)).ReturnsAsync(withOrg);
 
-        var result = await _sut.GetByIdAsync(1);
+        var result = await _questionService.GetByIdAsync(1);
 
         Assert.NotNull(result);
         Assert.Equal(1, result!.Id);
