@@ -126,11 +126,25 @@ namespace EduSense.API.Controllers
                 {
                     await _refreshTokenRepository.RemoveAsync(stored);
                 }
-
-                Response.Cookies.Delete("refreshToken");
             }
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
 
             return Ok("Utloggning lyckades");
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var username = User.Identity?.Name;
+            if (username is null)
+            {
+                return Unauthorized();
+            }
+
+            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            return Ok(new UserInfoDto { Username = username, Roles = roles });
         }
 
         private async Task<CreateTokenResponseDto> CreateTokenResponseAsync(ApplicationUser user)
@@ -154,8 +168,15 @@ namespace EduSense.API.Controllers
                 claims: claims,
                 expires: accessTokenExpiry,
                 signingCredentials: credentials);
-
+             
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+            Response.Cookies.Append("accessToken", accessToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = accessTokenExpiry
+            });
 
             var refreshTokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(RefreshTokenDays);
@@ -175,7 +196,7 @@ namespace EduSense.API.Controllers
                 Expires = refreshTokenExpiry
             });
 
-            return new CreateTokenResponseDto(accessToken, accessTokenExpiry);
+            return new CreateTokenResponseDto(accessTokenExpiry);
         }
     }
 }

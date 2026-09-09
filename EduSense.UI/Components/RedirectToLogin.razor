@@ -1,0 +1,10 @@
+@inject NavigationManager Navigation
+
+@code {
+    // OnInitialized (inte OnInitializedAsync) räcker - vi gör bara en synkron navigering,
+    // ingen await behövs.
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

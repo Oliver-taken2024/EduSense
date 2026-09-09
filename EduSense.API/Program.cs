@@ -39,6 +39,15 @@ builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<EduSenseUserDbContext>();
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+});
+
 builder.Services.AddScoped<ISurveyRepository, SurveyRepository>();
 builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
@@ -71,20 +80,30 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+         options.TokenValidationParameters = new TokenValidationParameters
+         {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            builder.Configuration["Jwt:Key"]!)),
+
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+         };
+         options.Events = new JwtBearerEvents
+         {
+        OnMessageReceived = context =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration["Jwt:Key"]!)),
+            context.Token =
+                context.Request.Cookies["accessToken"];
 
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            return Task.CompletedTask;
+        }
         };
     });
 
