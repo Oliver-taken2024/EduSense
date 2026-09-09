@@ -143,8 +143,9 @@ namespace EduSense.API.Controllers
                 return Unauthorized();
             }
 
+            var displayName = User.FindFirst("display_name")?.Value ?? username;
             var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
-            return Ok(new UserInfoDto { Username = username, Roles = roles });
+            return Ok(new UserInfoDto { Username = username, DisplayName = displayName, Roles = roles });
         }
 
         private async Task<CreateTokenResponseDto> CreateTokenResponseAsync(ApplicationUser user)
@@ -154,7 +155,8 @@ namespace EduSense.API.Controllers
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
-                new(ClaimTypes.Name, user.UserName!)
+                new(ClaimTypes.Name, user.UserName!),
+                new("display_name", user.DisplayName ?? user.UserName!)
             };
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

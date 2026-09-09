@@ -1,4 +1,5 @@
-﻿<h4>@(IsEditing ? "Redigera enkät" : "Ny enkät")</h4>
+﻿<div class="fade-in-up">
+<h4>@(IsEditing ? "Redigera enkät" : "Ny enkät")</h4>
 
 <form @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
     <div class="mb-3">
@@ -56,6 +57,7 @@
     <button type="submit" class="btn button-login" disabled="@_isSaving">Spara</button>
     <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
 </form>
+</div>
 
 @code {
     [Parameter] public SurveyDto? Survey { get; set; }

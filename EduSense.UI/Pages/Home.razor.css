@@ -1,0 +1,33 @@
+.Welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.Welcome-logo {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 1rem;
+}
+
+.Welcome-text {
+    color: var(--text-color-secondary);
+    margin-bottom: 2rem;
+}
+
+.Welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 480px;
+}
+
+@media (max-width: 480px) {
+    .Welcome-actions {
+        flex-direction: column;
+    }
+}
