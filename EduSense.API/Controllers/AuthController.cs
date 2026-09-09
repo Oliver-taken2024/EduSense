@@ -29,12 +29,28 @@ namespace EduSense.API.Controllers
             _configuration = configuration;
         }
 
-        //[HttpPost("Set-initial-password")]
-        //[AllowAnonymous]
-        //public async Task<IActionResult> SetInitialPassword([FromBody] SetInitialPasswordRequestDto dto)
-        //{
+        [HttpPost("set-initial-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SetInitialPassword([FromBody] SetInitialPasswordRequestDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user is null)
+            {
+                return BadRequest("Ogiltig länk.");
+            }
 
-        //}
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors.Select(e => e.Description));
+            }
+
+            user.EmailConfirmed = true;
+            user.IsActive = true;
+            await _userManager.UpdateAsync(user);
+
+            return Ok("Lösenord skapat. Du kan nu logga in.");
+        }
 
         [HttpPost("login")]
         [AllowAnonymous]

@@ -12,6 +12,7 @@ using EduSense.DAL.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
+
 static string ToDirectConnectionString(string pooledConnectionString)
 {
     var builder = new NpgsqlConnectionStringBuilder(pooledConnectionString)
@@ -86,6 +87,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromDays(1);
+});
+
+builder.Services.AddScoped<IEmailSender, NullEmailSender>();
 
 var app = builder.Build();
 
