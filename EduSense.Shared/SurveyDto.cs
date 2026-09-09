@@ -7,7 +7,8 @@ namespace EduSense.Shared
     public class SurveyDto
     {
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
         public DateTime SurveyExpiryDate { get; set; }
         public int OrganisationId { get; set; }
 

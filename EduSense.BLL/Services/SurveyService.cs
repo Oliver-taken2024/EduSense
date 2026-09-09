@@ -38,6 +38,7 @@ namespace EduSense.BLL.Services
             var survey = new SurveyModel
             {
                 Title = dto.Title,
+                Description = dto.Description,
                 SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate),
                 OrganisationId = dto.OrganisationId,
                 CreatedByUserId = dto.CreatedByUserId,
@@ -63,6 +64,7 @@ namespace EduSense.BLL.Services
             await ValidateAsync(dto, excludeSurveyId: id);
 
             survey.Title = dto.Title;
+            survey.Description = dto.Description;
             survey.SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate);
             survey.OrganisationId = dto.OrganisationId;
 
@@ -89,6 +91,7 @@ namespace EduSense.BLL.Services
             {
                 Id = survey.Id,
                 Title = survey.Title,
+                Description = survey.Description,
                 SurveyExpiryDate = survey.SurveyExpiryDate,
                 OrganisationId = survey.OrganisationId,
                 Organisation = survey.Organisation is null ? null : new OrganisationDto
