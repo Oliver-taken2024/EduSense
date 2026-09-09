@@ -29,6 +29,29 @@ namespace EduSense.API.Controllers
             _configuration = configuration;
         }
 
+        [HttpPost("set-initial-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SetInitialPassword([FromBody] SetInitialPasswordRequestDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user is null)
+            {
+                return BadRequest("Ogiltig länk.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors.Select(e => e.Description));
+            }
+
+            user.EmailConfirmed = true;
+            user.IsActive = true;
+            await _userManager.UpdateAsync(user);
+
+            return Ok("Lösenord skapat. Du kan nu logga in.");
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
@@ -43,22 +66,22 @@ namespace EduSense.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("register")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
-        {
-            var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
+        //[HttpPost("register")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
+        //{
+        //    var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
+        //    var result = await _userManager.CreateAsync(user, dto.Password);
 
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors.Select(e => e.Description);
-                return BadRequest(errors);
-            }
+        //    if (!result.Succeeded)
+        //    {
+        //        var errors = result.Errors.Select(e => e.Description);
+        //        return BadRequest(errors);
+        //    }
 
-            return Ok("Registrering lyckades");
-        }
+        //    return Ok("Registrering lyckades");
+        //}
 
         [HttpPost("refresh")]
         [AllowAnonymous]
