@@ -1,0 +1,151 @@
+.Login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    .Login-container {
+        min-height: calc(100vh - 3.5rem);
+    }
+}
+
+.Login-box {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(165deg, var(--background-color-2), var(--background-color-1) 130%);
+    border-radius: 16px;
+    padding: 2rem 1.75rem;
+    text-align: center;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 60px rgba(212, 175, 55, 0.08);
+    box-sizing: border-box;
+    animation: login-box-in 0.4s ease-out;
+}
+
+@keyframes login-box-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .Login-box {
+        animation: none;
+    }
+}
+
+.Login-logo {
+    width: 100%;
+    max-width: 260px;
+    margin-bottom: 0.5rem;
+}
+
+.Login-box h1 {
+    font-family: var(--font-family-title);
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.Login-box .form-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.Login-box label {
+    display: block;
+    font-size: var(--font-size-text-medium);
+    margin-bottom: 0.35rem;
+}
+
+/* ::deep krävs eftersom InputText är en child-component - dess <input>
+   får inte Login-sidans scope-attribut automatiskt, så vanlig scoped CSS
+   skulle annars aldrig träffa den. */
+.Login-box ::deep .form-control {
+    width: 100%;
+    background-color: var(--input-background-color);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    color: #000; /* #1a1a1a gav bara 4.41:1 mot #808080-bakgrunden, under WCAG-kravet 4.5:1 */
+    box-sizing: border-box;
+    /* Utan denna ärver caretet color-scheme: dark (satt av data-bs-theme på
+       <html>) och ritas i webbläsarens mörka standardfärg - osynligt mot det
+       ljusgrå fältet trots att textfärgen ovan är rätt. */
+    caret-color: #000;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .Login-box ::deep .form-control:focus {
+        /* Guldglöd som komplement till appens globala fokusram (app.css) -
+           tar inte bort den, bara lägger på temats färg ovanpå. */
+        border-color: var(--accent-color-gold);
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+    }
+
+.login-button {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 0.75rem 1rem;
+    background-color: var(--button-login-color);
+    color: var(--text-color);
+    font-family: var(--font-family-body);
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    /* Ingen egen cursor här - ärver den globala custom-pekaren från Main.css.
+       En egen `cursor: pointer` här skulle vinna över den (klass-selektor
+       slår element-selektor), vilket var precis det som hände innan. */
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+    .login-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(46, 107, 94, 0.45);
+        filter: brightness(1.1);
+    }
+
+    .login-button:active:not(:disabled) {
+        transform: translateY(0) scale(0.97);
+    }
+
+    .login-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+.error-message {
+    color: #ff9999; /* #ff8a8a gav bara 4.3:1 mot Login-boxens bakgrund, under WCAG-kravet 4.5:1 */
+    margin-bottom: 1rem;
+}
+
+.Login-box a {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--accent-color-gold);
+    transition: color 0.15s ease;
+}
+
+    .Login-box a:hover {
+        color: #e8c766;
+        text-decoration-thickness: 2px;
+    }
+
+@media (max-width: 480px) {
+    .Login-box {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .Login-logo {
+        max-width: 200px;
+    }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv" data-bs-theme="dark">
 
 <head>
     <meta charset="utf-8" />
@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/Main.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
     <link href="EduSense.UI.styles.css" rel="stylesheet" />
     <script type="importmap"></script>
 </head>
@@ -24,11 +23,12 @@
         <div class="loading-progress-text"></div>
     </div>
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="." class="reload">Reload</a>
-        <span class="dismiss">🗙</span>
+    <div id="blazor-error-ui" role="alert">
+        Ett oväntat fel har inträffat.
+        <a href="." class="reload">Ladda om</a>
+        <button type="button" class="dismiss" aria-label="Stäng felmeddelande">🗙</button>
     </div>
+    <script src="js/focusTrap.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 

@@ -9,7 +9,8 @@ main {
 }
 
 .sidebar {
-    background-color: var(--background-color-2);
+    background: linear-gradient(180deg, var(--background-color-2), var(--background-color-1) 140%);
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.25);
 }
 
 @media (min-width: 641px) {

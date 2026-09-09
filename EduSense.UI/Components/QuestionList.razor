@@ -1,12 +1,7 @@
-﻿<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Frågor</h4>
-    <button type="button" class="btn btn-primary" @onclick="() => OnCreateNew.InvokeAsync()">
-        Ny fråga
-    </button>
-</div>
-
+<div class="fade-in-up">
 <div class="mb-3">
-    <input class="form-control" placeholder="Sök fråga..." @bind="_filterText" @bind:event="oninput" />
+    <label for="questionFilter" class="visually-hidden">Sök fråga</label>
+    <input id="questionFilter" class="form-control" placeholder="Sök fråga..." value="@_filterText" @oninput="OnFilterChanged" />
 </div>
 
 @if (FilteredQuestions.Count == 0)
@@ -15,51 +10,72 @@
 }
 else
 {
+    <div class="table-responsive">
     <table class="table">
+        <caption class="visually-hidden">Lista över frågor</caption>
         <thead>
             <tr>
                 <th>Text</th>
-                <th>Organisation</th>   
-                <th></th>
+                <th>Organisation</th>
+                <th><span class="visually-hidden">Åtgärder</span></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var question in FilteredQuestions)
+            @foreach (var question in PagedQuestions)
             {
                 <tr>
                     <td>@question.Text</td>
-                    <td>@question.Organisation?.Name</td>   
+                    <td>@question.Organisation?.Name</td>
                     <td>
-                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                @onclick="() => OnEdit.InvokeAsync(question)">
-                            Redigera
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                @onclick="() => OnCopy.InvokeAsync(question)">
-                            Kopiera
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                @onclick="() => OnDelete.InvokeAsync(question.Id)">
-                            Ta bort
-                        </button>
+                        <div class="table-actions">
+                            <button type="button" class="btn btn-sm button-login"
+                                    aria-label="@($"Redigera frågan {question.Text}")" @onclick="() => OnEdit.InvokeAsync(question)">
+                                <img src="/Images/Edit.png" alt="" width="14" height="14" /> Redigera
+                            </button>
+                            <button type="button" class="btn btn-sm button-copy"
+                                    aria-label="@($"Kopiera frågan {question.Text}")" @onclick="() => OnCopy.InvokeAsync(question)">
+                                Kopiera
+                            </button>
+                            <button type="button" class="btn btn-sm button-logout"
+                                    aria-label="@($"Ta bort frågan {question.Text}")" @onclick="() => OnDelete.InvokeAsync(question.Id)">
+                                <img src="/Images/Delete.png" alt="" width="14" height="14" /> Ta bort
+                            </button>
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+    </div>
+
+    <Pagination TotalItems="FilteredQuestions.Count" PageSize="PageSize" CurrentPage="_currentPage" CurrentPageChanged="page => _currentPage = page" ItemLabel="frågor" />
 }
+</div>
 
 @code {
     [Parameter] public IReadOnlyList<QuestionDto> Questions { get; set; } = [];
     [Parameter] public EventCallback<QuestionDto> OnEdit { get; set; }
     [Parameter] public EventCallback<QuestionDto> OnCopy { get; set; }
     [Parameter] public EventCallback<int> OnDelete { get; set; }
-    [Parameter] public EventCallback OnCreateNew { get; set; }
+
+    private const int PageSize = 7;
 
     private string _filterText = string.Empty;
+    private int _currentPage = 1;
 
     private IReadOnlyList<QuestionDto> FilteredQuestions =>
         string.IsNullOrWhiteSpace(_filterText)
             ? Questions
             : Questions.Where(q => q.Text.Contains(_filterText, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private IReadOnlyList<QuestionDto> PagedQuestions =>
+        FilteredQuestions.Skip((_currentPage - 1) * PageSize).Take(PageSize).ToList();
+
+    private void OnFilterChanged(ChangeEventArgs e)
+    {
+        _filterText = e.Value?.ToString() ?? string.Empty;
+        // Börja om på sida 1 - annars kan man fastna på en sida som inte
+        // längre finns när filtreringen krymper resultatet.
+        _currentPage = 1;
+    }
 }

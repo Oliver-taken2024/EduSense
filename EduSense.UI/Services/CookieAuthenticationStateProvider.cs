@@ -21,7 +21,11 @@ namespace EduSense.UI.Services
                     return Anonymous;
                 }
 
-                var claims = new List<Claim> { new(ClaimTypes.Name, userInfo.Username) };
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.Name, userInfo.Username),
+                    new("display_name", userInfo.DisplayName)
+                };
                 claims.AddRange(userInfo.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 var identity = new ClaimsIdentity(claims, authenticationType: "jwt-cookie");

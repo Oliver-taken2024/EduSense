@@ -1,9 +1,12 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
 @if (IsVisible)
 {
-    <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" 
-    aria-describedBy="confirmDialogMessage" @onkeydown="HandleKeyDown" style="background-color: rgba(0,0,0,0.5);">
+    <div id="@_modalId" class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle"
+    aria-describedby="confirmDialogMessage" @onkeydown="HandleKeyDown" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
-            <div class="modal-content background2">
+            <div class="modal-content background2 pop-modal">
                 <div class="modal-header">
                     <h5 id="confirmDialogTitle" class="modal-title">@Title</h5>
                 </div>
@@ -26,6 +29,7 @@
 @code {
     [Parameter] public bool IsVisible { get; set; }
 
+    private readonly string _modalId = $"confirmDialog-{Guid.NewGuid():N}";
     private ElementReference _cancelButtonRef;
     private bool _previouslyVisible;
 
@@ -39,7 +43,13 @@
         if (IsVisible && !_previouslyVisible)
         {
             await _cancelButtonRef.FocusAsync();
+            await JS.InvokeVoidAsync("eduSenseFocusTrap.trap", _modalId);
         }
+        else if (!IsVisible && _previouslyVisible)
+        {
+            await JS.InvokeVoidAsync("eduSenseFocusTrap.release");
+        }
+
         _previouslyVisible = IsVisible;
     }
 
@@ -51,4 +61,11 @@
         }
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (_previouslyVisible)
+        {
+            await JS.InvokeVoidAsync("eduSenseFocusTrap.release");
+        }
+    }
 }
