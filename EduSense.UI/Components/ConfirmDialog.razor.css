@@ -1,0 +1,38 @@
+.modal {
+    animation: confirm-overlay-in 0.15s ease-out;
+}
+
+.pop-modal {
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 60px rgba(212, 175, 55, 0.08);
+    animation: confirm-box-in 0.2s ease-out;
+}
+
+@keyframes confirm-overlay-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes confirm-box-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal,
+    .pop-modal {
+        animation: none;
+    }
+}

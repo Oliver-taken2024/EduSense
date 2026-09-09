@@ -3,17 +3,69 @@ html, body {
 }
 
 h1:focus {
-    outline: none;
+    outline: 0.15rem solid #D4AF37;
+    outline-offset: 0.2rem;
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: #D4AF37; /* accent-color-gold - byte från #0071c1 som bara gav ~2.8:1 kontrast mot mörk bakgrund (WCAG 1.4.3 kräver 4.5:1) */
 }
+
+.skip-link {
+    position: absolute;
+    top: -3rem;
+    left: 0.5rem;
+    z-index: 2000;
+    padding: 0.5rem 1rem;
+    background: #D4AF37;
+    color: #0F2E33;
+    border-radius: 4px;
+}
+
+    .skip-link:focus {
+        top: 0.5rem;
+    }
+
+.btn-primary,
+.btn-secondary {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background-color 0.15s ease;
+}
+
+    .btn-primary:hover:not(:disabled),
+    .btn-secondary:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+
+    .btn-primary:active:not(:disabled),
+    .btn-secondary:active:not(:disabled) {
+        transform: translateY(0) scale(0.96);
+    }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: var(--button-link-color);
+    border-color: var(--button-link-color);
+}
+
+    .btn-primary:hover:not(:disabled) {
+        filter: brightness(1.1);
+        box-shadow: 0 6px 16px rgba(51, 113, 228, 0.4);
+    }
+
+.btn-secondary {
+    color: var(--text-color);
+    background-color: transparent;
+    border-color: var(--text-color-secondary);
+}
+
+    .btn-secondary:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+.table-responsive {
+    /* Låter breda tabeller scrolla horisontellt istället för att tvinga
+       hela sidan att bli bredare än skärmen på mobil/tablet. */
+    -webkit-overflow-scrolling: touch;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -55,6 +107,10 @@ a, .btn-link {
         position: absolute;
         right: 0.75rem;
         top: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: inherit;
     }
 
 .blazor-error-boundary {
