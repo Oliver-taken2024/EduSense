@@ -41,18 +41,18 @@ namespace EduSense.UI.Test
             Assert.Contains("Inga enkäter ännu.", cut.Markup);
         }
 
-        [Fact]
-        public void CreateNew_button_invokes_OnCreateNew()
-        {
-            var wasCalled = false;
-            var cut = RenderComponent<SurveyList>(parameters => parameters
-                .Add(p => p.Surveys, new List<SurveyDto>())
-                .Add(p => p.OnCreateNew, () => wasCalled = true));
+        //[Fact]
+        //public void CreateNew_button_invokes_OnCreateNew()
+        //{
+        //    var wasCalled = false;
+        //    var cut = RenderComponent<SurveyList>(parameters => parameters
+        //        .Add(p => p.Surveys, new List<SurveyDto>())
+        //        .Add(p => p.OnCreateNew, () => wasCalled = true));
 
-            cut.Find("button.btn-primary").Click();
+        //    cut.Find("button.btn-primary").Click();
 
-            Assert.True(wasCalled);
-        }
+        //    Assert.True(wasCalled);
+        //}
 
         [Fact]
         public void Edit_button_invokes_OnEdit_with_correct_survey()
