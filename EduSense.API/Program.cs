@@ -114,7 +114,10 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromDays(1);
 });
 
-builder.Services.AddScoped<IEmailSender, NullEmailSender>();
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+//builder.Services.AddScoped<IEmailSender, NullEmailSender>();
 
 var app = builder.Build();
 
