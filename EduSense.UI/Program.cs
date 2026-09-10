@@ -18,7 +18,15 @@ builder.Services.AddScoped(sp => new HttpClient(new CookieHandler { InnerHandler
 builder.Services.AddScoped<ApiService>();
 
 // AddAuthorizationCore (inte AddAuthorization) - WASM-varianten utan serverberoenden.
-builder.Services.AddAuthorizationCore();
+// Policies måste registreras separat på klienten - de delas inte automatiskt
+// med API-projektets Program.cs eftersom det är två olika processer.
+builder.Services.AddAuthorizationCore(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("AnalystOnly", policy => policy.RequireRole("Analyst"));
+    options.AddPolicy("AdminOrAnalyst", policy => policy.RequireRole("Admin", "Analyst"));
+}); 
+
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthenticationStateProvider>());
 

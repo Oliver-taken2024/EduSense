@@ -20,17 +20,16 @@ namespace EduSense.BLL.Services
         {
             var questions = await _questionRepository.GetAllWithOrganisationAsync();
 
-            return questions
-                .Select(q => new QuestionDto 
-                { 
-                    Id = q.Question.Id, 
-                    Text = q.Question.Text, 
+            return [..questions
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Question.Id,
+                    Text = q.Question.Text,
                     CreatedByUserId = q.Question.CreatedByUserId,
                     Organisation = q.Organisation is null
                 ? null
                 : new OrganisationDto { Id = q.Organisation.Id, Name = q.Organisation.Name }
-                })
-        .ToList();
+                })];
         }
 
         public async Task<QuestionDto?> GetByIdAsync(int id)
