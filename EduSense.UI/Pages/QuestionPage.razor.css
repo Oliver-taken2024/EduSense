@@ -12,6 +12,19 @@
     text-align: center;
 }
 
+/* Skriver över den delade --bs-danger-rgb (kalibrerad mot --background-color-1 i Main.css)
+   bara i den här scoped-CSS:en - mot kortets --background-color-2 ger den delade färgen
+   bara ~3.86:1, under WCAG-kravet 4.5:1. #FFA3AD ger ~5.15:1 mot #134C48. */
+.text-danger {
+    color: #FFA3AD;
+}
+
+.Question-instructions {
+    font-size: var(--font-size-text-medium);
+    opacity: 0.85;
+    margin-top: 0.75rem;
+}
+
 .Question-start-button {
     width: auto;
     padding: 0.9rem 2.5rem;

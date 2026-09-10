@@ -59,7 +59,7 @@ namespace EduSense.BLL.Services
                     SurveyQuestionId = sq.Id,
                     QuestionText = sq.Question!.Text,
                     AnswerOptions = sq.Question.QuestionAnswerOptions
-                        .OrderByDescending(qao => qao.AnswerOption!.Value)
+                        .OrderBy(qao => qao.AnswerOption!.Value)
                         .Select(qao => new RespondentAnswerOptionDto
                     {
                         Id = qao.Id,

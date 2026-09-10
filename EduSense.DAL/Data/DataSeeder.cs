@@ -102,10 +102,10 @@ namespace EduSense.DAL.Data
             await context.SaveChangesAsync();
 
             // Frågor
-            var q1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur nöjd är du med tjänsten?");
+            var q1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur nöjd är du med skolans verksamhet överlag?");
             if (q1 is null)
             {
-                q1 = new QuestionModel { Text = "Hur nöjd är du med tjänsten?", CreatedByUserId = "admin@edusense.com" };
+                q1 = new QuestionModel { Text = "Hur nöjd är du med skolans verksamhet överlag?", CreatedByUserId = "admin@edusense.com" };
                 context.Questions.Add(q1);
             }
 

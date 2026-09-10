@@ -38,6 +38,11 @@ else if (_survey is not null)
                 {
                     <p class="page-subtitle">@_survey.Description</p>
                 }
+                <p class="Question-instructions">
+                    Du kan när som helst stänga sidan och fortsätta senare - dina svar sparas
+                    automatiskt allt eftersom du svarar, och du kommer tillbaka till samma
+                    fråga via länken du fick.
+                </p>
                 <button type="button" class="button-login Question-start-button" @onclick="() => _hasStarted = true">
                     Starta Enkäten
                 </button>
@@ -125,6 +130,13 @@ else if (_survey is not null)
         }
         if (_survey is { IsCompleted: false, Questions.Count: > 0 })
         {
+            var firstUnanswered = _survey.Questions.FindIndex(q => q.AnsweredQuestionAnswerOptionId is null);
+            _currentQuestionIndex = firstUnanswered >= 0 ? firstUnanswered : _survey.Questions.Count - 1;
+
+            // Redan svarat på minst en fråga sen ett tidigare besök - hoppa direkt in i
+            // flödet vid rätt fråga istället för att visa välkomstskärmen igen.
+            _hasStarted = _currentQuestionIndex > 0;
+
             _selectedAnswerId = _survey.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId;
         }
     }
@@ -142,6 +154,10 @@ else if (_survey is not null)
                 SurveyQuestionId = surveyQuestionId,
                 QuestionAnswerOptionId = answerOptionId
             });
+
+            // Håller DTO:n i synk med det sparade svaret, annars glöms valet bort
+            // visuellt om man bläddrar bort och tillbaka till frågan igen.
+            _survey!.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId = answerOptionId;
         }
         catch (ApiException ex)
         {
