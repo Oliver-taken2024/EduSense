@@ -25,7 +25,7 @@ public class SeedingTest
         Assert.True(await roleManager.RoleExistsAsync("Analyst"));
 
         // Kontrollera att admin-användare skapades
-        var adminUser = await userManager.FindByEmailAsync("admin@edusense.se");
+        var adminUser = await userManager.FindByEmailAsync("admin@edusense.com");
         Assert.NotNull(adminUser);
         Assert.True(adminUser.IsActive);
         Assert.Equal("Admin User", adminUser.DisplayName);
@@ -35,7 +35,7 @@ public class SeedingTest
         Assert.Contains("Admin", adminRoles);
 
         // Kontrollera att analyst-användare skapades
-        var analystUser = await userManager.FindByEmailAsync("analyst@edusense.se");
+        var analystUser = await userManager.FindByEmailAsync("analyst@edusense.com");
         Assert.NotNull(analystUser);
         Assert.True(analystUser.IsActive);
 
@@ -101,7 +101,7 @@ public class SeedingTest
         // Kontrollera att det bara finns en admin-användare
         var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
         Assert.Single(adminUsers);
-        Assert.Equal("admin@edusense.se", adminUsers[0].Email);
+        Assert.Equal("admin@edusense.com", adminUsers[0].Email);
 
         // Kontrollera att organisationer inte duplicerades
         var orgCount = await verifyAppContext.Organisations

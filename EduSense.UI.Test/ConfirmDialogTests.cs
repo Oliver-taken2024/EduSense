@@ -9,8 +9,11 @@ namespace EduSense.UI.Test
     public class ConfirmDialogTests : TestContext
     {
         [Fact]
+        
+
         public void Not_rendered_when_IsVisible_false()
         {
+            // bekräfta att dialogen inte renderas när IsVisible är false
             var cut = RenderComponent<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsVisible, false));
 
@@ -18,8 +21,12 @@ namespace EduSense.UI.Test
         }
 
         [Fact]
+      
         public void Renders_title_and_message_when_visible()
         {
+            // bekräfta att dialogen renderas med titel och meddelande när IsVisible är true
+
+            JSInterop.SetupVoid("eduSenseFocusTrap.trap", _ => true);
             var cut = RenderComponent<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsVisible, true)
                 .Add(p => p.Title, "Ta bort enkät")
@@ -32,12 +39,15 @@ namespace EduSense.UI.Test
         [Fact]
         public void Confirm_button_invokes_OnConfirmed()
         {
+            // bekräfta att OnConfirmed anropas när användaren klickar på bekräfta-knappen
+
+            JSInterop.SetupVoid("eduSenseFocusTrap.trap", _ => true);
             var confirmed = false;
             var cut = RenderComponent<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsVisible, true)
                 .Add(p => p.OnConfirmed, EventCallback.Factory.Create(this, () => confirmed = true)));
 
-            cut.Find("button.btn-danger").Click();
+            cut.Find("button.button-logout").Click();
 
             Assert.True(confirmed);
         }
@@ -45,6 +55,9 @@ namespace EduSense.UI.Test
         [Fact]
         public void Cancel_button_invokes_OnCancelled()
         {
+            // bekräfta att OnCancelled anropas när användaren klickar på avbryt-knappen
+
+            JSInterop.SetupVoid("eduSenseFocusTrap.trap", _ => true);
             var cancelled = false;
             var cut = RenderComponent<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsVisible, true)
@@ -58,6 +71,9 @@ namespace EduSense.UI.Test
         [Fact]
         public void Escape_key_invokes_OnCancelled()
         {
+            // bekräfta att OnCancelled anropas när användaren trycker på Escape-tangenten
+
+            JSInterop.SetupVoid("eduSenseFocusTrap.trap", _ => true);
             var cancelled = false;
             var cut = RenderComponent<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsVisible, true)
