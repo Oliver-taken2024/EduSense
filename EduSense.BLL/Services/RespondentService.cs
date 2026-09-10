@@ -58,6 +58,6 @@ namespace EduSense.BLL.Services
                         : null
                 }).ToList()
             };
-        };
+        }
     }
 }

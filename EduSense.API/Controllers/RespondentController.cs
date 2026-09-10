@@ -7,7 +7,7 @@ using EduSense.Shared;
 namespace EduSense.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller")]
+    [Route("api/[controller]")]
     public class RespondentController : ControllerBase
     {
         private readonly IRespondentService _respondentService;
@@ -30,6 +30,6 @@ namespace EduSense.API.Controllers
                 RespondentResultStatus.SurveyExpired => BadRequest("Enkäten har gått ut."),
                 _ => throw new InvalidOperationException($"Okänd status: {result.Status}")
             };
-        };
+        }
     }
 }
