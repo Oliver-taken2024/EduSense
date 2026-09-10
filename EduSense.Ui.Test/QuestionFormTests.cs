@@ -13,6 +13,7 @@ namespace EduSense.UI.Test;
 
 public class QuestionFormTests : TestContext
 {
+    // Registrerar en ApiService med en fejkad HttpMessageHandler som returnerar ett fast svar
     private void RegisterApiService(HttpStatusCode statusCode, object? content = null)
     {
         var handler = new FakeHttpMessageHandler(statusCode, content);
@@ -23,6 +24,8 @@ public class QuestionFormTests : TestContext
     [Fact]
     public void Shows_create_title_when_no_question_given()
     {
+        // Testar att komponenten visar "Ny fråga" när ingen fråga skickas in
+
         RegisterApiService(HttpStatusCode.OK);
 
         var cut = RenderComponent<QuestionForm>();
@@ -33,6 +36,8 @@ public class QuestionFormTests : TestContext
     [Fact]
     public void Shows_edit_title_and_prefills_text_when_editing()
     {
+        // Testar att komponenten visar "Redigera fråga" och förifyller textfältet när en fråga skickas in
+
         RegisterApiService(HttpStatusCode.OK);
         var question = new QuestionDto { Id = 7, Text = "Befintlig fråga" };
 
@@ -46,6 +51,8 @@ public class QuestionFormTests : TestContext
     [Fact]
     public async Task Save_new_question_calls_OnSaved_on_success()
     {
+        // Testar att komponenten anropar OnSaved när en ny fråga sparas med lyckat svar från API:t
+
         RegisterApiService(HttpStatusCode.OK, new QuestionDto { Id = 1, Text = "Ny text" });
         var saved = false;
 
@@ -61,6 +68,8 @@ public class QuestionFormTests : TestContext
     [Fact]
     public async Task Save_shows_errors_and_does_not_call_OnSaved_on_ApiException()
     {
+        // Testar att komponenten visar felmeddelanden och inte anropar OnSaved när API:t returnerar ett fel
+
         RegisterApiService(HttpStatusCode.BadRequest, new List<string> { "Frågetext får inte vara tom." });
         var saved = false;
 
@@ -77,6 +86,8 @@ public class QuestionFormTests : TestContext
     [Fact]
     public async Task Cancel_button_invokes_OnCancelled()
     {
+        // Testar att komponenten anropar OnCancelled när användaren klickar på avbryt-knappen
+
         RegisterApiService(HttpStatusCode.OK);
         var cancelled = false;
 

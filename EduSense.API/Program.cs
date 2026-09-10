@@ -37,7 +37,8 @@ builder.Services.AddDbContext<EduSenseUserDbContext>(options => options.UseNpgsq
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddSignInManager()
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<EduSenseUserDbContext>();
+    .AddEntityFrameworkStores<EduSenseUserDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IOrganisationRepository, OrganisationRepository>();
 builder.Services.AddScoped<IOrganisationService, OrganisationService>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped <IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IRespondentRepository, RespondentRepository>();
 builder.Services.AddScoped<IRespondentService, RespondentService>();
 builder.Services.AddScoped<IResultRepository, ResultRepository>();
@@ -116,7 +118,10 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromDays(1);
 });
 
-builder.Services.AddScoped<IEmailSender, NullEmailSender>();
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+//builder.Services.AddScoped<IEmailSender, NullEmailSender>();
 
 var app = builder.Build();
 

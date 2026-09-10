@@ -1,6 +1,7 @@
 ﻿using EduSense.API.Controllers;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
+using EduSense.BLL.Services;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ public class AuthControllerTests
     private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
     private readonly Mock<IRefreshTokenRepository> _refreshTokenRepoMock = new();
     private readonly Mock<IConfiguration> _configurationMock = new();
+    private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
     private readonly AuthController _sut;
 
     public AuthControllerTests()
@@ -21,7 +23,7 @@ public class AuthControllerTests
         _userManagerMock = new Mock<UserManager<ApplicationUser>>(
             storeMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-        _sut = new AuthController(_userManagerMock.Object, _refreshTokenRepoMock.Object, _configurationMock.Object);
+        _sut = new AuthController(_userManagerMock.Object, _refreshTokenRepoMock.Object, _configurationMock.Object, _passwordResetServiceMock.Object);
     }
 
     [Fact]

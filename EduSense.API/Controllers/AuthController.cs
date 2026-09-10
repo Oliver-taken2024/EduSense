@@ -1,3 +1,4 @@
+using EduSense.BLL.Services;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.Shared;
@@ -21,12 +22,14 @@ namespace EduSense.API.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IConfiguration _configuration;
+        private readonly IPasswordResetService _passwordResetService;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration)
+        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService)
         {
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
+            _passwordResetService = passwordResetService;
         }
 
         [HttpPost("set-initial-password")]
@@ -182,6 +185,30 @@ namespace EduSense.API.Controllers
             });
 
             return new CreateTokenResponseDto(accessTokenExpiry);
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgetPassword(ForgotPasswordDto dto)
+        {
+            var token = await _passwordResetService.ForgotPasswordAsync(dto.Email);
+
+            if (token==null)
+            {
+                return NotFound();
+            }
+            return Ok(new { Token = token });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            var result = await _passwordResetService.ResetPasswordAsync(dto.Email, dto.Token, dto.NewPassword);
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+            return Ok();
         }
     }
 }

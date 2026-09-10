@@ -10,6 +10,8 @@ namespace EduSense.DAL.Data
 {
     public static class DataSeeder
     {
+        // SeedAsync-metoden skapar en scope och anropar metoderna
+        // för att seed:a identitet och applikationsdata.
         public static async Task SeedAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
@@ -20,6 +22,7 @@ namespace EduSense.DAL.Data
 
         private static async Task SeedIdentityAsync(IServiceProvider services)
         {
+            // Hämtar UserManager, RoleManager och EduSenseUserDbContext från dependency injection
             var userContext = services.GetRequiredService<EduSenseUserDbContext>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
@@ -32,14 +35,15 @@ namespace EduSense.DAL.Data
             }
 
             // Skapa admin-användare
-            var adminEmail = "admin@edusense.se";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            var adminEmail = "admin@edusense.com";
+            var adminUserName = "Admin";
+            var adminUser = await userManager.FindByNameAsync(adminUserName);
 
             if (adminUser is null)
             {
                 adminUser = new ApplicationUser
                 {
-                    UserName = adminEmail,
+                    UserName = adminUserName,
                     Email = adminEmail,
                     EmailConfirmed = true,
                     DisplayName = "Admin User",
@@ -51,14 +55,15 @@ namespace EduSense.DAL.Data
             }
 
             // Skapa analyst-användare
-            var analystEmail = "analyst@edusense.se";
-            var analystUser = await userManager.FindByEmailAsync(analystEmail);
+            var analystEmail = "analyst@edusense.com";
+            var analystUserName = "Analyst";
+            var analystUser = await userManager.FindByNameAsync(analystUserName);
 
             if (analystUser is null)
             {
                 analystUser = new ApplicationUser
                 {
-                    UserName = analystEmail,
+                    UserName = analystUserName,
                     Email = analystEmail,
                     EmailConfirmed = true,
                     DisplayName = "Analyst User",
@@ -100,14 +105,14 @@ namespace EduSense.DAL.Data
             var q1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur nöjd är du med tjänsten?");
             if (q1 is null)
             {
-                q1 = new QuestionModel { Text = "Hur nöjd är du med tjänsten?", CreatedByUserId = "admin@edusense.se" };
+                q1 = new QuestionModel { Text = "Hur nöjd är du med tjänsten?", CreatedByUserId = "admin@edusense.com" };
                 context.Questions.Add(q1);
             }
 
             var q2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Skulle du rekommendera oss?");
             if (q2 is null)
             {
-                q2 = new QuestionModel { Text = "Skulle du rekommendera oss?", CreatedByUserId = "admin@edusense.se" };
+                q2 = new QuestionModel { Text = "Skulle du rekommendera oss?", CreatedByUserId = "admin@edusense.com" };
                 context.Questions.Add(q2);
             }
 
@@ -247,7 +252,7 @@ namespace EduSense.DAL.Data
                 survey1 = new SurveyModel
                 {
                     Title = "Kundnöjdhetsenkät",
-                    CreatedByUserId = "admin@edusense.se",
+                    CreatedByUserId = "admin@edusense.com",
                     SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                     OrganisationId = org1.Id
                 };
