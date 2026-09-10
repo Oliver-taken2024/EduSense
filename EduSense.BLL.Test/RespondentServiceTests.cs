@@ -6,7 +6,7 @@ using EduSense.DAL.Repositories;
 using Moq;
 using Xunit;
 
-namespace EduSense.API.Controllers
+namespace EduSense.BLL.Test
 {
     public class RespondentServiceTests
     {

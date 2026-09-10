@@ -27,7 +27,7 @@ namespace EduSense.API.Controllers
             {
                 RespondentResultStatus.Success => Ok(result.Value),
                 RespondentResultStatus.TokenNotFound => NotFound(),
-                RespondentResultStatus.SurveyExpired => BadRequest("Enkäten har gått ut."),
+                RespondentResultStatus.SurveyExpired => BadRequest(new[] { "Enkäten har gått ut." }),
                 _ => throw new InvalidOperationException($"Okänd status: {result.Status}")
             };
         }

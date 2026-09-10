@@ -220,80 +220,88 @@ namespace EduSense.DAL.Data
 
             await context.SaveChangesAsync();
 
-            // Länka frågor och svarsalternativ
-            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans1.Id))
+            // Länka alla frågor till alla svarsalternativ (1-5-skala på varje fråga).
+            var allQuestions = new[] { q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11 };
+            var allAnswerOptions = new[] { ans1, ans2, ans3, ans4, ans5 };
+
+            foreach (var question in allQuestions)
             {
-                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans1.Id });
-            }
-            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans2.Id))
-            {
-                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans2.Id });
-            }
-            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans3.Id))
-            {
-                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans3.Id });
-            }
-            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans4.Id))
-            {
-                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans4.Id });
-            }
-            if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == q1.Id && x.AnswerOptionId == ans5.Id))
-            {
-                context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = q1.Id, AnswerOptionId = ans5.Id });
+                foreach (var answerOption in allAnswerOptions)
+                {
+                    if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == question.Id && x.AnswerOptionId == answerOption.Id))
+                    {
+                        context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = question.Id, AnswerOptionId = answerOption.Id });
+                    }
+                }
             }
 
             await context.SaveChangesAsync();
 
-            // Enkät
-            var survey1 = await context.Surveys
-                .SingleOrDefaultAsync(x => x.Title == "Kundnöjdhetsenkät" && x.OrganisationId == org1.Id);
-            if (survey1 is null)
+            // Enkät 1 - alla 11 frågor
+            var survey1 = await EnsureSurveyAsync(context, "Kundnöjdhetsenkät", org1.Id, DateTime.UtcNow.AddDays(30));
+            await LinkQuestionsToSurveyAsync(context, survey1, allQuestions);
+            await EnsureRespondentAsync(context, survey1, "respondent1@test.com", "token-123");
+            await EnsureRespondentAsync(context, survey1, "respondent2@test.com", "token-456");
+
+            // Enkät 2 - föräldraenkät, skol-/fritidsrelaterade frågor
+            var survey2 = await EnsureSurveyAsync(context, "Föräldraenkät - skola och fritids", org1.Id, DateTime.UtcNow.AddDays(14));
+            await LinkQuestionsToSurveyAsync(context, survey2, [q3, q4, q5, q6, q7, q8, q9, q10, q11]);
+            await EnsureRespondentAsync(context, survey2, "respondent3@test.com", "token-789");
+            await EnsureRespondentAsync(context, survey2, "respondent4@test.com", "token-101");
+
+            // Enkät 3 - utgången, för att testa expired-flödet utan att vänta
+            var survey3 = await EnsureSurveyAsync(context, "Trivselenkät (utgången)", org2.Id, DateTime.UtcNow.AddDays(-5));
+            await LinkQuestionsToSurveyAsync(context, survey3, [q1, q2, q3]);
+            await EnsureRespondentAsync(context, survey3, "respondent5@test.com", "token-expired");
+        }
+
+        private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId, DateTime expiryDate)
+        {
+            var survey = await context.Surveys.SingleOrDefaultAsync(x => x.Title == title && x.OrganisationId == organisationId);
+            if (survey is null)
             {
-                survey1 = new SurveyModel
+                survey = new SurveyModel
                 {
-                    Title = "Kundnöjdhetsenkät",
+                    Title = title,
                     CreatedByUserId = "admin@edusense.com",
-                    SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
-                    OrganisationId = org1.Id
+                    SurveyExpiryDate = expiryDate,
+                    OrganisationId = organisationId
                 };
 
-                context.Surveys.Add(survey1);
+                context.Surveys.Add(survey);
                 await context.SaveChangesAsync();
             }
 
-            // Länka frågor till enkät
-            if (!await context.SurveyQuestions.AnyAsync(x => x.SurveyId == survey1.Id && x.QuestionId == q1.Id))
-            {
-                context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q1.Id });
-            }
-            if (!await context.SurveyQuestions.AnyAsync(x => x.SurveyId == survey1.Id && x.QuestionId == q2.Id))
-            {
-                context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey1.Id, QuestionId = q2.Id });
-            }
-            await context.SaveChangesAsync();
+            return survey;
+        }
 
-            // Respondenter
-            if (!await context.Respondents.AnyAsync(x => x.Email == "respondent1@test.com" && x.SurveyId == survey1.Id))
+        private static async Task LinkQuestionsToSurveyAsync(EduSenseDbContext context, SurveyModel survey, IEnumerable<QuestionModel> questions)
+        {
+            foreach (var question in questions)
             {
-                context.Respondents.Add(new RespondentModel
+                if (!await context.SurveyQuestions.AnyAsync(x => x.SurveyId == survey.Id && x.QuestionId == question.Id))
                 {
-                    Email = "respondent1@test.com",
-                    Token = "token-123",
-                    SurveyId = survey1.Id,
-                    TokenIsUsed = false
-                });
+                    context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey.Id, QuestionId = question.Id });
+                }
             }
-            if (!await context.Respondents.AnyAsync(x => x.Email == "respondent2@test.com" && x.SurveyId == survey1.Id))
-            {
-                context.Respondents.Add(new RespondentModel
-                {
-                    Email = "respondent2@test.com",
-                    Token = "token-456",
-                    SurveyId = survey1.Id,
-                    TokenIsUsed = false
-                });
-            }
+
             await context.SaveChangesAsync();
+        }
+
+        private static async Task EnsureRespondentAsync(EduSenseDbContext context, SurveyModel survey, string email, string token)
+        {
+            if (!await context.Respondents.AnyAsync(x => x.Email == email && x.SurveyId == survey.Id))
+            {
+                context.Respondents.Add(new RespondentModel
+                {
+                    Email = email,
+                    Token = token,
+                    SurveyId = survey.Id,
+                    TokenIsUsed = false
+                });
+
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -39,9 +39,9 @@ namespace EduSense.API.Controllers
         {
             ResultSaveStatus.Success => Ok(),
             ResultSaveStatus.TokenNotFound => NotFound(),
-            ResultSaveStatus.SurveyExpired => BadRequest("Enkäten har gått ut."),
-            ResultSaveStatus.AlreadyCompleted => Conflict("Enkäten är redan besvarad."),
-            ResultSaveStatus.InvalidQuestionOrAnswer => BadRequest("Ogiltig fråga eller svarsalternativ."),
+            ResultSaveStatus.SurveyExpired => BadRequest(new[] { "Enkäten har gått ut." }),
+            ResultSaveStatus.AlreadyCompleted => Conflict(new[] { "Enkäten är redan besvarad." }),
+            ResultSaveStatus.InvalidQuestionOrAnswer => BadRequest(new[] { "Ogiltig fråga eller svarsalternativ." }),
             _ => throw new InvalidOperationException($"Okänd status: {status}")
         };
     }

@@ -1,0 +1,137 @@
+.Question-container {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+.Question-box {
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.Question-start-button {
+    width: auto;
+    padding: 0.9rem 2.5rem;
+    margin-top: 1.5rem;
+    font-size: 1rem;
+}
+
+.Question-fieldset {
+    border: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+    .Question-fieldset legend {
+        width: 100%;
+        text-align: center;
+        font-family: var(--font-family-body);
+        font-size: 1.25rem;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+.Question-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+}
+
+    .Question-option input[type="radio"] {
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: var(--accent-color-gold);
+        flex-shrink: 0;
+    }
+
+    .Question-option-value {
+        display: none;
+    }
+
+/* ≥640px: matchar tablet/desktop-designen - siffra 1-5 + liten radioruta,
+   ingen synlig beskrivningstext (den finns kvar för skärmläsare, se nedan). */
+@media (min-width: 640px) {
+    .Question-fieldset {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .Question-option {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .Question-option-value {
+        display: block;
+        font-family: var(--font-family-title);
+        font-size: 1.75rem;
+    }
+
+    /* Visuellt dold men kvar för skärmläsare - se Login-mönstret för samma teknik. */
+    .Question-option-description {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+}
+
+.Question-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.Question-progress {
+    margin: 0;
+    text-align: center;
+    flex: 1;
+    font-family: var(--font-family-body);
+}
+
+.Question-nav-arrow {
+    background: none;
+    border: 2px solid var(--text-color);
+    padding: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+    .Question-nav-arrow img {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .Question-nav-arrow:hover:not(:disabled) {
+        background-color: rgba(212, 175, 55, 0.15);
+    }
+
+    .Question-nav-arrow:disabled {
+        border-color: rgba(243, 234, 215, 0.3);
+        opacity: 0.5;
+    }
+
+@media (max-width: 480px) {
+    .Question-fieldset legend {
+        font-size: 1.15rem;
+    }
+
+    .Question-progress {
+        font-size: var(--font-size-text-medium);
+    }
+}

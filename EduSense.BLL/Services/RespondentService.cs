@@ -26,6 +26,17 @@ namespace EduSense.BLL.Services
                 return RespondentResult<RespondentSurveyDto>.Failure(RespondentResultStatus.TokenNotFound);
             }
 
+            var survey = respondent.Survey;
+            if (survey is null)
+            {
+                throw new InvalidOperationException("Respondent saknar Survey.");
+            }
+
+            if (survey.SurveyExpiryDate < DateTime.UtcNow)
+            {
+                return RespondentResult<RespondentSurveyDto>.Failure(RespondentResultStatus.SurveyExpired);
+            }
+
             var dto = ToDto(respondent);
             return RespondentResult<RespondentSurveyDto>.Success(dto);
         }
@@ -47,7 +58,9 @@ namespace EduSense.BLL.Services
                 {
                     SurveyQuestionId = sq.Id,
                     QuestionText = sq.Question!.Text,
-                    AnswerOptions = sq.Question.QuestionAnswerOptions.Select(qao => new RespondentAnswerOptionDto
+                    AnswerOptions = sq.Question.QuestionAnswerOptions
+                        .OrderByDescending(qao => qao.AnswerOption!.Value)
+                        .Select(qao => new RespondentAnswerOptionDto
                     {
                         Id = qao.Id,
                         Description = qao.AnswerOption.Description,
