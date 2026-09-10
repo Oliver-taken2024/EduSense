@@ -39,7 +39,7 @@ namespace EduSense.DAL.Data
             {
                 adminUser = new ApplicationUser
                 {
-                    UserName = adminEmail,
+                    UserName = "Admin",
                     Email = adminEmail,
                     EmailConfirmed = true,
                     DisplayName = "Admin User",
