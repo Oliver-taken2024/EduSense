@@ -1,34 +1,45 @@
 ﻿@page "/question-management"
+@attribute [Authorize]
 
 <PageTitle>Frågehantering</PageTitle>
 
-<h3>Frågehanteringssida</h3>
-
-@if (_isLoading)
-{
-    <p>Laddar...</p>
-}
-else if (_loadError is not null)
-{
-    <p class="text-danger">@_loadError</p>
-}
-else
-{
-    @if (_showForm)
+<div class="page-header">
+    <div>
+        <h1>Frågehantering</h1>
+        <p class="page-subtitle">Skapa, hantera och redigera frågor</p>
+    </div>
+    @if (!_isLoading && _loadError is null && !_showForm)
     {
-        <QuestionForm Question="_editingQuestion"
-                      OnSaved="HandleSavedAsync"
-                      OnCancelled="HandleCancelled" />
+        <button type="button" class="btn button-login" @onclick="ShowCreateForm">+ Skapa fråga</button>
+    }
+</div>
+
+<div class="card-panel">
+    @if (_isLoading)
+    {
+        <p role="status">Laddar...</p>
+    }
+    else if (_loadError is not null)
+    {
+        <p class="text-danger" role="alert">@_loadError</p>
     }
     else
     {
-        <QuestionList Questions="_questions"
-                      OnCreateNew="ShowCreateForm"
-                      OnEdit="EditQuestion"
-                      OnCopy="CopyQuestion"
-                      OnDelete="RequestDelete" />
+        @if (_showForm)
+        {
+            <QuestionForm Question="_editingQuestion"
+                          OnSaved="HandleSavedAsync"
+                          OnCancelled="HandleCancelled" />
+        }
+        else
+        {
+            <QuestionList Questions="_questions"
+                          OnEdit="EditQuestion"
+                          OnCopy="CopyQuestion"
+                          OnDelete="RequestDelete" />
+        }
     }
-}
+</div>
 
 <ConfirmDialog IsVisible="_pendingDeleteId is not null"
                Title="Ta bort fråga"

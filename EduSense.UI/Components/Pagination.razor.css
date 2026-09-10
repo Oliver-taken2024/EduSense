@@ -1,0 +1,51 @@
+.pagination-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.pagination-caption {
+    color: var(--text-color-secondary);
+    font-size: var(--font-size-text-medium);
+}
+
+.pagination-pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.pagination-btn {
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--text-color);
+    /* Ingen egen cursor här - skulle vinna över den globala guldpekaren i
+       Main.css eftersom scopad CSS får högre specificitet vid bygge. */
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn:active:not(:disabled) {
+        transform: translateY(0) scale(0.92);
+    }
+
+    .pagination-btn.active {
+        background-color: var(--button-link-color);
+        color: #fff;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }

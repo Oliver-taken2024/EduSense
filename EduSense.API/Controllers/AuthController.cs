@@ -32,6 +32,29 @@ namespace EduSense.API.Controllers
             _passwordResetService = passwordResetService;
         }
 
+        [HttpPost("set-initial-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SetInitialPassword([FromBody] SetInitialPasswordRequestDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user is null)
+            {
+                return BadRequest("Ogiltig länk.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors.Select(e => e.Description));
+            }
+
+            user.EmailConfirmed = true;
+            user.IsActive = true;
+            await _userManager.UpdateAsync(user);
+
+            return Ok("Lösenord skapat. Du kan nu logga in.");
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
@@ -46,22 +69,22 @@ namespace EduSense.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("register")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
-        {
-            var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
+        //[HttpPost("register")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
+        //{
+        //    var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
+        //    var result = await _userManager.CreateAsync(user, dto.Password);
 
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors.Select(e => e.Description);
-                return BadRequest(errors);
-            }
+        //    if (!result.Succeeded)
+        //    {
+        //        var errors = result.Errors.Select(e => e.Description);
+        //        return BadRequest(errors);
+        //    }
 
-            return Ok("Registrering lyckades");
-        }
+        //    return Ok("Registrering lyckades");
+        //}
 
         [HttpPost("refresh")]
         [AllowAnonymous]
@@ -106,11 +129,26 @@ namespace EduSense.API.Controllers
                 {
                     await _refreshTokenRepository.RemoveAsync(stored);
                 }
-                Response.Cookies.Delete("accessToken");
-                Response.Cookies.Delete("refreshToken");
             }
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
 
             return Ok("Utloggning lyckades");
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var username = User.Identity?.Name;
+            if (username is null)
+            {
+                return Unauthorized();
+            }
+
+            var displayName = User.FindFirst("display_name")?.Value ?? username;
+            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            return Ok(new UserInfoDto { Username = username, DisplayName = displayName, Roles = roles });
         }
 
         private async Task<CreateTokenResponseDto> CreateTokenResponseAsync(ApplicationUser user)
@@ -120,7 +158,8 @@ namespace EduSense.API.Controllers
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
-                new(ClaimTypes.Name, user.UserName!)
+                new(ClaimTypes.Name, user.UserName!),
+                new("display_name", user.DisplayName ?? user.UserName!)
             };
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

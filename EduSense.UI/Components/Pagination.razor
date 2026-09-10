@@ -1,0 +1,50 @@
+@if (TotalItems > 0)
+{
+    <div class="pagination-row">
+        <span class="pagination-caption">Visar @StartItem–@EndItem av @TotalItems @ItemLabel</span>
+
+        @if (TotalPages > 1)
+        {
+            <div class="pagination-pages">
+                <button type="button" class="pagination-btn" disabled="@(CurrentPage <= 1)"
+                        @onclick="() => GoTo(CurrentPage - 1)" aria-label="Föregående sida">‹</button>
+
+                @for (var page = 1; page <= TotalPages; page++)
+                {
+                    var pageNumber = page;
+                    <button type="button" class="pagination-btn @(pageNumber == CurrentPage ? "active" : "")"
+                            @onclick="() => GoTo(pageNumber)"
+                            aria-current="@(pageNumber == CurrentPage ? "page" : null)">
+                        @pageNumber
+                    </button>
+                }
+
+                <button type="button" class="pagination-btn" disabled="@(CurrentPage >= TotalPages)"
+                        @onclick="() => GoTo(CurrentPage + 1)" aria-label="Nästa sida">›</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public EventCallback<int> CurrentPageChanged { get; set; }
+    [Parameter] public string ItemLabel { get; set; } = "poster";
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PageSize));
+
+    private int StartItem => TotalItems == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int EndItem => Math.Min(CurrentPage * PageSize, TotalItems);
+
+    private async Task GoTo(int page)
+    {
+        if (page < 1 || page > TotalPages || page == CurrentPage)
+        {
+            return;
+        }
+
+        await CurrentPageChanged.InvokeAsync(page);
+    }
+}

@@ -24,6 +24,14 @@
     --font-size-edusense-desktop: 6rem; /* 96px */
 }
 
+[data-bs-theme="dark"] {
+    /* Bootstrap definierar aldrig om --bs-danger för dark-läge, så .text-danger
+       (felmeddelanden i QuestionForm/SurveyForm/management-sidorna) stannar på
+       #dc3545 (~3.2:1 mot bakgrunden, under WCAG-kravet 4.5:1). Byter till
+       Bootstraps egen dark-theme-nyans för danger-text (~5.7:1). */
+    --bs-danger-rgb: 234, 134, 143;
+}
+
 .background1 {
     background-color: var(--background-color-1);
 }
@@ -42,6 +50,149 @@
 
 .button-logout {
     background-color: var(--button-logout-color);
+}
+
+.button-copy {
+    background-color: var(--accent-color-gold);
+    color: var(--background-color-1);
+}
+
+.button-login,
+.button-logout,
+.button-copy {
+    color: var(--text-color);
+    border: none;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+    .button-copy {
+        /* Mörk text istället för --text-color, för att klara kontrastkravet
+           mot den ljusa guldbakgrunden (WCAG 2.2 AA, 4.5:1). */
+        color: var(--background-color-1);
+    }
+
+    .button-login:hover:not(:disabled),
+    .button-logout:hover:not(:disabled),
+    .button-copy:hover:not(:disabled) {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .button-login:active:not(:disabled),
+    .button-logout:active:not(:disabled),
+    .button-copy:active:not(:disabled) {
+        transform: translateY(0) scale(0.96);
+        box-shadow: none;
+    }
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.button-hub {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 180px;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    background-color: var(--button-link-color);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-family-base);
+    text-align: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+    .button-hub:hover {
+        filter: brightness(1.1);
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(51, 113, 228, 0.4);
+    }
+
+    .button-hub:active {
+        transform: translateY(0) scale(0.97);
+    }
+
+.card-panel {
+    background-color: var(--background-color-2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Återanvänds för allt innehåll som byts ut inuti .card-panel (formulär/listor)
+   så att varje vy studsar in istället för att smälla om direkt. Triggas på
+   nytt varje gång eftersom QuestionForm/QuestionList/SurveyForm/SurveyList
+   är olika komponenter - Blazor monterar om hela elementet vid växling. */
+.fade-in-up {
+    animation: fade-in-up 0.25s ease-out;
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fade-in-up {
+        animation: none;
+    }
+}
+
+/* Radhighlight i tabeller - annars känns listorna helt statiska. */
+.table > tbody > tr {
+    transition: background-color 0.15s ease;
+}
+
+    .table > tbody > tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+/* Guldglöd vid fokus på alla formulärfält i appen (inte bara login),
+   ovanpå (inte istället för) den globala fokusramen i app.css. */
+.form-control,
+.form-select {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--accent-color-gold);
+    }
+
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+    .page-header h1 {
+        margin-bottom: 0.25rem;
+    }
+
+.page-subtitle {
+    color: var(--text-color-secondary);
+    margin: 0;
 }
 
 .text-color {
@@ -63,5 +214,35 @@ h1 {
 body {
     font-family: var(--font-family-base);
     background-color: var(--background-color-1);
+    /* Mörk overlay ovanpå bilden - annars kan bildens ljusa guldstreck/vågor
+       (som flyttar sig med "cover" beroende på skärmstorlek) hamna bakom text
+       och göra kontrasten omöjlig att garantera (WCAG 1.4.3). */
+    background-image: linear-gradient(rgba(15, 46, 51, 0.65), rgba(15, 46, 51, 0.65)), url("/Images/EduSenseBackground.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: top right, top right;
+    background-size: cover, cover;
+    background-attachment: fixed, fixed;
     color: var(--text-color);
+    min-height: 100vh;
+    /* Custom guldring som standardpekare istället för webbläsarens pil. */
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3C/svg%3E") 12 12, auto;
+}
+
+/* Fylld guldcirkel över klickbara element, i stället för standardpekfingret.
+   !important - Blazors scopade CSS (t.ex. Pagination.razor.css) får automatiskt
+   en attributselektor ([b-xxxxx]) inbakad vid bygge, vilket ger högre specificitet
+   än en vanlig klass här och annars vinner (visar bara "pointer"). */
+a, button:not(:disabled), .btn:not(:disabled), [role="button"], .nav-link,
+.pagination-btn:not(:disabled), input:not(:disabled), textarea:not(:disabled),
+select:not(:disabled) {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='7' fill='%23D4AF37' fill-opacity='0.85'/%3E%3C/svg%3E") 12 12, pointer !important;
+}
+
+/* Utan denna ärver textmarkören (caretet) automatiskt en ljus färg från
+   color-scheme: dark (satt av data-bs-theme) oavsett fältets faktiska
+   textfärg - osynlig mot ljusa fält (samma bugg som Login-fälten hade).
+   currentColor gör att caretet alltid matchar fältets egen textfärg. */
+.form-control,
+.form-select {
+    caret-color: currentColor;
 }

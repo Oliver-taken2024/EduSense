@@ -1,34 +1,107 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@using EduSense.UI.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject CookieAuthenticationStateProvider AuthStateProvider
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <NavLink class="navbar-brand" href="">EduSense</NavLink>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <img src="/Images/Menu.png" alt="" width="24" height="24" />
+        <button aria-label="Meny" aria-expanded="@(!collapseNavMenu)" aria-controls="nav-menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <img src="/Images/Menu.png" alt="" width="32" height="32" />
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
+<div id="nav-menu" class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column" aria-label="Huvudmeny">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <img src="/Images/Home.png" alt="" width="18" height="18" /> Home
+                <img src="/Images/Home.png" alt="" width="18" height="18" /> Hem
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="question-management" Match="NavLinkMatch.All">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Question Management
-            </NavLink>
-        </div>
+        <AuthorizeView>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="survey-management" Match="NavLinkMatch.All">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enkäthantering
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="question-management" Match="NavLinkMatch.All">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Frågehantering
+                </NavLink>
+            </div>
+        </AuthorizeView>
     </nav>
+
+    <AuthorizeView>
+        <Authorized>
+            <div class="nav-user-card">
+                <div class="nav-user-row">
+                    <div class="nav-user-avatar" aria-hidden="true">@GetInitials(context.User.FindFirst("display_name")?.Value)</div>
+                    <div class="nav-user-info">
+                        <span class="nav-user-name">@context.User.FindFirst("display_name")?.Value</span>
+                        <span class="nav-user-role">@(context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Användare")</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm button-logout nav-logout-btn" @onclick="LogoutAsync" disabled="@_isLoggingOut">
+                    Logga ut
+                </button>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private bool _isLoggingOut;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task LogoutAsync()
+    {
+        _isLoggingOut = true;
+
+        try
+        {
+            // Tar bort refresh-token-raden i DB + rensar båda httpOnly-cookierna server-side.
+            await Http.PostAsync("api/auth/logout", null);
+        }
+        catch
+        {
+            // Även om anropet misslyckas (t.ex. redan utloggad) - fortsätt logga ut lokalt.
+        }
+        finally
+        {
+            _isLoggingOut = false;
+        }
+
+        // forceLoad: true - full sidladdning istället för SPA-navigering.
+        // Undviker en krock där NotifyAuthenticationChanged() fortfarande
+        // uppdaterar auth-state medan navigeringen redan hunnit montera ner
+        // sidomenyn (gav en NullReferenceException). En hel omstart av
+        // WASM-appen läser dessutom in rätt (utloggat) auth-state från scratch.
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    // "Oliver Pettersson" -> "OP". Ett ord ger de första två bokstäverna istället.
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "?";
+        }
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant(),
+            _ => $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant()
+        };
     }
 }
