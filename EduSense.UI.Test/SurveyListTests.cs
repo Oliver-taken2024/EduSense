@@ -38,7 +38,7 @@ namespace EduSense.UI.Test
             var cut = RenderComponent<SurveyList>(parameters => parameters
                 .Add(p => p.Surveys, new List<SurveyDto>()));
 
-            Assert.Contains("Inga enkäter ännu.", cut.Markup);
+            Assert.Contains("Inga enkäter hittades.", cut.Markup);
         }
 
         //[Fact]
@@ -62,7 +62,7 @@ namespace EduSense.UI.Test
                 .Add(p => p.Surveys, TwoSurveys())
                 .Add(p => p.OnEdit, EventCallback.Factory.Create<SurveyDto>(this, s => edited = s)));
 
-            cut.FindAll("button.btn-outline-secondary")[0].Click();
+            cut.FindAll("button.button-login")[0].Click();
 
             Assert.Equal(1, edited?.Id);
         }
@@ -75,7 +75,7 @@ namespace EduSense.UI.Test
                 .Add(p => p.Surveys, TwoSurveys())
                 .Add(p => p.OnDelete, EventCallback.Factory.Create<int>(this, id => deletedId = id)));
 
-            cut.FindAll("button.btn-outline-danger")[1].Click();
+            cut.FindAll("button.button-logout")[1].Click();
 
             Assert.Equal(2, deletedId);
         }
