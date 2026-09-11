@@ -1,0 +1,242 @@
+﻿@page "/user-management"
+@attribute [Authorize(Policy = "AdminOnly")]
+@using EduSense.Shared
+@using EduSense.UI.Services
+@inject ApiService ApiService
+
+<PageTitle>Användarhantering</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Användarhantering</h1>
+        <p class="page-subtitle">Bjud in, hantera och aktivera/inaktivera administratörer och analytiker</p>
+    </div>
+</div>
+
+<!-- Visa status- och felmeddelanden om de finns -->
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert alert-success" role="status">@_statusMessage</div>
+}
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+<!-- Formulär för att bjuda in ny användare -->
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h5">Bjud in ny användare</h2>
+
+        <EditForm Model="@_inviteModel" OnValidSubmit="HandleInviteSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary role="alert" />
+
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label for="invite-email" class="form-label">E-postadress</label>
+                    <InputText id="invite-email" class="form-control" @bind-Value="_inviteModel.Email" />
+                </div>
+                <div class="col-md-4">
+                    <label for="invite-role" class="form-label">Roll</label>
+                    <InputSelect id="invite-role" class="form-select" @bind-Value="_inviteModel.Role">
+                        <option value="Admin">Admin</option>
+                        <option value="Analyst">Analyst</option>
+                    </InputSelect>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100" disabled="@_isInviting" aria-busy="@_isInviting">
+                        @(_isInviting ? "Skickar..." : "Skicka inbjudan")
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<!-- Lista över användare -->
+@if (_isLoading)
+{
+    <p>Laddar användare...</p>
+}
+else if (_users.Count == 0)
+{
+    <p>Inga användare hittades.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table">
+            <caption class="visually-hidden">Lista över admin- och analytikerkonton</caption>
+            <thead>
+                <tr>
+                    <th>E-post</th>
+                    <th>Namn</th>
+                    <th>Roll</th>
+                    <th>Status</th>
+                    <th><span class="visually-hidden">Åtgärder</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _users)
+                {
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>@(user.DisplayName ?? "-")</td>
+                        <td>@string.Join(", ", user.Roles)</td>
+                        <td>
+                            @if (!user.EmailConfirmed)
+                            {
+                                <span class="badge bg-warning text-dark">Väntar på svar</span>
+                            }
+                            else if (user.IsActive)
+                            {
+                                <span class="badge bg-success">Aktiv</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inaktiverad</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                @if (!user.EmailConfirmed)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            @onclick="() => ResendInviteAsync(user)">
+                                        Skicka inbjudan igen
+                                    </button>
+                                }
+                                else if (user.IsActive)
+                                {
+                                    <button type="button" class="btn btn-sm button-logout"
+                                            @onclick="() => DeactivateAsync(user)">
+                                        Inaktivera
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm button-login"
+                                            @onclick="() => ActivateAsync(user)">
+                                        Aktivera
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<UserListItemDto> _users = [];
+    private readonly InviteUserRequestDto _inviteModel = new() { Role = "Analyst" };
+
+    // Variabler för att hantera formulärstatus och felmeddelanden
+    private bool _isLoading = true;
+    private bool _isInviting;
+    private string? _statusMessage;
+    private string? _errorMessage;
+
+    // Ladda användare när komponenten initialiseras
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    // Ladda användare från API:t och hantera eventuella fel
+    private async Task LoadUsersAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _users = await ApiService.GetAsync<List<UserListItemDto>>("api/users") ?? [];
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    // Hantera inbjudan av ny användare
+    private async Task HandleInviteSubmit()
+    {
+        _statusMessage = null;
+        _errorMessage = null;
+        _isInviting = true;
+
+        try
+        {
+            await ApiService.PostAsync("api/users/invite", _inviteModel);
+            _statusMessage = $"Inbjudan skickad till {_inviteModel.Email}.";
+            _inviteModel.Email = string.Empty;
+            await LoadUsersAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isInviting = false;
+        }
+    }
+    // Hantera återutsändning av inbjudan
+    private async Task ResendInviteAsync(UserListItemDto user)
+    {
+        _statusMessage = null;
+        _errorMessage = null;
+
+        try
+        {
+            await ApiService.PostAsync($"api/users/{user.Id}/resend-invite", new { });
+            _statusMessage = $"Inbjudan skickad igen till {user.Email}.";
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+    }
+
+    // Hantera inaktivering av användare
+    private async Task DeactivateAsync(UserListItemDto user)
+    {
+        _statusMessage = null;
+        _errorMessage = null;
+
+        try
+        {
+            await ApiService.PostAsync($"api/users/{user.Id}/deactivate", new { });
+            _statusMessage = $"{user.Email} är nu inaktiverad.";
+            await LoadUsersAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+    }
+
+    // Hantera aktivering av användare
+    private async Task ActivateAsync(UserListItemDto user)
+    {
+        _statusMessage = null;
+        _errorMessage = null;
+
+        try
+        {
+            await ApiService.PostAsync($"api/users/{user.Id}/activate", new { });
+            _statusMessage = $"{user.Email} är nu aktiverad.";
+            await LoadUsersAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+    }
+}

@@ -57,6 +57,10 @@ builder.Services.AddScoped<IOrganisationRepository, OrganisationRepository>();
 builder.Services.AddScoped<IOrganisationService, OrganisationService>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped <IPasswordResetService, PasswordResetService>();
+builder.Services.AddScoped<IRespondentRepository, RespondentRepository>();
+builder.Services.AddScoped<IRespondentService, RespondentService>();
+builder.Services.AddScoped<IResultRepository, ResultRepository>();
+builder.Services.AddScoped<IResultService, ResultService>();
 
 builder.Services.AddCors(options =>
 {

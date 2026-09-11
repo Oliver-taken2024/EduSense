@@ -14,10 +14,13 @@ namespace EduSense.API.Controllers
     {
         private static readonly string[] InvitableRoles = { "Admin", "Analyst" };
 
+        //Dependency injection för UserManager, IEmailSender och IConfiguration
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
 
+        // Konstruktor för UsersController som tar emot UserManager, IEmailSender och IConfiguration
+        // via dependency injection
         public UsersController(UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration configuration)
         {
             _userManager = userManager;
@@ -26,6 +29,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet]
+        // Hämtar alla användare som har en roll (Admin eller Analyst)
         public async Task<IActionResult> GetAll()
         {
             var users = _userManager.Users.ToList();
@@ -56,6 +60,9 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost("invite")]
+
+        // Skickar en inbjudan till en användare via e-post.
+        // Om användaren inte finns skapas ett nytt konto.
         public async Task<IActionResult> Invite([FromBody] InviteUserRequestDto dto)
         {
             if (!InvitableRoles.Contains(dto.Role))
@@ -82,7 +89,7 @@ namespace EduSense.API.Controllers
                 }
             }
 
-            // S�kerst�ll att anv�ndaren har r�tt roll (och bara den efterfr�gade rollen)
+            // Säkerställ att användaren har rätt roll (och bara den efterfrågade rollen)
             var currentRoles = await _userManager.GetRolesAsync(user);
             if (!currentRoles.Contains(dto.Role))
             {
@@ -99,6 +106,8 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost("{id}/resend-invite")]
+
+        // Skickar om inbjudan till en användare via e-post.
         public async Task<IActionResult> ResendInvite(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -120,6 +129,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost("{id}/deactivate")]
+        // Inaktiverar en användare.
         public async Task<IActionResult> Deactivate(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -135,6 +145,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost("{id}/activate")]
+        // Aktiverar en användare.
         public async Task<IActionResult> Activate(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -149,6 +160,7 @@ namespace EduSense.API.Controllers
             return Ok("Användaren är nu aktiverad.");
         }
 
+        // Skickar en inbjudan via e-post till en användare med en specifik roll.
         private async Task SendInviteEmailAsync(ApplicationUser user, string role)
         {
             // Token förnyas varje gång - gammal länk blir automatiskt ogiltig.

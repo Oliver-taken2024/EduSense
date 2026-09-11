@@ -4,9 +4,12 @@ namespace EduSense.UI.Services
 {
     public class ApiService(HttpClient httpClient)
     {
+        // Metoder för att göra HTTP-anrop till backend-API:et.
         public async Task<T?> GetAsync<T>(string endpoint)
-        {
-            return await httpClient.GetFromJsonAsync<T>(endpoint);
+        { 
+            var response = await httpClient.GetAsync(endpoint);
+            await EnsureSuccessAsync(response);
+            return await response.Content.ReadFromJsonAsync<T>();
         }
 
         public async Task<T?> PostAsync<T>(string endpoint, object payload)
@@ -14,6 +17,14 @@ namespace EduSense.UI.Services
             var response = await httpClient.PostAsJsonAsync(endpoint, payload);
             await EnsureSuccessAsync(response);
             return await response.Content.ReadFromJsonAsync<T>();
+        }
+
+        // Vissa endpoints svarar med vanlig text istället för JSON. Den här metoden används
+        // när svaret inte behöver läsas, så slipper vi krascha vid tolkning av det.
+        public async Task PostAsync(string endpoint, object payload)
+        {
+            var response = await httpClient.PostAsJsonAsync(endpoint, payload);
+            await EnsureSuccessAsync(response);
         }
 
         public async Task<T?> PutAsync<T>(string endpoint, object payload)
