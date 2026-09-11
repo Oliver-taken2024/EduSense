@@ -17,7 +17,7 @@ public class AuthControllerTests
     private readonly Mock<IConfiguration> _configurationMock = new();
     private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
     private readonly AuthController _sut;
-    private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
+   
     public AuthControllerTests()
     {
         var storeMock = new Mock<IUserStore<ApplicationUser>>();
