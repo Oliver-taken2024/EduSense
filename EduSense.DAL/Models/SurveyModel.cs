@@ -10,6 +10,7 @@ namespace EduSense.DAL.Models
 
         [Required]
         public required string Title { get; set; }
+        public string? Description { get; set; }
 
         public string CreatedByUserId { get; set; } = null!;
 

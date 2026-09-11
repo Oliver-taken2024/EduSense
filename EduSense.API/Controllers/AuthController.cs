@@ -69,23 +69,6 @@ namespace EduSense.API.Controllers
             return Ok(response);
         }
 
-        //[HttpPost("register")]
-        //[AllowAnonymous]
-        //public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
-        //{
-        //    var user = new ApplicationUser { UserName = dto.Username, Email = dto.Email };
-
-        //    var result = await _userManager.CreateAsync(user, dto.Password);
-
-        //    if (!result.Succeeded)
-        //    {
-        //        var errors = result.Errors.Select(e => e.Description);
-        //        return BadRequest(errors);
-        //    }
-
-        //    return Ok("Registrering lyckades");
-        //}
-
         [HttpPost("refresh")]
         [AllowAnonymous]
         public async Task<IActionResult> Refresh()

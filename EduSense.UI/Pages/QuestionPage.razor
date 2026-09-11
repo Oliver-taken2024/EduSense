@@ -1,49 +1,190 @@
-﻿@page "/question-page"
-@inject NavigationManager Navigation
+@page "/enkat/{Token}"
+@using EduSense.Shared
+@using EduSense.UI.Services
+@inject ApiService ApiService
+@inject NavigationManager NavigationManager
 
-<PageTitle>Fråga</PageTitle>
+<PageTitle>Enkät</PageTitle>
 
-<h1>Fråga</h1>
+@if (_isLoading)
+{
+    <p>Laddar enkät...</p>
+}
+else if (_notFound)
+{
+    <div class="alert alert-danger" role="alert">
+        Länken är ogiltig. Kontrollera att du klickade på hela länken i mejlet.
+    </div>
+}
+else if (_expired)
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+else if (_survey is not null)
+{
+    <div class="Question-container">
+        <div class="Question-box card-panel fade-in-up" lang="sv">
+            @if (_survey.IsCompleted)
+            {
+                <h1>@_survey.Title</h1>
+                <p>Du har redan besvarat den här enkäten. Tack!</p>
+            }
+            else if (!_hasStarted)
+            {
+                <h1>@_survey.Title</h1>
+                @if (_survey.Description is not null)
+                {
+                    <p class="page-subtitle">@_survey.Description</p>
+                }
+                <p class="Question-instructions">
+                    Du kan när som helst stänga sidan och fortsätta senare - dina svar sparas
+                    automatiskt allt eftersom du svarar, och du kommer tillbaka till samma
+                    fråga via länken du fick.
+                </p>
+                <button type="button" class="button-login Question-start-button" @onclick="() => _hasStarted = true">
+                    Starta Enkäten
+                </button>
+            }
+            else
+            {
+                var question = _survey.Questions[_currentQuestionIndex];
+                var isLastQuestion = _currentQuestionIndex == _survey.Questions.Count - 1;
 
-<div lang="en">
-    @if (counter == 1)
-    {
-        <p>Question 1: What is the capital of France?</p>
-    }
-    else if (counter == 2)
-    {
-        <p>Question 2: What is the largest planet in our solar system?</p>
-    }
-    else if (counter == 3)
-    {
-        <p>Question 3: Who wrote 'To Kill a Mockingbird'?</p>
-    }
-</div>
+                <h1>Fråga @(_currentQuestionIndex + 1)</h1>
 
-<div>
-    <img src="/Images/Arrow.png" alt="" />
-    <p>Fråga @counter av @total</p>
-    <button aria-label="Nästa fråga" @onclick="IncrementCounter">
-        <img src="/Images/Arrow.png" alt="" style="transform: scaleX(-1);" />
-    </button>
-</div>
+                <fieldset class="Question-fieldset">
+                    <legend>@question.QuestionText</legend>
+                    @foreach (var option in question.AnswerOptions)
+                    {
+                        <label class="Question-option">
+                            <input type="radio"
+                                   name="@("question-" + question.SurveyQuestionId)"
+                                   checked="@(_selectedAnswerId == option.Id)"
+                                   @onchange="() => SelectAnswerAsync(question.SurveyQuestionId, option.Id)" />
+                            <!-- Value (1-5) syns bara på bredare skärmar (se .razor.css), Description bara på smala -
+                                 båda ligger alltid kvar i DOM:en så skärmläsare alltid får den fulla texten. -->
+                            <span class="Question-option-value" aria-hidden="true">@option.Value</span>
+                            <span class="Question-option-description">@option.Description</span>
+                        </label>
+                    }
+                </fieldset>
+
+                @if (_saveError is not null)
+                {
+                    <p class="text-danger" role="alert">@_saveError</p>
+                }
+
+                <div class="Question-nav">
+                    <button type="button" class="Question-nav-arrow" aria-label="Föregående fråga"
+                            disabled="@(_currentQuestionIndex == 0)" @onclick="GoToPreviousQuestion">
+                        <img src="/Images/Arrow.png" alt="" />
+                    </button>
+
+                    <p class="Question-progress">@(_currentQuestionIndex + 1)/@_survey.Questions.Count</p>
+
+                    <button type="button" class="Question-nav-arrow" aria-label="@(isLastQuestion ? "Skicka in svar" : "Nästa fråga")"
+                            disabled="@(_selectedAnswerId is null)" @onclick="GoToNextQuestion">
+                        <img src="/Images/Arrow.png" alt="" style="transform: scaleX(-1);" />
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
 @code {
-    public int counter = 1;
+    // {Token} i @page-routen binds hit - måste heta exakt "Token" (matchar routens {Token}).
+    [Parameter] public string Token { get; set; } = string.Empty;
 
-    public int total = 3;
+    private bool _isLoading = true;
+    private bool _notFound;
+    private bool _expired;
+    private string? _errorMessage;
+    private RespondentSurveyDto? _survey;
+    private bool _hasStarted;
 
+    private int _currentQuestionIndex;
+    private int? _selectedAnswerId;
+    private string? _saveError;
 
-    private void IncrementCounter()
+    protected override async Task OnInitializedAsync()
     {
-
-        if (counter < total)
+        try
         {
-            counter++;
+            _survey = await ApiService.GetAsync<RespondentSurveyDto>($"api/respondent/{Token}");
+        }
+        catch (ApiException ex) when (ex.StatusCode == 404)
+        {
+            _notFound = true;
+        }
+        catch (ApiException ex) when (ex.StatusCode == 400)
+        {
+            _expired = true;
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+        if (_survey is { IsCompleted: false, Questions.Count: > 0 })
+        {
+            var firstUnanswered = _survey.Questions.FindIndex(q => q.AnsweredQuestionAnswerOptionId is null);
+            _currentQuestionIndex = firstUnanswered >= 0 ? firstUnanswered : _survey.Questions.Count - 1;
+
+            // Redan svarat på minst en fråga sen ett tidigare besök - hoppa direkt in i
+            // flödet vid rätt fråga istället för att visa välkomstskärmen igen.
+            _hasStarted = _currentQuestionIndex > 0;
+
+            _selectedAnswerId = _survey.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId;
+        }
+    }
+
+    private async Task SelectAnswerAsync(int surveyQuestionId, int answerOptionId)
+    {
+        _selectedAnswerId = answerOptionId;
+        _saveError = null;
+
+        try
+        {
+            await ApiService.PostAsync("api/result", new SaveResultDto
+            {
+                Token = Token,
+                SurveyQuestionId = surveyQuestionId,
+                QuestionAnswerOptionId = answerOptionId
+            });
+
+            // Håller DTO:n i synk med det sparade svaret, annars glöms valet bort
+            // visuellt om man bläddrar bort och tillbaka till frågan igen.
+            _survey!.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId = answerOptionId;
+        }
+        catch (ApiException ex)
+        {
+            _saveError = string.Join(" ", ex.Errors);
+        }
+    }
+
+    private async Task GoToNextQuestion()
+    {
+        if (_currentQuestionIndex < _survey!.Questions.Count - 1)
+        {
+            _currentQuestionIndex++;
+            _selectedAnswerId = _survey.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId;
         }
         else
         {
-            Navigation.NavigateTo("/result");
+            await ApiService.PostAsync($"api/result/{Token}/complete", new { });
+            NavigationManager.NavigateTo("/enkat-klar");
+        }
+    }
+
+    private void GoToPreviousQuestion()
+    {
+        if (_currentQuestionIndex > 0)
+        {
+            _currentQuestionIndex--;
+            _selectedAnswerId = _survey!.Questions[_currentQuestionIndex].AnsweredQuestionAnswerOptionId;
         }
     }
 }
- 

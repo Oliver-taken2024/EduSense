@@ -1,0 +1,13 @@
+.Complete-container {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+.Complete-box {
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    text-align: center;
+}
