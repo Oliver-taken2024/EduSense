@@ -21,7 +21,7 @@ namespace EduSense.UI.Test.Helpers
         {
             var passwordResetServiceMock = new Mock<IPasswordResetService>();
 
-            passwordResetServiceMock.Setup(x=>x.ForgotPasswordAsync("TestEmail")).ReturnsAsync((string)null);
+           passwordResetServiceMock.Setup(x => x.ForgotPasswordAsync("TestEmail")).ReturnsAsync((string)null);
 
             var store = new Mock<IUserStore<ApplicationUser>>();
 
@@ -31,7 +31,10 @@ namespace EduSense.UI.Test.Helpers
 
             var configuration = new Mock<IConfiguration>();
 
-            var controller = new AuthController(userManager.Object, (IRefreshTokenRepository)passwordResetServiceMock.Object, (Microsoft.Extensions.Configuration.IConfiguration)refreshTokenRepository.Object, (IPasswordResetService)configuration.Object);
+            var controller = new AuthController(userManager.Object,
+                refreshTokenRepository.Object,
+                configuration.Object,
+                passwordResetServiceMock.Object);
 
             var dto = new ForgotPasswordDto { Email = "TestEmail" };
 

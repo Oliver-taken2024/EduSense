@@ -1,4 +1,5 @@
 ﻿using EduSense.API.Controllers;
+using EduSense.BLL.Services;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.Shared;
@@ -14,17 +15,16 @@ public class AuthControllerTests
     private readonly Mock<IRefreshTokenRepository> _refreshTokenRepoMock = new();
     private readonly Mock<IConfiguration> _configurationMock = new();
     private readonly AuthController _sut;
-
+    private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
     public AuthControllerTests()
     {
         var storeMock = new Mock<IUserStore<ApplicationUser>>();
         _userManagerMock = new Mock<UserManager<ApplicationUser>>(
             storeMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-        _sut = new AuthController(_userManagerMock.Object, _refreshTokenRepoMock.Object, _configurationMock.Object);
-    }
-
-    [Fact]
+        _sut = new AuthController(_userManagerMock.Object, _refreshTokenRepoMock.Object, _configurationMock.Object, _passwordResetServiceMock.Object);
+            }
+  [Fact]
     public async Task SetInitialPassword_WhenUserDoesNotExist_ReturnsBadRequest()
     {
         _userManagerMock.Setup(m => m.FindByIdAsync("saknas"))
