@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using EduSense.BLL.Services;
 using EduSense.Shared;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduSense.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOrAnalyst")]
         public async Task<ActionResult<IReadOnlyList<OrganisationDto>>> GetAll()
         {
             var organisations = await _organisationService.GetAllAsync();
@@ -24,6 +26,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<OrganisationDto>> Post([FromBody] OrganisationDto organisation)
         {
             // Skapa ny organisation
@@ -38,6 +41,7 @@ namespace EduSense.API.Controllers
             }
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}")]
         public async Task<ActionResult<OrganisationDto>> Put(int id, [FromBody] OrganisationDto organisation)
         {

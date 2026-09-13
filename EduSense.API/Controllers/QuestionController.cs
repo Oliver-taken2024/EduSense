@@ -2,6 +2,7 @@ using EduSense.BLL.Services;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduSense.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOrAnalyst")]
         public async Task<ActionResult<IReadOnlyList<QuestionDto>>> GetAll()
         {
             var questions = await _questionService.GetAllAsync();
@@ -24,6 +26,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<QuestionDto>> Post([FromBody] QuestionDto question)
         {
             // Skapa ny fråga
@@ -39,6 +42,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Put(int id, [FromBody] QuestionDto question)
         {
             // Uppdatera befintlig fråga
@@ -58,6 +62,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             // Ta bort befintlig fråga

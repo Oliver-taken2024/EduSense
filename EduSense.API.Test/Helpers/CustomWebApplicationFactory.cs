@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions; // ger RemoveAll<T>()
 using Microsoft.EntityFrameworkCore.Storage; // IRelationalDatabaseCreator
+using EduSense.BLL.Services;
 
 namespace EduSense.API.Test.Helpers
 {
@@ -25,6 +26,8 @@ namespace EduSense.API.Test.Helpers
                 services.RemoveAll(typeof(IDbContextOptionsConfiguration<EduSenseDbContext>));
                 services.RemoveAll(typeof(DbContextOptions<EduSenseUserDbContext>));
                 services.RemoveAll(typeof(IDbContextOptionsConfiguration<EduSenseUserDbContext>));
+                services.RemoveAll(typeof(IEmailSender));
+                services.AddScoped<IEmailSender, NullEmailSender>();
 
                 _connection.Open();
 
