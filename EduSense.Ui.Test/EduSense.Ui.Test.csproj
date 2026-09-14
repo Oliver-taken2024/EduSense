@@ -9,9 +9,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="bunit" Version="1.35.3" />
+		<PackageReference Include="Moq" Version="4.20.72" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\EduSense.API\EduSense.API.csproj" />
+		<ProjectReference Include="..\EduSense.BLL\EduSense.BLL.csproj" />
+		<ProjectReference Include="..\EduSense.DAL\EduSense.DAL.csproj" />
 		<ProjectReference Include="..\EduSense.UI\EduSense.UI.csproj" />
 	</ItemGroup>
 

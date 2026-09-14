@@ -1,4 +1,5 @@
 ﻿using EduSense.API.Controllers;
+using EduSense.BLL.Services;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.BLL.Services;
@@ -16,7 +17,7 @@ public class AuthControllerTests
     private readonly Mock<IConfiguration> _configurationMock = new();
     private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
     private readonly AuthController _sut;
-
+   
     public AuthControllerTests()
     {
         var storeMock = new Mock<IUserStore<ApplicationUser>>();
