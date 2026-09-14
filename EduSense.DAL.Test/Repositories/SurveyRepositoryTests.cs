@@ -24,7 +24,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Ny enkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id,
             };
 
@@ -51,7 +50,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Kundenkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
@@ -96,7 +94,6 @@ namespace EduSense.DAL.Test.Repositories
             {
             Title = "Gammal titel",
             CreatedByUserId = "user-1",
-            SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
             OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
@@ -126,7 +123,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Gammal titel",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
 
@@ -155,7 +151,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Gammal titel",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
 
@@ -164,7 +159,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var repository = new SurveyRepository(context);
 
-            var result = await repository.TitleExistsAsync("Ny titel", survey.SurveyExpiryDate, organisation.Id, null);
+            var result = await repository.TitleExistsAsync("Ny titel", organisation.Id, null);
 
             Assert.False(result);
         }
@@ -186,7 +181,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Enkät med frågor",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
@@ -233,14 +227,13 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Kundnöjdhet",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
             await context.SaveChangesAsync();
 
             var repository = new SurveyRepository(context);
-            var result = await repository.TitleExistsAsync("Kundnöjdhet", survey.SurveyExpiryDate, organisation.Id, null);
+            var result = await repository.TitleExistsAsync("Kundnöjdhet", organisation.Id, null);
 
             Assert.True(result);
         }
@@ -259,14 +252,13 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Kundnöjdhet",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
             await context.SaveChangesAsync();
 
             var repository = new SurveyRepository(context);
-            var result = await repository.TitleExistsAsync(survey.Title, survey.SurveyExpiryDate, organisation.Id, survey.Id);
+            var result = await repository.TitleExistsAsync(survey.Title, organisation.Id, survey.Id);
 
             Assert.False(result);
         }

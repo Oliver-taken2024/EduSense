@@ -2,7 +2,6 @@
 using EduSense.BLL.Services;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
-using EduSense.BLL.Services;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

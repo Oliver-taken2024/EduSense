@@ -7,12 +7,7 @@
         <input id="title" class="form-control" @bind="_title" @bind:event="oninput" />
     </div>
 
-    <div class="mb-3">
-        <label class="form-label" for="expiryDate">Sista svarsdatum</label>
-        <input id="expiryDate" type="date" class="form-control" @bind="_surveyExpiryDate" />
-    </div>
-
-    <div class="mb-3">
+      <div class="mb-3">
         <label class="form-label" for="organisation">Organisation</label>
         <select id="organisation" class="form-select" @bind="_organisationId">
             <option value="0">Välj organisation</option>
@@ -91,15 +86,13 @@
         if (Survey is null)
         {
             _title = string.Empty;
-            _surveyExpiryDate = DateTime.Today;
             _organisationId = 0;
             _createdByUserId = string.Empty;
             _selectedQuestionIds = [];
         }
         else
         {
-            _title = Survey.Title;
-            _surveyExpiryDate = Survey.SurveyExpiryDate;
+            _title = Survey.Title ?? string.Empty;
             _organisationId = Survey.OrganisationId;
             _selectedQuestionIds = Survey.SurveyQuestions.Select(q => q.QuestionId).ToHashSet();
         }
@@ -125,7 +118,6 @@
         var dto = new SurveySaveDto
         {
             Title = _title,
-            SurveyExpiryDate = _surveyExpiryDate,
             OrganisationId = _organisationId,
             CreatedByUserId = _createdByUserId,
             QuestionIds = _selectedQuestionIds.ToList()

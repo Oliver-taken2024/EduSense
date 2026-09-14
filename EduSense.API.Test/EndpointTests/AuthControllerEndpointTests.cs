@@ -24,10 +24,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var dto = new LoginRequestDto { Username = "Admin", Password = "AdminPw123!" };
 
-            var response = await _client.PostAsJsonAsync("/api/auth/login", dto);
+            var response = await _client.PostAsJsonAsync("/api/auth/login", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var result = await response.Content.ReadFromJsonAsync<CreateTokenResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<CreateTokenResponseDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(result);
         }
 
@@ -36,7 +36,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var dto = new LoginRequestDto { Username = "", Password = "" };
 
-            var response = await _client.GetAsync("/api/auth/me");
+            var response = await _client.GetAsync("/api/auth/me", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -45,13 +45,13 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Me_AfterLogin_ReturnsOkWithUserInfo()
         {
             var dto = new LoginRequestDto { Username = "Admin", Password = "AdminPw123!" };
-            await _client.PostAsJsonAsync("/api/auth/login", dto);
+            await _client.PostAsJsonAsync("/api/auth/login", dto, TestContext.Current.CancellationToken);
 
-            var response = await _client.GetAsync("/api/auth/me");
+            var response = await _client.GetAsync("/api/auth/me", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response?.StatusCode);
 
-            var responseInfo = await response.Content.ReadFromJsonAsync <UserInfoDto>();
+            var responseInfo = await response.Content.ReadFromJsonAsync<UserInfoDto>(cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.NotNull(responseInfo);
             Assert.Equal("Admin", responseInfo.Username);

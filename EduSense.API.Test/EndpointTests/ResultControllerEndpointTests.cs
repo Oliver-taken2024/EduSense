@@ -18,7 +18,7 @@ namespace EduSense.API.Test.EndpointTests
         [Fact]
         public async Task SaveAnswer_ValidAnswer_ReturnsOk()
         {
-            var survey = await _client.GetFromJsonAsync<RespondentSurveyDto>("/api/respondent/token-456");
+            var survey = await _client.GetFromJsonAsync<RespondentSurveyDto>("/api/respondent/token-456", cancellationToken: TestContext.Current.CancellationToken);
             var question = survey!.Questions.First();
             var dto = new SaveResultDto
             {
@@ -27,7 +27,7 @@ namespace EduSense.API.Test.EndpointTests
                 QuestionAnswerOptionId = question.AnswerOptions.First().Id
             };
 
-            var response = await _client.PostAsJsonAsync("/api/result", dto);
+            var response = await _client.PostAsJsonAsync("/api/result", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -35,7 +35,7 @@ namespace EduSense.API.Test.EndpointTests
         [Fact]
         public async Task SaveAnswer_UnknownToken_ReturnsNotFound()
         {
-            var survey = await _client.GetFromJsonAsync<RespondentSurveyDto>("/api/respondent/token-456");
+            var survey = await _client.GetFromJsonAsync<RespondentSurveyDto>("/api/respondent/token-456", cancellationToken: TestContext.Current.CancellationToken);
             var question = survey!.Questions.First();
             var dto = new SaveResultDto
             {
@@ -44,7 +44,7 @@ namespace EduSense.API.Test.EndpointTests
                 QuestionAnswerOptionId = question.AnswerOptions.First().Id
             };
 
-            var response = await _client.PostAsJsonAsync("/api/result", dto);
+            var response = await _client.PostAsJsonAsync("/api/result", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -52,7 +52,7 @@ namespace EduSense.API.Test.EndpointTests
         [Fact]
         public async Task Complete_ValidToken_ReturnsOk()
         {
-            var response = await _client.PostAsync("/api/result/token-101/complete", null);
+            var response = await _client.PostAsync("/api/result/token-101/complete", null, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -60,7 +60,7 @@ namespace EduSense.API.Test.EndpointTests
         [Fact]
         public async Task Complete_UnknownToken_ReturnsNotFound()
         {
-            var response = await _client.PostAsync("/api/result/token-999/complete", null);
+            var response = await _client.PostAsync("/api/result/token-999/complete", null, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }

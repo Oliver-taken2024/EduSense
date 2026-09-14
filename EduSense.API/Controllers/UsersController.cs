@@ -50,7 +50,7 @@ namespace EduSense.API.Controllers
                 {
                     Id = user.Id,
                     Email = user.Email ?? string.Empty,
-                    DisplayName = user.DisplayName,
+                    DisplayName = user.DisplayName ?? string.Empty,
                     IsActive = user.IsActive,
                     EmailConfirmed = user.EmailConfirmed,
                     Roles = roles.ToList()

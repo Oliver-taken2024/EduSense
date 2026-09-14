@@ -1,4 +1,5 @@
 ﻿using EduSense.DAL.Data;
+using EduSense.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

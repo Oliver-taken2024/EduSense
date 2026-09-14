@@ -39,7 +39,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Enkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
@@ -52,7 +51,16 @@ namespace EduSense.DAL.Test.Repositories
             context.SurveyQuestions.Add(surveyQuestion);
             await context.SaveChangesAsync();
 
-            var respondent = new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyId = survey.Id };
+            var dispatch = new SurveyDispatchModel
+            {
+                SurveyId = survey.Id,
+                SentByUserId = "user-1",
+                ResponseDeadline = DateTime.UtcNow.AddDays(30)
+            };
+            context.SurveyDispatches.Add(dispatch);
+            await context.SaveChangesAsync();
+
+            var respondent = new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id };
             context.Respondents.Add(respondent);
             await context.SaveChangesAsync();
 
@@ -68,9 +76,9 @@ namespace EduSense.DAL.Test.Repositories
             var result = await repository.GetByTokenAsync("token-1");
 
             Assert.NotNull(result);
-            Assert.Equal("Enkät", result!.Survey!.Title);
+            Assert.Equal("Enkät", result!.SurveyDispatch!.Survey!.Title);
 
-            var loadedSurveyQuestion = Assert.Single(result.Survey.SurveyQuestions);
+            var loadedSurveyQuestion = Assert.Single(result.SurveyDispatch.Survey.SurveyQuestions);
             Assert.Equal("Trivs du?", loadedSurveyQuestion.Question!.Text);
 
             var loadedQao = Assert.Single(loadedSurveyQuestion.Question.QuestionAnswerOptions);
@@ -93,13 +101,21 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Enkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
             await context.SaveChangesAsync();
 
-            context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyId = survey.Id });
+            var dispatch = new SurveyDispatchModel
+            {
+                SurveyId = survey.Id,
+                SentByUserId = "user-1",
+                ResponseDeadline = DateTime.UtcNow.AddDays(30)
+            };
+            context.SurveyDispatches.Add(dispatch);
+            await context.SaveChangesAsync();
+
+            context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id });
             await context.SaveChangesAsync();
 
             var repository = new RespondentRepository(context);
@@ -123,13 +139,21 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Enkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
             await context.SaveChangesAsync();
 
-            context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyId = survey.Id });
+            var dispatch = new SurveyDispatchModel
+            {
+                SurveyId = survey.Id,
+                SentByUserId = "user-1",
+                ResponseDeadline = DateTime.UtcNow.AddDays(30)
+            };
+            context.SurveyDispatches.Add(dispatch);
+            await context.SaveChangesAsync();
+
+            context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id });
             await context.SaveChangesAsync();
 
             var repository = new RespondentRepository(context);

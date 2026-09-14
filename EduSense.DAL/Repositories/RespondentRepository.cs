@@ -21,11 +21,12 @@ namespace EduSense.DAL.Repositories
                 .AsNoTracking()
                 // ! (null-forgiving): Survey/Question är nullable i modellen, men
                 // FK:erna är NOT NULL i databasen - de finns alltid i praktiken.
-                .Include(r => r.Survey!)
-                    .ThenInclude(s => s.SurveyQuestions)
-                        .ThenInclude(sq => sq.Question!)
-                            .ThenInclude(q => q.QuestionAnswerOptions)
-                                .ThenInclude(qao => qao.AnswerOption)
+                .Include(r => r.SurveyDispatch!)
+                    .ThenInclude(s => s.Survey!)
+                   .ThenInclude(s => s.SurveyQuestions)
+                    .ThenInclude(sq => sq.Question!)
+                        .ThenInclude(q => q.QuestionAnswerOptions)
+                            .ThenInclude(qao => qao.AnswerOption)
                 .Include(r => r.Responses)
                 .FirstOrDefaultAsync(r => r.Token == token);
         }

@@ -4,6 +4,8 @@ namespace EduSense.BLL.Services
 {
     public interface ISurveyDispatchService
     {
+        // Hämtar alla utskick, oavsett vilken mall de tillhör.
+        Task<IReadOnlyList<SurveyDispatchDto>> GetAllAsync();
 
         // Hämtar alla utskick för en viss enkät, inklusive information om respondenter och deras svar.
         Task<IReadOnlyList<SurveyDispatchDto>> GetAllForSurveyAsync(int surveyId);

@@ -103,7 +103,6 @@ namespace EduSense.DAL.Test.Repositories
             {
                 Title = "Enkät",
                 CreatedByUserId = "user-1",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
@@ -117,7 +116,11 @@ namespace EduSense.DAL.Test.Repositories
             context.QuestionAnswerOptions.AddRange(questionAnswerOptionJa, questionAnswerOptionNej);
             await context.SaveChangesAsync();
 
-            var respondent = new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyId = survey.Id };
+            var dispatch = new SurveyDispatchModel { SurveyId = survey.Id, ResponseDeadline = DateTime.UtcNow, SentByUserId = "user-1" };
+            context.SurveyDispatches.Add(dispatch);
+            await context.SaveChangesAsync();
+
+            var respondent = new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id };
             context.Respondents.Add(respondent);
             await context.SaveChangesAsync();
 

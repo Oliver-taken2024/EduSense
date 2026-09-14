@@ -28,7 +28,6 @@ else
                 <tr>
                     <td>@survey.Title</td>
                     <td>@survey.Organisation?.Name</td>
-                    <td>@survey.SurveyExpiryDate.ToString("yyyy-MM-dd")</td>
                     <td>@survey.SurveyQuestions.Count</td>
                     <td>
                         <div class="table-actions">
@@ -58,14 +57,13 @@ else
     [Parameter] public EventCallback<int> OnDelete { get; set; }
 
     private const int PageSize = 7;
-        public readonly object OnCreateNew;
-        private string _filterText = string.Empty;
+    private string _filterText = string.Empty;
     private int _currentPage = 1;
 
     private IReadOnlyList<SurveyDto> FilteredSurveys =>
         string.IsNullOrWhiteSpace(_filterText)
             ? Surveys
-            : Surveys.Where(s => s.Title.Contains(_filterText, StringComparison.OrdinalIgnoreCase)).ToList();
+            : Surveys.Where(s => s.Title?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true).ToList();
 
     private IReadOnlyList<SurveyDto> PagedSurveys =>
         FilteredSurveys.Skip((_currentPage - 1) * PageSize).Take(PageSize).ToList();

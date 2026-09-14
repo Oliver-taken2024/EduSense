@@ -28,7 +28,6 @@ public class EduSenseDbContextTests
         {
             Title = "Survey 1",
             CreatedByUserId = "user-1",
-            SurveyExpiryDate = DateTime.UtcNow.AddDays(7),
             OrganisationId = organisation.Id
         };
 
@@ -60,7 +59,6 @@ public class EduSenseDbContextTests
         {
             Title = "Survey 1",
             CreatedByUserId = "user-1",
-            SurveyExpiryDate = DateTime.UtcNow.AddDays(7),
             Organisation = organisation
         };
         context.Surveys.Add(survey);

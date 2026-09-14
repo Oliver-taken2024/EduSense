@@ -59,8 +59,7 @@ else
     [Parameter] public EventCallback<int> OnDelete { get; set; }
 
     private const int PageSize = 7;
-        public readonly object OnCreateNew;
-        private string _filterText = string.Empty;
+    private string _filterText = string.Empty;
     private int _currentPage = 1;
 
     private IReadOnlyList<QuestionDto> FilteredQuestions =>
