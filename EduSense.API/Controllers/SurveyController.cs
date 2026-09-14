@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using EduSense.BLL.Services;
 using EduSense.Shared;
 using EduSense.BLL.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduSense.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy="AdminOrAnalyst")]
         public async Task<ActionResult<IReadOnlyList<SurveyDto>>> GetAll()
         {
             var surveys = await _surveyService.GetAllAsync();
@@ -24,6 +26,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrAnalyst")]
         public async Task<ActionResult<SurveyDto>> GetById(int id)
         {
             var survey = await _surveyService.GetByIdAsync(id);
@@ -37,6 +40,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<SurveyDto>> Create(SurveySaveDto dto)
         {
             try
@@ -51,6 +55,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<SurveyDto>> Update(int id, SurveySaveDto dto)
         {
             try
@@ -71,6 +76,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _surveyService.DeleteAsync(id);

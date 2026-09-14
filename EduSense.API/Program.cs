@@ -132,38 +132,45 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-using (var scope = app.Services.CreateScope())
+if(!app.Environment.IsEnvironment("Testing"))
 {
-    var directConnectionString = ToDirectConnectionString(connectionString!);
+   
+    using (var scope = app.Services.CreateScope())
+    {
+        var directConnectionString = ToDirectConnectionString(connectionString!);
 
-    var appDbOptions = new DbContextOptionsBuilder<EduSenseDbContext>()
-        .UseNpgsql(directConnectionString).Options;
-    var userDbOptions = new DbContextOptionsBuilder<EduSenseUserDbContext>()
-        .UseNpgsql(directConnectionString).Options;
+        var appDbOptions = new DbContextOptionsBuilder<EduSenseDbContext>()
+            .UseNpgsql(directConnectionString).Options;
+        var userDbOptions = new DbContextOptionsBuilder<EduSenseUserDbContext>()
+            .UseNpgsql(directConnectionString).Options;
 
-    await using var directAppDb = new EduSenseDbContext(appDbOptions);
-    await using var directUserDb = new EduSenseUserDbContext(userDbOptions);
+        await using var directAppDb = new EduSenseDbContext(appDbOptions);
+        await using var directUserDb = new EduSenseUserDbContext(userDbOptions);
 
-    if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
         //Skapa om databasen enligt modellerna
-    {
-        // Samma fysiska databas delas av båda context-klasserna, så EnsureCreatedAsync
-        // (som bara kollar "finns databasen") skulle hoppa över Identity-tabellerna
-        // eftersom databasen redan finns efter directAppDb:s EnsureCreatedAsync.
-        // CreateTablesAsync tvingar fram tabellerna oavsett.
-        await directAppDb.Database.EnsureDeletedAsync();// ???
-        await directAppDb.Database.EnsureCreatedAsync();
-        await directUserDb.Database.GetService<IRelationalDatabaseCreator>().CreateTablesAsync();
+        {
+            // Samma fysiska databas delas av båda context-klasserna, så EnsureCreatedAsync
+            // (som bara kollar "finns databasen") skulle hoppa över Identity-tabellerna
+            // eftersom databasen redan finns efter directAppDb:s EnsureCreatedAsync.
+            // CreateTablesAsync tvingar fram tabellerna oavsett.
+            await directAppDb.Database.EnsureDeletedAsync();// ???
+            await directAppDb.Database.EnsureCreatedAsync();
+            await directUserDb.Database.GetService<IRelationalDatabaseCreator>().CreateTablesAsync();
+        }
+        else
+        //Om production mode, kör migrationer som ev inte är körda
+        {
+            await directAppDb.Database.MigrateAsync();
+            await directUserDb.Database.MigrateAsync();
+        }
+        //Lägg in seedningsdatat
+        await DataSeeder.SeedAsync(app.Services);
     }
-    else
-    //Om production mode, kör migrationer som ev inte är körda
-    {
-        await directAppDb.Database.MigrateAsync();
-        await directUserDb.Database.MigrateAsync();
-    }
-    //Lägg in seedningsdatat
-    await DataSeeder.SeedAsync(app.Services);
+
 }
+
+
 
 app.UseHttpsRedirection();
 
@@ -175,3 +182,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//Detta krävs för att WebApplicationFactory<Program> ska kunna referera till entry point-klassen — 
+//top-level statements genererar annars en internal klass som testprojektet inte kommer åt.
+public partial class Program { }

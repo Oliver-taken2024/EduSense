@@ -264,7 +264,7 @@ namespace EduSense.DAL.Data
                 {
                     Title = title,
                     CreatedByUserId = "admin@edusense.com",
-                    SurveyExpiryDate = expiryDate,
+                    SurveyExpiryDate = DateTime.SpecifyKind(expiryDate.Date, DateTimeKind.Utc),
                     OrganisationId = organisationId
                 };
 
