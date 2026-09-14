@@ -7,6 +7,14 @@
             <input id="questionText" class="form-control" @bind="_text" @bind:event="oninput" />
         </div>
 
+        @if (!IsEditing)
+        {
+            <div class="mb-3">
+                <label class="form-label" for="createdByUserId">Skapad av (user id) — tillfälligt fält tills inloggning finns</label>
+                <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
+            </div>
+        }
+
         @if (_errors.Count > 0)
         {
             <ul class="text-danger" role="alert">
@@ -18,7 +26,7 @@
         }
 
         <button type="submit" class="btn button-login" disabled="@_isSaving">Spara</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
+        <button type="button" class="btn button-secondary" @onclick="Cancel">Avbryt</button>
     </form>
 </div>
 
@@ -32,6 +40,7 @@
     private bool IsEditing => Question is not null && Question.Id != 0;
 
     private string _text = string.Empty;
+    private string _createdByUserId = string.Empty;
     private List<string> _errors = [];
     private bool _isSaving;
     private int? _loadedQuestionId;
@@ -45,6 +54,7 @@
 
         _loadedQuestionId = Question?.Id;
         _text = Question?.Text ?? string.Empty;
+        _createdByUserId = string.Empty;
     }
 
     private async Task SaveAsync()
@@ -52,7 +62,13 @@
         _errors = [];
         _isSaving = true;
 
-        var dto = new QuestionDto { Id = Question?.Id ?? 0, Text = _text, CreatedByUserId = Question?.CreatedByUserId ?? string.Empty, Organisation = Question?.Organisation };
+        var dto = new QuestionDto
+        {
+            Id = Question?.Id ?? 0,
+            Text = _text,
+            CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : _createdByUserId,
+            Organisation = Question?.Organisation
+        };
 
         try
         {

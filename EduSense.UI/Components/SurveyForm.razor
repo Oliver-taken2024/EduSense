@@ -18,14 +18,6 @@
         </select>
     </div>
 
-    @if (!IsEditing)
-    {
-        <div class="mb-3">
-            <label class="form-label" for="createdByUserId">Skapad av (user id) — tillfälligt fält tills inloggning finns</label>
-            <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
-        </div>
-    }
-
     <fieldset class="mb-3">
         <legend class="form-label">Frågor</legend>
         @foreach (var question in Questions)
@@ -50,10 +42,11 @@
     }
 
     <button type="submit" class="btn button-login" disabled="@_isSaving">Spara</button>
-    <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
+    <button type="button" class="btn button-secondary" @onclick="Cancel">Avbryt</button>
 </form>
 </div>
 
+@using System.Security.Claims
 @code {
     [Parameter] public SurveyDto? Survey { get; set; }
     [Parameter] public IReadOnlyList<OrganisationDto> Organisations { get; set; } = [];
@@ -62,13 +55,13 @@
     [Parameter] public EventCallback OnCancelled { get; set; }
 
     [Inject] private ApiService Api { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     private bool IsEditing => Survey is not null;
 
     private string _title = string.Empty;
     private DateTime _surveyExpiryDate = DateTime.Today;
     private int _organisationId;
-    private string _createdByUserId = string.Empty;
     private HashSet<int> _selectedQuestionIds = [];
     private List<string> _errors = [];
     private bool _isSaving;
@@ -87,7 +80,6 @@
         {
             _title = string.Empty;
             _organisationId = 0;
-            _createdByUserId = string.Empty;
             _selectedQuestionIds = [];
         }
         else
@@ -115,11 +107,15 @@
         _errors = [];
         _isSaving = true;
 
+        // Skapad-av ska vara den faktiskt inloggade användaren, inte ett manuellt fält.
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var createdByUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
         var dto = new SurveySaveDto
         {
             Title = _title,
             OrganisationId = _organisationId,
-            CreatedByUserId = _createdByUserId,
+            CreatedByUserId = createdByUserId,
             QuestionIds = _selectedQuestionIds.ToList()
         };
 

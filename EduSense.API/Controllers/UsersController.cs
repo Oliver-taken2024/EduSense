@@ -49,6 +49,7 @@ namespace EduSense.API.Controllers
                 result.Add(new UserListItemDto
                 {
                     Id = user.Id,
+                    Username = user.UserName ?? string.Empty,
                     Email = user.Email ?? string.Empty,
                     DisplayName = user.DisplayName ?? string.Empty,
                     IsActive = user.IsActive,

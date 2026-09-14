@@ -55,8 +55,8 @@ namespace EduSense.DAL.Data
             }
 
             // Skapa analyst-användare
-            var analystEmail = "analyst@edusense.com";
-            var analystUserName = "Analyst";
+            var analystEmail = "analytiker@edusense.se";
+            var analystUserName = "Analytiker";
             var analystUser = await userManager.FindByNameAsync(analystUserName);
 
             if (analystUser is null)
@@ -66,7 +66,7 @@ namespace EduSense.DAL.Data
                     UserName = analystUserName,
                     Email = analystEmail,
                     EmailConfirmed = true,
-                    DisplayName = "Analyst User",
+                    DisplayName = "Analytiker Användare",
                     IsActive = true
                 };
 

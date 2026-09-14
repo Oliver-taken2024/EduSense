@@ -1,0 +1,17 @@
+.form-check {
+    padding-left: 2em;
+    margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+    width: 1.4em;
+    height: 1.4em;
+    margin-left: -2em;
+    margin-top: 0.1em;
+    cursor: pointer;
+}
+
+.form-check-label {
+    padding-left: 0.25em;
+    cursor: pointer;
+}

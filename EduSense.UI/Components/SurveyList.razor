@@ -19,6 +19,8 @@ else
                 <th>Organisation</th>
                 <th>Sista svarsdatum</th>
                 <th>Antal frågor</th>
+                <th>Skapad av</th>
+                <th>Skapad</th>
                 <th><span class="visually-hidden">Åtgärder</span></th>
             </tr>
         </thead>
@@ -31,11 +33,11 @@ else
                     <td>@survey.SurveyQuestions.Count</td>
                     <td>
                         <div class="table-actions">
-                            <button type="button" class="btn btn-sm button-login"
+                            <button type="button" class="btn button-login"
                                     aria-label="@($"Redigera enkäten {survey.Title}")" @onclick="() => OnEdit.InvokeAsync(survey)">
                                 <img src="/Images/Edit.png" alt="" width="14" height="14" /> Redigera
                             </button>
-                            <button type="button" class="btn btn-sm button-logout"
+                            <button type="button" class="btn button-logout"
                                     aria-label="@($"Ta bort enkäten {survey.Title}")" @onclick="() => OnDelete.InvokeAsync(survey.Id)">
                                 <img src="/Images/Delete.png" alt="" width="14" height="14" /> Ta bort
                             </button>

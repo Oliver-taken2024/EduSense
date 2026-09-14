@@ -14,7 +14,7 @@
                     <p id="confirmDialogMessage">@Message</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"  @ref="_cancelButtonRef" @onclick="() => OnCancelled.InvokeAsync()">
+                    <button type="button" class="btn button-secondary" @ref="_cancelButtonRef" @onclick="() => OnCancelled.InvokeAsync()">
                         Avbryt
                     </button>
                     <button type="button" class="btn button-logout" @onclick="() => OnConfirmed.InvokeAsync()">

@@ -3,6 +3,7 @@ using System;
 using EduSense.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduSense.DAL.Migrations
 {
     [DbContext(typeof(EduSenseDbContext))]
-    partial class EduSenseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914103548_AddCreatedAtToSurveyAndQuestion")]
+    partial class AddCreatedAtToSurveyAndQuestion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,7 +145,7 @@ namespace EduSense.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("SurveyDispatchId")
+                    b.Property<int>("SurveyId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Token")
@@ -157,9 +160,9 @@ namespace EduSense.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SurveyDispatchId");
+                    b.HasIndex("SurveyId");
 
-                    b.HasIndex("Email", "Token", "SurveyDispatchId")
+                    b.HasIndex("Email", "Token", "SurveyId")
                         .IsUnique();
 
                     b.ToTable("Respondent", (string)null);
@@ -193,34 +196,6 @@ namespace EduSense.DAL.Migrations
                     b.ToTable("Response", (string)null);
                 });
 
-            modelBuilder.Entity("EduSense.DAL.Models.SurveyDispatchModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ResponseDeadline")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SentByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("SurveyId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SurveyId");
-
-                    b.ToTable("SurveyDispatch", (string)null);
-                });
-
             modelBuilder.Entity("EduSense.DAL.Models.SurveyModel", b =>
                 {
                     b.Property<int>("Id")
@@ -242,6 +217,9 @@ namespace EduSense.DAL.Migrations
                     b.Property<int>("OrganisationId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("SurveyExpiryDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -249,6 +227,9 @@ namespace EduSense.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrganisationId");
+
+                    b.HasIndex("Title", "SurveyExpiryDate", "OrganisationId")
+                        .IsUnique();
 
                     b.ToTable("Survey", (string)null);
                 });
@@ -309,13 +290,13 @@ namespace EduSense.DAL.Migrations
 
             modelBuilder.Entity("EduSense.DAL.Models.RespondentModel", b =>
                 {
-                    b.HasOne("EduSense.DAL.Models.SurveyDispatchModel", "SurveyDispatch")
+                    b.HasOne("EduSense.DAL.Models.SurveyModel", "Survey")
                         .WithMany("Respondents")
-                        .HasForeignKey("SurveyDispatchId")
+                        .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SurveyDispatch");
+                    b.Navigation("Survey");
                 });
 
             modelBuilder.Entity("EduSense.DAL.Models.ResponseModel", b =>
@@ -343,17 +324,6 @@ namespace EduSense.DAL.Migrations
                     b.Navigation("Respondent");
 
                     b.Navigation("SurveyQuestion");
-                });
-
-            modelBuilder.Entity("EduSense.DAL.Models.SurveyDispatchModel", b =>
-                {
-                    b.HasOne("EduSense.DAL.Models.SurveyModel", "Survey")
-                        .WithMany("Dispatches")
-                        .HasForeignKey("SurveyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Survey");
                 });
 
             modelBuilder.Entity("EduSense.DAL.Models.SurveyModel", b =>
@@ -415,14 +385,9 @@ namespace EduSense.DAL.Migrations
                     b.Navigation("Responses");
                 });
 
-            modelBuilder.Entity("EduSense.DAL.Models.SurveyDispatchModel", b =>
-                {
-                    b.Navigation("Respondents");
-                });
-
             modelBuilder.Entity("EduSense.DAL.Models.SurveyModel", b =>
                 {
-                    b.Navigation("Dispatches");
+                    b.Navigation("Respondents");
 
                     b.Navigation("SurveyQuestions");
                 });

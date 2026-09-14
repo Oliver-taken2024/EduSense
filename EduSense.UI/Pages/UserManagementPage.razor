@@ -6,6 +6,8 @@
 
 <PageTitle>Användarhantering</PageTitle>
 
+<a class="back-link" href="/">← Tillbaka</a>
+
 <div class="page-header">
     <div>
         <h1>Användarhantering</h1>
@@ -42,17 +44,24 @@
                     <label for="invite-role" class="form-label">Roll</label>
                     <InputSelect id="invite-role" class="form-select" @bind-Value="_inviteModel.Role">
                         <option value="Admin">Admin</option>
-                        <option value="Analyst">Analyst</option>
+                        <option value="Analyst">Analytiker</option>
                     </InputSelect>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100" disabled="@_isInviting" aria-busy="@_isInviting">
+                    <button type="submit" class="btn button-login w-100" disabled="@_isInviting" aria-busy="@_isInviting">
                         @(_isInviting ? "Skickar..." : "Skicka inbjudan")
                     </button>
                 </div>
             </div>
         </EditForm>
     </div>
+</div>
+
+<!-- Sökfält för att filtrera användarlistan -->
+<div class="mb-3">
+    <label for="user-search" class="form-label">Sök</label>
+    <input id="user-search" type="search" class="form-control" placeholder="Sök på användarnamn, e-post eller namn..."
+           @bind="_searchTerm" @bind:event="oninput" />
 </div>
 
 <!-- Lista över användare -->
@@ -64,6 +73,10 @@ else if (_users.Count == 0)
 {
     <p>Inga användare hittades.</p>
 }
+else if (FilteredUsers.Count == 0)
+{
+    <p>Inga användare matchar sökningen.</p>
+}
 else
 {
     <div class="table-responsive">
@@ -71,6 +84,7 @@ else
             <caption class="visually-hidden">Lista över admin- och analytikerkonton</caption>
             <thead>
                 <tr>
+                    <th>Användarnamn</th>
                     <th>E-post</th>
                     <th>Namn</th>
                     <th>Roll</th>
@@ -79,13 +93,14 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in _users)
+                @foreach (var user in FilteredUsers)
                 {
                     <tr>
-                        <td>@user.Email</td>
-                        <td>@(user.DisplayName ?? "-")</td>
-                        <td>@string.Join(", ", user.Roles)</td>
-                        <td>
+                        <td data-label="Användarnamn">@user.Username</td>
+                        <td data-label="E-post">@user.Email</td>
+                        <td data-label="Namn">@(user.DisplayName ?? "-")</td>
+                        <td data-label="Roll">@string.Join(", ", user.Roles)</td>
+                        <td data-label="Status">
                             @if (!user.EmailConfirmed)
                             {
                                 <span class="badge bg-warning text-dark">Väntar på svar</span>
@@ -103,21 +118,21 @@ else
                             <div class="table-actions">
                                 @if (!user.EmailConfirmed)
                                 {
-                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    <button type="button" class="btn button-secondary"
                                             @onclick="() => ResendInviteAsync(user)">
                                         Skicka inbjudan igen
                                     </button>
                                 }
                                 else if (user.IsActive)
                                 {
-                                    <button type="button" class="btn btn-sm button-logout"
+                                    <button type="button" class="btn button-logout"
                                             @onclick="() => DeactivateAsync(user)">
                                         Inaktivera
                                     </button>
                                 }
                                 else
                                 {
-                                    <button type="button" class="btn btn-sm button-login"
+                                    <button type="button" class="btn button-login"
                                             @onclick="() => ActivateAsync(user)">
                                         Aktivera
                                     </button>
@@ -134,6 +149,17 @@ else
 @code {
     private List<UserListItemDto> _users = [];
     private readonly InviteUserRequestDto _inviteModel = new() { Role = "Analyst" };
+    private string _searchTerm = string.Empty;
+
+    // Filtrerar användarlistan på e-post eller namn utifrån sökfältet
+    private List<UserListItemDto> FilteredUsers =>
+        string.IsNullOrWhiteSpace(_searchTerm)
+            ? _users
+            : _users.Where(u =>
+                u.Username.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (u.DisplayName?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+              .ToList();
 
     // Variabler för att hantera formulärstatus och felmeddelanden
     private bool _isLoading = true;
