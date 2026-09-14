@@ -61,6 +61,8 @@ builder.Services.AddScoped<IRespondentRepository, RespondentRepository>();
 builder.Services.AddScoped<IRespondentService, RespondentService>();
 builder.Services.AddScoped<IResultRepository, ResultRepository>();
 builder.Services.AddScoped<IResultService, ResultService>();
+builder.Services.AddScoped<ISurveyDispatchRepository, SurveyDispatchRepository>();
+builder.Services.AddScoped<ISurveyDispatchService, SurveyDispatchService>();
 
 builder.Services.AddCors(options =>
 {

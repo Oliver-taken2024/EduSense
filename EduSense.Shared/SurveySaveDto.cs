@@ -7,7 +7,6 @@ namespace EduSense.Shared
     {
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public DateTime SurveyExpiryDate { get; set; }
         public int OrganisationId { get; set; }
         public string CreatedByUserId { get; set; } = string.Empty;
         public List<int> QuestionIds { get; set; } = [];

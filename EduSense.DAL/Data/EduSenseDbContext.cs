@@ -17,6 +17,7 @@ namespace EduSense.DAL.Data
         public DbSet<QuestionModel> Questions => Set<QuestionModel>();
         public DbSet<SurveyModel> Surveys => Set<SurveyModel>();
         public DbSet<SurveyQuestionModel> SurveyQuestions => Set<SurveyQuestionModel>();
+        public DbSet<SurveyDispatchModel> SurveyDispatches => Set<SurveyDispatchModel>();
         public DbSet<AnswerOptionModel> AnswerOptions => Set<AnswerOptionModel>();
         public DbSet<QuestionAnswerOptionModel> QuestionAnswerOptions => Set<QuestionAnswerOptionModel>();
         public DbSet<RespondentModel> Respondents => Set<RespondentModel>();
@@ -90,19 +91,13 @@ namespace EduSense.DAL.Data
 
                 entity.Property(x => x.CreatedByUserId)
                     .IsRequired();
-
-                entity.Property(x => x.SurveyExpiryDate)
-                    .IsRequired();
-
-                entity.HasIndex(x => new { x.Title, x.SurveyExpiryDate, x.OrganisationId })
-                    .IsUnique();
-
+              
                 entity.HasMany(x => x.SurveyQuestions)
                     .WithOne(x => x.Survey)
                     .HasForeignKey(x => x.SurveyId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(x => x.Respondents)
+                entity.HasMany(x => x.Dispatches)
                     .WithOne(x => x.Survey)
                     .HasForeignKey(x => x.SurveyId)
                     .OnDelete(DeleteBehavior.Cascade);
@@ -122,6 +117,27 @@ namespace EduSense.DAL.Data
                     .HasForeignKey(x => x.SurveyQuestionId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<SurveyDispatchModel>(entity =>
+            {
+                entity.ToTable("SurveyDispatch");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.ResponseDeadline)
+                    .IsRequired();
+
+                entity.Property(x => x.SentByUserId)
+                    .IsRequired();
+
+                entity.Property(x => x.SentAt)
+                    .IsRequired();
+
+                entity.HasMany(x => x.Respondents)
+                    .WithOne(x => x.SurveyDispatch)
+                    .HasForeignKey(x => x.SurveyDispatchId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
 
             modelBuilder.Entity<AnswerOptionModel>(entity =>
             {
@@ -168,7 +184,7 @@ namespace EduSense.DAL.Data
                 entity.Property(x => x.TokenIsUsed)
                     .IsRequired();
 
-                entity.HasIndex(x => new { x.Email, x.Token, x.SurveyId })
+                entity.HasIndex(x => new { x.Email, x.Token, x.SurveyDispatchId })
                     .IsUnique();
 
                 entity.HasMany(x => x.Responses)
