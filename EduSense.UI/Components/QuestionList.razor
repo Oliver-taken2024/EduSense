@@ -17,6 +17,8 @@ else
             <tr>
                 <th>Text</th>
                 <th>Organisation</th>
+                <th>Skapad av</th>
+                <th>Skapad</th>
                 <th><span class="visually-hidden">Åtgärder</span></th>
             </tr>
         </thead>
@@ -24,19 +26,21 @@ else
             @foreach (var question in PagedQuestions)
             {
                 <tr>
-                    <td>@question.Text</td>
-                    <td>@question.Organisation?.Name</td>
+                    <td data-label="Text">@question.Text</td>
+                    <td data-label="Organisation">@question.Organisation?.Name</td>
+                    <td data-label="Skapad av">@question.CreatedByUserId</td>
+                    <td data-label="Skapad">@question.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                     <td>
                         <div class="table-actions">
-                            <button type="button" class="btn btn-sm button-login"
+                            <button type="button" class="btn button-login"
                                     aria-label="@($"Redigera frågan {question.Text}")" @onclick="() => OnEdit.InvokeAsync(question)">
                                 <img src="/Images/Edit.png" alt="" width="14" height="14" /> Redigera
                             </button>
-                            <button type="button" class="btn btn-sm button-copy"
+                            <button type="button" class="btn button-copy"
                                     aria-label="@($"Kopiera frågan {question.Text}")" @onclick="() => OnCopy.InvokeAsync(question)">
                                 Kopiera
                             </button>
-                            <button type="button" class="btn btn-sm button-logout"
+                            <button type="button" class="btn button-logout"
                                     aria-label="@($"Ta bort frågan {question.Text}")" @onclick="() => OnDelete.InvokeAsync(question.Id)">
                                 <img src="/Images/Delete.png" alt="" width="14" height="14" /> Ta bort
                             </button>

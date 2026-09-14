@@ -6,6 +6,11 @@
 
 main {
     flex: 1;
+    /* Flex-items krymper aldrig under sitt innehålls naturliga minsta bredd
+       (default min-width: auto) - utan denna rad tvingar breda tabellrader
+       (t.ex. tre nowrap-knappar i .table-actions) hela layouten bredare än
+       skärmen istället för att låta .table-responsive scrolla lokalt. */
+    min-width: 0;
 }
 
 .sidebar {

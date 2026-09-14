@@ -26,6 +26,7 @@ namespace EduSense.BLL.Services
                     Id = q.Question.Id,
                     Text = q.Question.Text,
                     CreatedByUserId = q.Question.CreatedByUserId,
+                    CreatedAt = q.Question.CreatedAt,
                     Organisation = q.Organisation is null
                 ? null
                 : new OrganisationDto { Id = q.Organisation.Id, Name = q.Organisation.Name }
@@ -45,6 +46,7 @@ namespace EduSense.BLL.Services
                 Id = question.Question.Id,
                 Text = question.Question.Text,
                 CreatedByUserId = question.Question.CreatedByUserId,
+                CreatedAt = question.Question.CreatedAt,
                 Organisation = question.Organisation is null
             ? null
             : new OrganisationDto { Id = question.Organisation.Id, Name = question.Organisation.Name }
@@ -61,7 +63,8 @@ namespace EduSense.BLL.Services
             var question = new QuestionModel
             {
                 Text = dto.Text,
-                CreatedByUserId = dto.CreatedByUserId
+                CreatedByUserId = dto.CreatedByUserId,
+                CreatedAt = DateTime.UtcNow
             };
 
             await _questionRepository.CreateAsync(question);
@@ -71,6 +74,7 @@ namespace EduSense.BLL.Services
                 Id = question.Id,
                 Text = question.Text,
                 CreatedByUserId = question.CreatedByUserId,
+                CreatedAt = question.CreatedAt,
                 Organisation = dto.Organisation
             };
         }
@@ -96,6 +100,7 @@ namespace EduSense.BLL.Services
                 Id = question.Id,
                 Text = question.Text,
                 CreatedByUserId = question.CreatedByUserId,
+                CreatedAt = question.CreatedAt,
                 Organisation = dto.Organisation
             };
         }

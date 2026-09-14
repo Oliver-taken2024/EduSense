@@ -23,6 +23,7 @@ namespace EduSense.UI.Services
 
                 var claims = new List<Claim>
                 {
+                    new(ClaimTypes.NameIdentifier, userInfo.Id),
                     new(ClaimTypes.Name, userInfo.Username),
                     new("display_name", userInfo.DisplayName)
                 };
