@@ -44,56 +44,105 @@
     background-color: var(--accent-color-gold);
 }
 
+.button-login,
+.button-logout,
+.button-copy,
+.button-secondary {
+    color: var(--text-color);
+    border-radius: 999px;
+    padding: 0.7rem 1.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
 .button-login {
-    background-color: var(--button-login-color);
+    background: linear-gradient(135deg, #3FA184, var(--button-login-color));
+    border: none;
+    box-shadow: 0 0 0 1px rgba(63, 161, 132, 0.5), 0 0 20px rgba(63, 161, 132, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
 .button-logout {
-    background-color: var(--button-logout-color);
+    background: linear-gradient(135deg, #D9564C, var(--button-logout-color));
+    border: none;
+    box-shadow: 0 0 0 1px rgba(217, 86, 76, 0.5), 0 0 20px rgba(217, 86, 76, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
 .button-copy {
-    background-color: var(--accent-color-gold);
+    background: linear-gradient(135deg, #E7C767, var(--accent-color-gold));
+    border: none;
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.6), 0 0 20px rgba(212, 175, 55, 0.5), 0 4px 10px rgba(0, 0, 0, 0.35);
+    /* Mörk text istället för --text-color, för att klara kontrastkravet
+       mot den ljusa guldbakgrunden (WCAG 2.2 AA, 4.5:1). */
     color: var(--background-color-1);
 }
 
-.button-login,
-.button-logout,
-.button-copy {
-    color: var(--text-color);
-    border: none;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+/* Neutral pill-knapp (Avbryt, "skicka igen" o.dyl.) i samma stil som
+   button-login/-logout, istället för ostylad Bootstrap-grå. */
+.button-secondary {
+    background-color: rgba(169, 196, 192, 0.08);
+    border: 1px solid rgba(169, 196, 192, 0.45);
 }
 
-    .button-copy {
-        /* Mörk text istället för --text-color, för att klara kontrastkravet
-           mot den ljusa guldbakgrunden (WCAG 2.2 AA, 4.5:1). */
-        color: var(--background-color-1);
-    }
+.button-login:hover:not(:disabled),
+.button-logout:hover:not(:disabled),
+.button-copy:hover:not(:disabled),
+.button-secondary:hover:not(:disabled) {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
 
-    .button-login:hover:not(:disabled),
-    .button-logout:hover:not(:disabled),
-    .button-copy:hover:not(:disabled) {
-        filter: brightness(1.1);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    }
+.button-login:hover:not(:disabled) {
+    box-shadow: 0 0 0 1px rgba(63, 161, 132, 0.7), 0 0 28px rgba(63, 161, 132, 0.75), 0 10px 22px rgba(0, 0, 0, 0.35);
+}
 
-    .button-login:active:not(:disabled),
-    .button-logout:active:not(:disabled),
-    .button-copy:active:not(:disabled) {
-        transform: translateY(0) scale(0.96);
-        box-shadow: none;
-    }
+.button-logout:hover:not(:disabled) {
+    box-shadow: 0 0 0 1px rgba(217, 86, 76, 0.7), 0 0 28px rgba(217, 86, 76, 0.75), 0 10px 22px rgba(0, 0, 0, 0.35);
+}
+
+.button-copy:hover:not(:disabled) {
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.8), 0 0 28px rgba(212, 175, 55, 0.7), 0 10px 22px rgba(0, 0, 0, 0.35);
+}
+
+.button-secondary:hover:not(:disabled) {
+    border-color: var(--accent-color-gold);
+    background-color: rgba(212, 175, 55, 0.14);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.button-login:active:not(:disabled),
+.button-logout:active:not(:disabled),
+.button-copy:active:not(:disabled),
+.button-secondary:active:not(:disabled) {
+    transform: translateY(0) scale(0.96);
+    box-shadow: none;
+}
 
 .table-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.65rem;
+    padding-block: 0.35rem;
+}
+
+    .table-actions .btn {
+        white-space: nowrap;
+        flex: 1 1 auto;
+    }
+
+/* Samma brytpunkt som sidomenyn (MainLayout/NavMenu) - under den är
+   skärmen för smal för att tvinga åtgärdsknapparna till en enda rad. */
+@media (min-width: 641px) {
+    .table-actions {
+        flex-wrap: nowrap;
+    }
 }
 
 .button-hub {
@@ -150,6 +199,51 @@
     }
 }
 
+/* Tabeller kräver sidledsscroll för att nå knapparna så fort skärmen inte
+   är full desktop-bredd (surfplatta, mindre bärbara) - man ser dem aldrig
+   utan att veta att man ska svepa i sidled. Bygger om varje rad till ett
+   stapelbart kort istället. Kräver data-label="..." på varje <td>. */
+@media (max-width: 1024px) {
+    .table-responsive table,
+    .table-responsive thead,
+    .table-responsive tbody,
+    .table-responsive tr,
+    .table-responsive th,
+    .table-responsive td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-responsive thead {
+        display: none;
+    }
+
+    .table-responsive tbody tr {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    .table-responsive td {
+        border: none;
+        padding: 0.35rem 0;
+    }
+
+        .table-responsive td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-size: var(--font-size-text-medium);
+            font-weight: 600;
+            color: var(--text-color-secondary);
+        }
+
+    .table-responsive .table-actions {
+        margin-top: 0.5rem;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .fade-in-up {
         animation: none;
@@ -175,6 +269,19 @@
     .form-control:focus,
     .form-select:focus {
         border-color: var(--accent-color-gold);
+    }
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-color-secondary);
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+}
+
+    .back-link:hover {
+        color: var(--accent-color-gold);
     }
 
 .page-header {

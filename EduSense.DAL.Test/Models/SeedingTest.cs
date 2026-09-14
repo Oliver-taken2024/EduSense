@@ -35,7 +35,7 @@ public class SeedingTest
         Assert.Contains("Admin", adminRoles);
 
         // Kontrollera att analyst-användare skapades
-        var analystUser = await userManager.FindByEmailAsync("analyst@edusense.com");
+        var analystUser = await userManager.FindByEmailAsync("analytiker@edusense.se");
         Assert.NotNull(analystUser);
         Assert.True(analystUser.IsActive);
 

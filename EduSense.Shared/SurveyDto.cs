@@ -11,6 +11,8 @@ namespace EduSense.Shared
         public string? Description { get; set; }
         public DateTime SurveyExpiryDate { get; set; }
         public int OrganisationId { get; set; }
+        public string CreatedByUserId { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
 
         public OrganisationDto? Organisation { get; set; }
         public ICollection<SurveyQuestionDto> SurveyQuestions { get; set; } = [];

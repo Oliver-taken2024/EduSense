@@ -14,6 +14,8 @@ namespace EduSense.DAL.Models
 
         public string CreatedByUserId { get; set; } = null!;
 
+        public DateTime CreatedAt { get; set; }
+
         public DateTime SurveyExpiryDate { get; set; }
 
         public int OrganisationId { get; set; }
