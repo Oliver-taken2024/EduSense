@@ -42,6 +42,7 @@ namespace EduSense.BLL.Services
                 SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate),
                 OrganisationId = dto.OrganisationId,
                 CreatedByUserId = dto.CreatedByUserId,
+                CreatedAt = DateTime.UtcNow,
                 SurveyQuestions = dto.QuestionIds.Distinct()
                     .Select(questionId => new SurveyQuestionModel { QuestionId = questionId })
                     .ToList()
@@ -94,6 +95,8 @@ namespace EduSense.BLL.Services
                 Description = survey.Description,
                 SurveyExpiryDate = survey.SurveyExpiryDate,
                 OrganisationId = survey.OrganisationId,
+                CreatedByUserId = survey.CreatedByUserId,
+                CreatedAt = survey.CreatedAt,
                 Organisation = survey.Organisation is null ? null : new OrganisationDto
                 {
                     Id = survey.Organisation.Id,
