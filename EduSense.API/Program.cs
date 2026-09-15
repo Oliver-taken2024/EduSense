@@ -150,15 +150,12 @@ if(!app.Environment.IsEnvironment("Testing"))
         await using var directUserDb = new EduSenseUserDbContext(userDbOptions);
 
         if (app.Environment.IsDevelopment())
-        //Skapa om databasen enligt modellerna
+        //Bygg om databasen från migrationerna
         {
-            // Samma fysiska databas delas av båda context-klasserna, så EnsureCreatedAsync
-            // (som bara kollar "finns databasen") skulle hoppa över Identity-tabellerna
-            // eftersom databasen redan finns efter directAppDb:s EnsureCreatedAsync.
-            // CreateTablesAsync tvingar fram tabellerna oavsett.
-            await directAppDb.Database.EnsureDeletedAsync();// ???
-            await directAppDb.Database.EnsureCreatedAsync();
-            await directUserDb.Database.GetService<IRelationalDatabaseCreator>().CreateTablesAsync();
+            await directAppDb.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
+            await directAppDb.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
+            await directAppDb.Database.MigrateAsync();
+            await directUserDb.Database.MigrateAsync();
         }
         else
         //Om production mode, kör migrationer som ev inte är körda
@@ -171,8 +168,6 @@ if(!app.Environment.IsEnvironment("Testing"))
     }
 
 }
-
-
 
 app.UseHttpsRedirection();
 

@@ -39,12 +39,6 @@ namespace EduSense.DAL.Migrations
                 table: "Respondent",
                 newName: "IX_Respondent_Email_Token_SurveyDispatchId");
 
-            migrationBuilder.AddColumn<string>(
-                name: "Description",
-                table: "Survey",
-                type: "text",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "SurveyDispatch",
                 columns: table => new
@@ -90,10 +84,6 @@ namespace EduSense.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "SurveyDispatch");
-
-            migrationBuilder.DropColumn(
-                name: "Description",
-                table: "Survey");
 
             migrationBuilder.RenameColumn(
                 name: "SurveyDispatchId",

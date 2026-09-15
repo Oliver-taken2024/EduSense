@@ -3,6 +3,7 @@ using System;
 using EduSense.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduSense.DAL.Migrations
 {
     [DbContext(typeof(EduSenseDbContext))]
-    partial class EduSenseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915080939_AddQuestionCategory")]
+    partial class AddQuestionCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,12 +69,6 @@ namespace EduSense.DAL.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -169,9 +166,6 @@ namespace EduSense.DAL.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Segment")
-                        .HasColumnType("integer");
 
                     b.Property<int>("SurveyDispatchId")
                         .HasColumnType("integer");

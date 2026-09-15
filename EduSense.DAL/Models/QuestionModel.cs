@@ -15,6 +15,8 @@ namespace EduSense.DAL.Models
         public string CreatedByUserId { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }
+        public int? CategoryId {  get; set; }
+        public CategoryModel? Category { get; set; }
 
         public ICollection<SurveyQuestionModel> SurveyQuestions { get; set; } = [];
         public ICollection<QuestionAnswerOptionModel> QuestionAnswerOptions { get; set; } = [];

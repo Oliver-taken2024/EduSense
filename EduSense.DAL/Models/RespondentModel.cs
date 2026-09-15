@@ -15,6 +15,7 @@ namespace EduSense.DAL.Models
 
         [Required]
         public required string Token { get; set; }
+        public RespondentSegment Segment { get; set; }
 
         public int SurveyDispatchId { get; set; }
 

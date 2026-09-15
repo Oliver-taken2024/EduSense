@@ -5,8 +5,7 @@
         public int SurveyId { get; set; }
         public DateTime ResponseDeadline { get; set; }
         public string SentByUserId { get; set; } = string.Empty;
+        public List<RespondentInviteDto> Respondents { get; set; } = [];
 
-        // E-postadresser till respondenterna som ska bjudas in i detta utskick
-        public List<string> RespondentEmails { get; set; } = [];
     }
 }
