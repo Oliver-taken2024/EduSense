@@ -5,7 +5,6 @@
         public int SurveyId { get; set; }
         public DateTime ResponseDeadline { get; set; }
         public string SentByUserId { get; set; } = string.Empty;
-        public List<RespondentInviteDto> Respondents { get; set; } = [];
-
+        public List<RespondentInviteDto> RespondentEmails { get; set; } = [];
     }
 }

@@ -3,6 +3,7 @@
 
 @using EduSense.Shared
 @using EduSense.UI.Services
+@using System.ComponentModel.DataAnnotations
 @inject ApiService ApiService
 
 
@@ -73,6 +74,7 @@
                     <thead>
                         <tr>
                             <th>E-post</th>
+                            <th>Målgrupp</th>
                             <th><span class="visually-hidden">Åtgärder</span></th>
                         </tr>
                     </thead>
@@ -84,6 +86,14 @@
                                 <td>
                                     <input class="form-control" value="@_emails[index]"
                                            @oninput="e => _emails[index] = e.Value?.ToString() ?? string.Empty" />
+                                </td>
+                                <td>
+                                    <select class="form-select" @bind="_segments[index]">
+                                        @foreach (var segment in Enum.GetValues<RespondentSegmentDto>())
+                                        {
+                                            <option value="@segment">@GetSegmentDisplayName(segment)</option>
+                                        }
+                                    </select>
                                 </td>
                                 <td>
                                     <button type="button" class="btn button-logout"
@@ -117,6 +127,7 @@
     private int _selectedSurveyId = 0;
     private DateTime _responseDeadline = DateTime.Today.AddDays(30);
     private List<string> _emails = [];
+    private List<RespondentSegmentDto> _segments = [];
     private string _pasteText = string.Empty;
 
     private bool _isSending;
@@ -134,6 +145,7 @@
         private Task OnSurveyChangedAsync()
     {
         _emails = [];
+        _segments = [];
         return Task.CompletedTask;
     }
 
@@ -141,6 +153,14 @@
     private void AddEmptyRow()
     {
         _emails.Add(string.Empty);
+        _segments.Add(RespondentSegmentDto.GradeFTo6);
+    }
+
+    // Tar bort en rad och håller e-post/segment i synk
+    private void RemoveRow(int index)
+    {
+        _emails.RemoveAt(index);
+        _segments.RemoveAt(index);
     }
 
     // Delar upp inklistrad text på nya rader och/eller komman, filtrerar bort tomma/dubbletter.
@@ -154,10 +174,23 @@
         var parsed = _pasteText
             .Split(['\n', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(e => e.Contains('@'))
-            .Where(e => !_emails.Contains(e, StringComparer.OrdinalIgnoreCase));
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(e => !_emails.Contains(e, StringComparer.OrdinalIgnoreCase))
+            .ToList();
 
         _emails.AddRange(parsed);
+        _segments.AddRange(parsed.Select(_ => RespondentSegmentDto.GradeFTo6));
         _pasteText = string.Empty;
+    }
+
+    private static string GetSegmentDisplayName(RespondentSegmentDto segment)
+    {
+        var member = typeof(RespondentSegmentDto).GetMember(segment.ToString())[0];
+        var display = member.GetCustomAttributes(typeof(DisplayAttribute), false)
+            .Cast<DisplayAttribute>()
+            .FirstOrDefault();
+
+        return display?.Name ?? segment.ToString();
     }
 
     // Skickar enkätutskicket till servern
@@ -172,7 +205,8 @@
             SurveyId = _selectedSurveyId,
             ResponseDeadline = _responseDeadline,
             RespondentEmails = _emails
-                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .Select((email, index) => new RespondentInviteDto { Email = email, Segment = _segments[index] })
+                .Where(e => !string.IsNullOrWhiteSpace(e.Email))
                 .ToList()
         };
 
@@ -181,6 +215,7 @@
             await ApiService.PostAsync<SurveyDispatchDto>("api/surveydispatch", dto);
             _statusMessage = $"Enkäten skickades till {dto.RespondentEmails.Count} respondenter.";
             _emails = [];
+            _segments = [];
         }
         catch (ApiException ex)
         {

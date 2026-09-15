@@ -144,11 +144,11 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Skola A" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel { Title = "Enkät", CreatedByUserId = "user-1", OrganisationId = organisation.Id };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var earlierDispatch = new SurveyDispatchModel
             {
@@ -165,7 +165,7 @@ namespace EduSense.DAL.Test.Repositories
                 SentAt = DateTime.UtcNow
             };
             context.SurveyDispatches.AddRange(earlierDispatch, laterDispatch);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new ResultRepository(context);
 
