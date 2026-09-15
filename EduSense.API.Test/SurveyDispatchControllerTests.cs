@@ -117,7 +117,7 @@ namespace EduSense.API.Test
                 SurveyId = 1,
                 ResponseDeadline = DateTime.UtcNow.AddDays(30),
                 SentByUserId = "user-1",
-                Respondents = [new RespondentInviteDto { Email = "test@test.se", Segment = RespondentSegmentDto.Grade7To9 }]
+                RespondentEmails = new List<RespondentInviteDto> { new RespondentInviteDto { Email = "test@test.se", Segment = RespondentSegmentDto.Grade7To9 } }
             };
             var created = new SurveyDispatchDto { Id = 7, SurveyId = 1 };
             _serviceMock.Setup(s => s.CreateAndSendAsync(dto)).ReturnsAsync(created);
@@ -138,7 +138,7 @@ namespace EduSense.API.Test
             var dto = new SurveyDispatchSaveDto
             {
                 SurveyId = 1,
-                Respondents = []
+                RespondentEmails = []
             };
             var errors = new List<string> { "Minst en respondent krävs." };
             _serviceMock.Setup(s => s.CreateAndSendAsync(dto))

@@ -48,12 +48,13 @@ namespace EduSense.BLL.Services
                 ResponseDeadline = DateTime.SpecifyKind(dto.ResponseDeadline, DateTimeKind.Utc),
                 SentByUserId = dto.SentByUserId,
                 SentAt = DateTime.UtcNow,
-                Respondents = dto.Respondents
-                    .DistinctBy(r => r.Email, StringComparer.OrdinalIgnoreCase)
-                    .Select(r => new RespondentModel
+                Respondents = dto.RespondentEmails
+                    .GroupBy(r => r.Email, StringComparer.OrdinalIgnoreCase)
+                    .Select(g => g.First())
+                    .Select(invite => new RespondentModel
                     {
-                        Email = r.Email,
-                        Segment = MapSegment(r.Segment),
+                        Email = invite.Email,
+                        Segment = MapSegment(invite.Segment),
                         Token = GenerateToken()
                     })
                     .ToList()
@@ -120,10 +121,9 @@ namespace EduSense.BLL.Services
                 errors.Add("Svarsdeadline måste vara ett framtida datum.");
             }
 
-            var distinctEmails = dto.Respondents
-                           .Select(r => r.Email)
-                           .Where(e => !string.IsNullOrWhiteSpace(e))
-                           .Distinct(StringComparer.OrdinalIgnoreCase)
+            var distinctEmails = dto.RespondentEmails
+                           .Where(e => !string.IsNullOrWhiteSpace(e.Email))
+                           .DistinctBy(e => e.Email, StringComparer.OrdinalIgnoreCase)
                            .ToList();
 
             if (distinctEmails.Count == 0)

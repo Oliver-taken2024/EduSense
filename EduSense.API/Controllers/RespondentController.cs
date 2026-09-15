@@ -10,6 +10,7 @@ namespace EduSense.API.Controllers
     [Route("api/[controller]")]
     public class RespondentController : ControllerBase
     {
+        private static readonly string[] SurveyExpiredErrors = ["Enkäten har gått ut."];
         private readonly IRespondentService _respondentService;
 
         public RespondentController(IRespondentService respondentService)
@@ -27,7 +28,7 @@ namespace EduSense.API.Controllers
             {
                 RespondentResultStatus.Success => Ok(result.Value),
                 RespondentResultStatus.TokenNotFound => NotFound(),
-                RespondentResultStatus.SurveyExpired => BadRequest(new[] { "Enkäten har gått ut." }),
+                RespondentResultStatus.SurveyExpired => BadRequest(SurveyExpiredErrors),
                 _ => throw new InvalidOperationException($"Okänd status: {result.Status}")
             };
         }
