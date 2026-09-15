@@ -35,7 +35,7 @@ namespace EduSense.API.Test.EndpointTests
         }
 
         private Task<HttpClient> CreateAdminClientAsync() => CreateLoggedInClientAsync("Admin", "AdminPw123!");
-        private Task<HttpClient> CreateAnalystClientAsync() => CreateLoggedInClientAsync("Analytiker", "AnalystPw123!");
+        private Task<HttpClient> CreateAnalystClientAsync() => CreateLoggedInClientAsync("Analytiker", "Analytiker123!");
 
         [Fact]
         public async Task GetAll_WithoutLogin_ReturnsUnauthorized()

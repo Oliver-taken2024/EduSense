@@ -14,6 +14,7 @@ namespace EduSense.DAL.Data
 
         public DbSet<OrganisationModel> Organisations => Set<OrganisationModel>();
         public DbSet<OrganisationUserModel> OrganisationUsers => Set<OrganisationUserModel>();
+        public DbSet<CategoryModel> Categories => Set<CategoryModel>();
         public DbSet<QuestionModel> Questions => Set<QuestionModel>();
         public DbSet<SurveyModel> Surveys => Set<SurveyModel>();
         public DbSet<SurveyQuestionModel> SurveyQuestions => Set<SurveyQuestionModel>();
@@ -57,6 +58,20 @@ namespace EduSense.DAL.Data
                 // En användare får bara förekomma en gång per organisation:
                 entity.HasIndex(x => new { x.OrganisationId, x.UserId })
                     .IsUnique();
+            });
+
+            modelBuilder.Entity<CategoryModel>(entity =>
+            {
+                entity.ToTable("Category");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Name)
+                    .IsRequired();
+
+                entity.HasMany(x => x.Questions)
+                    .WithOne(x => x.Category)
+                    .HasForeignKey(x => x.CategoryId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<QuestionModel>(entity =>
@@ -182,6 +197,9 @@ namespace EduSense.DAL.Data
                     .IsRequired();
 
                 entity.Property(x => x.TokenIsUsed)
+                    .IsRequired();
+
+                entity.Property(x => x.Segment)
                     .IsRequired();
 
                 entity.HasIndex(x => new { x.Email, x.Token, x.SurveyDispatchId })

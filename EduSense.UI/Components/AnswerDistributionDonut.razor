@@ -1,0 +1,63 @@
+@* Donutdiagram över svarsfördelning, ren SVG (inget chart-bibliotek). *@
+
+@if (Data.Count == 0)
+{
+    <p>Ingen svarsdata.</p>
+}
+else
+{
+    <div class="donut-wrapper">
+        <svg viewBox="0 0 120 120" width="180" height="180" role="img" aria-label="Svarsfördelning">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--donut-track, #e5e7eb)" stroke-width="20" />
+            @{
+                var circumference = 2 * Math.PI * 50;
+                var offset = 0.0;
+                // Litet mellanrum mellan segmenten så de inte flyter ihop till en enda ring -
+                // bara vid fler än ett segment, annars äter rundade ändar upp hela cirkeln.
+                var gap = Data.Count > 1 ? 2.0 : 0.0;
+            }
+            @for (var i = 0; i < Data.Count; i++)
+            {
+                var item = Data[i];
+                var dash = Math.Max(item.Percentage / 100 * circumference - gap, 0);
+                var dashArray = $"{dash.ToString(System.Globalization.CultureInfo.InvariantCulture)} {(circumference - dash).ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+                var dashOffset = (-offset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                <circle cx="60" cy="60" r="50" fill="none"
+                        stroke="@GetColor(i)"
+                        stroke-width="20"
+                        stroke-linecap="round"
+                        stroke-dasharray="@dashArray"
+                        stroke-dashoffset="@dashOffset"
+                        transform="rotate(-90 60 60)" />
+                offset += item.Percentage / 100 * circumference;
+            }
+            <text x="60" y="56" text-anchor="middle" class="donut-center-value">@TotalCount</text>
+            <text x="60" y="72" text-anchor="middle" class="donut-center-label">SVAR</text>
+        </svg>
+
+        <ul class="donut-legend">
+            @for (var i = 0; i < Data.Count; i++)
+            {
+                var item = Data[i];
+                <li>
+                    <span class="donut-swatch" style="background:@GetColor(i)"></span>
+                    @item.AnswerDescription (@item.Count) — @item.Percentage.ToString("0.0")%
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<AnswerDistributionDto> Data { get; set; } = [];
+
+    private int TotalCount => Data.Sum(d => d.Count);
+
+    // Fast, distinkt palett - räcker till fler segment än vi normalt har (5).
+    private static readonly string[] Palette =
+    [
+        "#2f9e44", "#66a80f", "#f59f00", "#e8590c", "#c92a2a", "#5c7cfa", "#9c36b5"
+    ];
+
+    private static string GetColor(int index) => Palette[index % Palette.Length];
+}

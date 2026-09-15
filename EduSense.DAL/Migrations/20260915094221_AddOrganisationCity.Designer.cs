@@ -3,6 +3,7 @@ using System;
 using EduSense.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduSense.DAL.Migrations
 {
     [DbContext(typeof(EduSenseDbContext))]
-    partial class EduSenseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915094221_AddOrganisationCity")]
+    partial class AddOrganisationCity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,11 +70,8 @@ namespace EduSense.DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision");
+                    b.Property<string>("City")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()

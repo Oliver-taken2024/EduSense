@@ -1,0 +1,303 @@
+@page "/results"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+<PageTitle>Resultat</PageTitle>
+
+<button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
+
+@if (_selectedDispatchId is null)
+{
+    <div class="page-header">
+        <div>
+            <h1>Resultat</h1>
+            <p class="page-subtitle">Välj ett utskick för att se resultat</p>
+        </div>
+    </div>
+
+    <div class="card-panel">
+        @if (_isLoadingList)
+        {
+            <p role="status">Laddar...</p>
+        }
+        else if (_listError is not null)
+        {
+            <p class="text-danger" role="alert">@_listError</p>
+        }
+        else if (_dispatches.Count == 0)
+        {
+            <p>Inga utskick hittades.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+            <table class="table">
+                <caption class="visually-hidden">Lista över utskick</caption>
+                <thead>
+                    <tr>
+                        <th>Enkät</th>
+                        <th>Skickad</th>
+                        <th>Sista svarsdatum</th>
+                        <th>Svar</th>
+                        <th><span class="visually-hidden">Åtgärder</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dispatch in _dispatches)
+                    {
+                        <tr>
+                            <td>@dispatch.SurveyTitle</td>
+                            <td>@dispatch.SentAt.ToString("yyyy-MM-dd")</td>
+                            <td>@dispatch.ResponseDeadline.ToString("yyyy-MM-dd")</td>
+                            <td>@dispatch.ResponseCount / @dispatch.RespondentCount</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button type="button" class="btn button-login" @onclick="() => SelectDispatch(dispatch.Id)">
+                                        Visa resultat
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Resultat</h1>
+            <p class="page-subtitle">@_selectedDispatchTitle</p>
+        </div>
+        <button type="button" class="btn button-secondary" @onclick="BackToList">← Alla utskick</button>
+    </div>
+
+    <div class="card-panel">
+        @if (_isLoadingResult)
+        {
+            <p role="status">Laddar...</p>
+        }
+        else if (_resultError is not null)
+        {
+            <p class="text-danger" role="alert">@_resultError</p>
+        }
+        else if (_result is not null)
+        {
+            <table class="table">
+                <tbody>
+                    <tr><th>Totala svar</th><td>@_result.TotalResponses @ChangeSuffix(_result.TotalResponsesChangePercent, "%")</td></tr>
+                    <tr><th>Svarsfrekvens</th><td>@_result.ResponseRate.ToString("0.0")% @ChangeSuffix(_result.ResponseRateChangePoints, " p.e.")</td></tr>
+                    <tr><th>Snittbetyg</th><td>@_result.AverageScore.ToString("0.0") / 5 @ChangeSuffix(_result.AverageScoreChangePoints, "")</td></tr>
+                    <tr><th>NPS</th><td>@(_result.Nps.HasValue ? _result.Nps.Value.ToString("0") : "-") @ChangeSuffix(_result.NpsChangePoints, "")</td></tr>
+                    <tr><th>Kritiska områden</th><td>@_result.CriticalAreasCount @ChangeSuffix(_result.CriticalAreasCountChange, "")</td></tr>
+                </tbody>
+            </table>
+            <p class="page-subtitle">Jämfört med föregående utskick av samma enkät@(_result.TotalResponsesChangePercent is null && _result.CriticalAreasCountChange is null ? " (inget tidigare utskick att jämföra med)" : "")</p>
+
+            <h2 class="section-title">Snittbetyg per kategori</h2>
+            @if (_result.CategoryScores.Count == 0)
+            {
+                <p>Ingen kategoridata.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead><tr><th>Kategori</th><th>Snitt</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in _result.CategoryScores)
+                        {
+                            <tr><td>@c.CategoryName</td><td>@c.AverageScore.ToString("0.0")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h2 class="section-title">Toppstyrkor</h2>
+            <ul>
+                @foreach (var q in _result.TopStrengths)
+                {
+                    <li>@q.QuestionText — @q.AverageScore.ToString("0.0")</li>
+                }
+            </ul>
+
+            <h2 class="section-title">Utmaningar</h2>
+            <ul>
+                @foreach (var q in _result.Challenges)
+                {
+                    <li>@q.QuestionText — @q.AverageScore.ToString("0.0")</li>
+                }
+            </ul>
+
+            <div class="chart-section">
+                <h2 class="section-title">Svarsfördelning</h2>
+                <AnswerDistributionDonut Data="_result.AnswerDistribution" />
+            </div>
+
+            <div class="chart-section">
+                <h2 class="section-title">Utveckling över tid</h2>
+                <TrendChart Points="_result.Trend" />
+            </div>
+
+            <div class="chart-section">
+                <h2 class="section-title">Geografisk fördelning</h2>
+                @if (_isLoadingGeo)
+                {
+                    <p role="status">Laddar...</p>
+                }
+                else if (_geoError is not null)
+                {
+                    <p class="text-danger" role="alert">@_geoError</p>
+                }
+                else
+                {
+                    <GeoDistribution Locations="_organisationLocations" />
+                }
+            </div>
+
+            <h2 class="section-title">Resultat per segment</h2>
+            <table class="table">
+                <thead>
+                    <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th>NPS</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in _result.SegmentResults)
+                    {
+                        <tr>
+                            <td>@SegmentLabel(s.Segment)</td>
+                            <td>@s.RespondentCount</td>
+                            <td>@s.ResponseRate.ToString("0.0")%</td>
+                            <td>@s.AverageScore.ToString("0.0")</td>
+                            <td>@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    [Inject] private ApiService Api { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private List<SurveyDispatchDto> _dispatches = [];
+    private bool _isLoadingList = true;
+    private string? _listError;
+
+    private int? _selectedDispatchId;
+    private string? _selectedDispatchTitle;
+    private SurveyResultDto? _result;
+    private bool _isLoadingResult;
+    private string? _resultError;
+
+    private List<OrganisationLocationDto> _organisationLocations = [];
+    private bool _isLoadingGeo;
+    private string? _geoError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDispatchesAsync();
+    }
+
+    private async Task LoadDispatchesAsync()
+    {
+        _isLoadingList = true;
+        _listError = null;
+
+        try
+        {
+            _dispatches = await Api.GetAsync<List<SurveyDispatchDto>>("api/surveydispatch") ?? [];
+        }
+        catch (ApiException ex)
+        {
+            _listError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoadingList = false;
+        }
+    }
+
+    private async Task SelectDispatch(int id)
+    {
+        _selectedDispatchId = id;
+        _selectedDispatchTitle = _dispatches.FirstOrDefault(d => d.Id == id)?.SurveyTitle;
+        _isLoadingResult = true;
+        _resultError = null;
+        _result = null;
+
+        try
+        {
+            _result = await Api.GetAsync<SurveyResultDto>($"api/result/dispatch/{id}");
+        }
+        catch (ApiException ex)
+        {
+            _resultError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoadingResult = false;
+        }
+
+        await LoadGeoAsync();
+    }
+
+    private async Task LoadGeoAsync()
+    {
+        _isLoadingGeo = true;
+        _geoError = null;
+
+        try
+        {
+            _organisationLocations = await Api.GetAsync<List<OrganisationLocationDto>>("api/result/organisations") ?? [];
+        }
+        catch (ApiException ex)
+        {
+            _geoError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoadingGeo = false;
+        }
+    }
+
+    private void BackToList()
+    {
+        _selectedDispatchId = null;
+        _result = null;
+    }
+
+    // Formaterar jämförelsen mot föregående utskick, t.ex. "(+12.4%)" eller "(-1.3 p.e.)".
+    private static string ChangeSuffix(double? change, string unit)
+    {
+        if (!change.HasValue)
+        {
+            return string.Empty;
+        }
+
+        var sign = change.Value >= 0 ? "+" : "";
+        return $"({sign}{change.Value.ToString("0.0")}{unit})";
+    }
+
+    private static string ChangeSuffix(int? change, string unit)
+    {
+        if (!change.HasValue)
+        {
+            return string.Empty;
+        }
+
+        var sign = change.Value >= 0 ? "+" : "";
+        return $"({sign}{change.Value}{unit})";
+    }
+
+    // Läser [Display(Name=...)] från RespondentSegmentDto-enumet, t.ex. "Grundskola F-6".
+    private static string SegmentLabel(RespondentSegmentDto segment)
+    {
+        var member = typeof(RespondentSegmentDto).GetMember(segment.ToString())[0];
+        return member.GetCustomAttribute<DisplayAttribute>()?.Name ?? segment.ToString();
+    }
+}

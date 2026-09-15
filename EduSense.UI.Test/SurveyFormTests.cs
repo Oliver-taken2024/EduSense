@@ -1,4 +1,5 @@
 ﻿using Bunit;
+using Bunit.TestDoubles;
 using EduSense.Shared;
 using EduSense.UI.Components;
 using EduSense.UI.Services;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Security.Claims;
 using TestContext = Bunit.TestContext;
 
 namespace EduSense.UI.Test
@@ -53,6 +55,9 @@ namespace EduSense.UI.Test
         public async Task Save_new_survey_calls_OnSaved_on_success()
         {
             RegisterApiService(HttpStatusCode.OK, new SurveyDto { Id = 1, Title = "Ny enkät" });
+            this.AddTestAuthorization()
+                .SetAuthorized("test-user")
+                .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
             var saved = false;
 
             var cut = RenderComponent<SurveyForm>(parameters => parameters
@@ -68,6 +73,9 @@ namespace EduSense.UI.Test
         public async Task Save_shows_errors_and_does_not_call_OnSaved_on_ApiException()
         {
             RegisterApiService(HttpStatusCode.BadRequest, new List<string> { "Det finns redan en enkät med samma titel, utgångsdatum och organisation." });
+            this.AddTestAuthorization()
+                .SetAuthorized("test-user")
+                .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
             var saved = false;
 
             var cut = RenderComponent<SurveyForm>(parameters => parameters

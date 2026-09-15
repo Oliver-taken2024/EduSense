@@ -10,6 +10,9 @@ namespace EduSense.DAL.Models
         [Required]
         public required string Name { get; set; }
 
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
         public ICollection<OrganisationUserModel> OrganisationUsers { get; set; } = [];
         public ICollection<SurveyModel> Surveys { get; set; } = [];
     }

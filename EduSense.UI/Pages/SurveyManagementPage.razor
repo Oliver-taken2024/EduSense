@@ -1,9 +1,10 @@
 ﻿@page "/survey-management"
 @attribute [Authorize]
+@inject NavigationManager Navigation
 
 <PageTitle>Enkäthantering</PageTitle>
 
-<a class="back-link" href="/">← Tillbaka</a>
+<button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
 
 <div class="page-header">
     <div>
@@ -105,7 +106,7 @@
         _editingSurvey = survey;
         _showForm = true;
     }
-
+    
     private void RequestDelete(int id)
     {
         _pendingDeleteId = id;

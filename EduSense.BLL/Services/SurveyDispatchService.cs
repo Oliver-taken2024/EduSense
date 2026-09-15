@@ -48,11 +48,12 @@ namespace EduSense.BLL.Services
                 ResponseDeadline = DateTime.SpecifyKind(dto.ResponseDeadline, DateTimeKind.Utc),
                 SentByUserId = dto.SentByUserId,
                 SentAt = DateTime.UtcNow,
-                Respondents = dto.RespondentEmails
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Select(email => new RespondentModel
+                Respondents = dto.Respondents
+                    .DistinctBy(r => r.Email, StringComparer.OrdinalIgnoreCase)
+                    .Select(r => new RespondentModel
                     {
-                        Email = email,
+                        Email = r.Email,
+                        Segment = MapSegment(r.Segment),
                         Token = GenerateToken()
                     })
                     .ToList()
@@ -119,10 +120,11 @@ namespace EduSense.BLL.Services
                 errors.Add("Svarsdeadline måste vara ett framtida datum.");
             }
 
-            var distinctEmails = dto.RespondentEmails
-                .Where(e => !string.IsNullOrWhiteSpace(e))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var distinctEmails = dto.Respondents
+                           .Select(r => r.Email)
+                           .Where(e => !string.IsNullOrWhiteSpace(e))
+                           .Distinct(StringComparer.OrdinalIgnoreCase)
+                           .ToList();
 
             if (distinctEmails.Count == 0)
             {
@@ -139,5 +141,15 @@ namespace EduSense.BLL.Services
         {
             return Guid.NewGuid().ToString("N");
         }
+
+        private static RespondentSegment MapSegment(RespondentSegmentDto segment) => segment switch
+        {
+            RespondentSegmentDto.GradeFTo6 => RespondentSegment.GradeFTo6,
+            RespondentSegmentDto.Grade7To9 => RespondentSegment.Grade7To9,
+            RespondentSegmentDto.Gymnasiet => RespondentSegment.Gymnasiet,
+            RespondentSegmentDto.Vuxenutbildning => RespondentSegment.Vuxenutbildning,
+            RespondentSegmentDto.Personal => RespondentSegment.Personal,
+            _ => throw new ArgumentOutOfRangeException(nameof(segment))
+        };
     }
 }

@@ -72,10 +72,11 @@ public class SeedingTest
         Assert.NotEmpty(surveys);
         Assert.Contains(surveys, s => s.Title == "Kundnöjdhetsenkät");
 
-        // Kontrollera respondenter
-        var respondents = await verifyAppContext.Respondents.ToListAsync(TestContext.Current.CancellationToken);
+        // Kontrollera respondenter - både besvarade och obesvarade ska finnas (realistisk svarsfrekvens)
+        var respondents = await verifyAppContext.Respondents.ToListAsync();
         Assert.NotEmpty(respondents);
-        Assert.True(respondents.All(r => !r.TokenIsUsed));
+        Assert.Contains(respondents, r => r.TokenIsUsed);
+        Assert.Contains(respondents, r => !r.TokenIsUsed);
     }
 
     [Fact]

@@ -35,6 +35,33 @@ namespace EduSense.API.Controllers
             return MapStatus(status);
         }
 
+        // GET /api/result/survey/{surveyId} - aggregerat resultat över samtliga utskick av en enkät.
+        [HttpGet("survey/{surveyId}")]
+        [Authorize(Policy = "AdminOrAnalyst")]
+        public async Task<ActionResult<SurveyResultDto>> GetForSurvey(int surveyId)
+        {
+            var result = await _resultService.GetResultForSurveyAsync(surveyId);
+            return Ok(result);
+        }
+
+        // GET /api/result/dispatch/{dispatchId} - resultat för en specifik utskicksomgång.
+        [HttpGet("dispatch/{dispatchId}")]
+        [Authorize(Policy = "AdminOrAnalyst")]
+        public async Task<ActionResult<SurveyResultDto>> GetForDispatch(int dispatchId)
+        {
+            var result = await _resultService.GetResultForDispatchAsync(dispatchId);
+            return Ok(result);
+        }
+
+        // GET /api/result/organisations - översikt (snitt, antal svar, plats) per organisation, för kartan.
+        [HttpGet("organisations")]
+        [Authorize(Policy = "AdminOrAnalyst")]
+        public async Task<ActionResult<IReadOnlyList<OrganisationLocationDto>>> GetOrganisationOverview()
+        {
+            var result = await _resultService.GetOrganisationOverviewAsync();
+            return Ok(result);
+        }
+
         private IActionResult MapStatus(ResultSaveStatus status) => status switch
         {
             ResultSaveStatus.Success => Ok(),
