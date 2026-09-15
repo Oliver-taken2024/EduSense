@@ -3,6 +3,7 @@ using EduSense.BLL.Services;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EduSense.API.Controllers
 {
@@ -43,6 +44,8 @@ namespace EduSense.API.Controllers
         [HttpPost]
         public async Task<ActionResult<SurveyDispatchDto>> Create(SurveyDispatchSaveDto dto)
         {
+            dto.SentByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
             try
             {
                 var created = await _surveyDispatchService.CreateAndSendAsync(dto);

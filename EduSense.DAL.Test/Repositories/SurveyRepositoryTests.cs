@@ -17,7 +17,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var survey = new SurveyModel
@@ -30,7 +30,7 @@ namespace EduSense.DAL.Test.Repositories
             await repository.AddAsync(survey);
 
             Assert.True(survey.Id > 0);
-            Assert.Equal(1, await context.Surveys.CountAsync());
+            Assert.Equal(1, await context.Surveys.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var question = new QuestionModel { Text = "Hur nöjd är du?", CreatedByUserId = "user-1" };
             context.Questions.Add(question);
@@ -53,10 +53,10 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey.Id, QuestionId = question.Id });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var result = await repository.GetByIdAsync(survey.Id);
@@ -88,7 +88,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -97,16 +97,16 @@ namespace EduSense.DAL.Test.Repositories
             OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var tracked = await repository.GetTrackedByIdAsync(survey.Id);
 
             Assert.NotNull(tracked);
             tracked!.Title = "Ny titel";
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var reloaded = await context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == survey.Id);
+            var reloaded = await context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == survey.Id, TestContext.Current.CancellationToken);
             Assert.Equal("Ny titel", reloaded?.Title);
         }
         [Fact]
@@ -117,7 +117,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -128,7 +128,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var repository = new SurveyRepository(context);
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var result = await repository.DeleteAsync(survey.Id);
 
@@ -145,7 +145,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -155,7 +155,7 @@ namespace EduSense.DAL.Test.Repositories
             };
 
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
 
@@ -175,7 +175,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var question = new QuestionModel { Text = "Fråga 1", CreatedByUserId = "user-1" };
             context.Questions.Add(question);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -184,16 +184,16 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             context.SurveyQuestions.Add(new SurveyQuestionModel { SurveyId = survey.Id, QuestionId = question.Id });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             await repository.DeleteAsync(survey.Id);
 
             Assert.Empty(context.SurveyQuestions);
-            Assert.Equal(1, await context.Questions.CountAsync());
+            Assert.Equal(1, await context.Questions.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -204,7 +204,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var question = new QuestionModel { Text = "Fråga 1", CreatedByUserId = "user-1" };
             context.Questions.Add(question);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var result = await repository.GetExistingQuestionIdsAsync(new[] { question.Id, 999 });
@@ -221,7 +221,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -230,7 +230,7 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var result = await repository.TitleExistsAsync("Kundnöjdhet", organisation.Id, null);
@@ -246,7 +246,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -255,7 +255,7 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new SurveyRepository(context);
             var result = await repository.TitleExistsAsync(survey.Title, organisation.Id, survey.Id);

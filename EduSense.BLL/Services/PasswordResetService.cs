@@ -15,7 +15,7 @@ namespace EduSense.BLL.Services
             _userManager = userManager;
         }
 
-        public async Task<string> ForgotPasswordAsync(string email)
+        public async Task<string?> ForgotPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -33,9 +33,7 @@ namespace EduSense.BLL.Services
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return false;
-            Console.WriteLine(token);
             token = token.Replace(" ", "+");
-             token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
             return result.Succeeded;
