@@ -3,7 +3,7 @@ using EduSense.DAL.Models;
 using EduSense.DAL.Test.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduSense.DAL.Test.DbContexts;
+namespace EduSense.DAL.Test.DbContext;
 
 public class EduSenseDbContextTests
 {
@@ -21,7 +21,7 @@ public class EduSenseDbContextTests
         };
 
         context.Organisations.Add(organisation);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken) ;
 
         //Skapa en survey och spara den
         var survey = new SurveyModel
@@ -32,10 +32,10 @@ public class EduSenseDbContextTests
         };
 
         context.Surveys.Add(survey);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken) ;
 
         //Läser tillbaka och kollar att det bara finns en enda survey i db
-        var savedSurvey = await context.Surveys.SingleAsync();
+        var savedSurvey = await context.Surveys.SingleAsync(TestContext.Current.CancellationToken) ;
 
         //Kolla att den läses tillbaka korrekt.
         Assert.Equal("Survey 1", savedSurvey.Title);
@@ -70,7 +70,7 @@ public class EduSenseDbContextTests
         };
         context.Questions.Add(question);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken) ;
 
         //Testa att spara samma fråga till samma survey och se att det inte går
         context.SurveyQuestions.Add(new SurveyQuestionModel
@@ -78,7 +78,7 @@ public class EduSenseDbContextTests
             SurveyId = survey.Id,
             QuestionId = question.Id
         });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken) ;
 
         context.SurveyQuestions.Add(new SurveyQuestionModel
         {
@@ -86,6 +86,6 @@ public class EduSenseDbContextTests
             QuestionId = question.Id
         });
 
-        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync(TestContext.Current.CancellationToken));
     }
 }

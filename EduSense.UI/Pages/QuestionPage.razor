@@ -1,4 +1,5 @@
 @page "/enkat/{Token}"
+@layout BlankLayout
 @using EduSense.Shared
 @using EduSense.UI.Services
 @inject ApiService ApiService
@@ -174,8 +175,8 @@ else if (_survey is not null)
         }
         else
         {
-            await ApiService.PostAsync($"api/result/{Token}/complete", new { });
-            NavigationManager.NavigateTo("/enkat-klar");
+            /* await ApiService.PostAsync($"api/result/{Token}/complete", new { }); */
+            NavigationManager.NavigateTo($"/enkat/{Token}/granska");
         }
     }
 

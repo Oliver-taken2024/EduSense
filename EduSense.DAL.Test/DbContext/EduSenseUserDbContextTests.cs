@@ -3,7 +3,7 @@ using EduSense.DAL.Models;
 using EduSense.DAL.Test.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduSense.DAL.Test.DbContexts;
+namespace EduSense.DAL.Test.DbContext;
 
 public class EduSenseUserDbContextTests
 {
@@ -23,9 +23,9 @@ public class EduSenseUserDbContextTests
             IsActive = true
         });
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var savedUser = await context.Users.SingleAsync();
+        var savedUser = await context.Users.SingleAsync(TestContext.Current.CancellationToken);
 
         //kolla att rätt DisplayName och IsActive blev sparade
         Assert.Equal("Admin", savedUser.DisplayName);

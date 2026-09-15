@@ -16,7 +16,7 @@ public class OrganisationRepositoryTests
 
         context.Organisations.Add(new OrganisationModel { Name = "EduSense AB" });
         context.Organisations.Add(new OrganisationModel { Name = "Test Organisation" });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var repository = new OrganisationRepository(context);
         var result = await repository.GetAllAsync();
@@ -32,7 +32,7 @@ public class OrganisationRepositoryTests
 
         var organisation = new OrganisationModel { Name = "EduSense AB" };
         context.Organisations.Add(organisation);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var repository = new OrganisationRepository(context);
         var result = await repository.GetByIdAsync(organisation.Id);
@@ -62,7 +62,7 @@ public class OrganisationRepositoryTests
         var created = await repository.CreateAsync(new OrganisationModel { Name = "Ny Organisation" });
 
         Assert.True(created.Id > 0);
-        Assert.Equal(1, await context.Organisations.CountAsync());
+        Assert.Equal(1, await context.Organisations.CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class OrganisationRepositoryTests
 
         var organisation = new OrganisationModel { Name = "Gammalt Namn" };
         context.Organisations.Add(organisation);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Ny context-instans för att simulera en "fristående" uppdaterad entitet
         organisation.Name = "Nytt Namn";
@@ -81,7 +81,7 @@ public class OrganisationRepositoryTests
         var updated = await repository.UpdateAsync(organisation);
 
         Assert.Equal("Nytt Namn", updated.Name);
-        var fromDb = await context.Organisations.AsNoTracking().SingleAsync(o => o.Id == organisation.Id);
+        var fromDb = await context.Organisations.AsNoTracking().SingleAsync(o => o.Id == organisation.Id, TestContext.Current.CancellationToken);
         Assert.Equal("Nytt Namn", fromDb.Name);
     }
 }

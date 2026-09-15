@@ -1,0 +1,85 @@
+@page "/enkat/{Token}/granska"
+
+<PageTitle>Granska svar - Enkät</PageTitle>
+
+<!-- Skip to main content länk för tangentbordsanvändare -->
+<a href="#main-content" class="skip-link">Hoppa till huvudinnehål</a>
+
+@using EduSense.Shared;
+@inject NavigationManager NavigationManager
+@inject ApiService ApiService
+
+@if (_survey is null)
+{
+    <p role="status" aria-live="polite" aria-atomic="true">Laddar enkät...</p>
+}
+else
+{
+    <main id="main-content"> 
+        <h1>Granska dina svar</h1>
+
+        @foreach (var question in _survey.Questions)
+        {
+            <section class="card p-3 mb-3" aria-labelledby="@($"question-{question.SurveyQuestionId}")">
+                <h2 id="@($"question-{question.SurveyQuestionId}")">@question.QuestionText</h2>
+
+                <fieldset>
+                    <legend class="visually-hidden">Svarsalternativ för: @question.QuestionText</legend>
+                    @foreach (var option in question.AnswerOptions)
+                    {
+                        <label class="d-block">
+                            <input type="radio"
+                                   name="@($"question-{question.SurveyQuestionId}")"
+                                   value="@option.Id"
+                                   checked="@(question.AnsweredQuestionAnswerOptionId == option.Id)"
+                                   @onchange="() => UpdateAnswer(question, option.Id)"
+                                   aria-label="@option.Description" />
+                            <span>@option.Description</span>
+                        </label>
+                    }
+                </fieldset>
+            </section>
+        }
+
+        <div class="button-group">
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="SubmitSurvey"
+                    aria-label="Skicka in enkät">
+                Skicka in enkät
+            </button>
+        </div>
+    </main>
+}
+
+@code {
+    [Parameter]
+    public string Token { get; set; } = string.Empty;
+
+    private RespondentSurveyDto? _survey;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _survey = await ApiService.GetAsync<RespondentSurveyDto>($"api/respondent/{Token}");
+    }
+
+    private async Task UpdateAnswer(RespondentQuestionDto question, int answerOptionId)
+    {
+        await ApiService.PostAsync(
+            "api/result",
+            new SaveResultDto
+            {
+                Token = Token,
+                SurveyQuestionId = question.SurveyQuestionId,
+                QuestionAnswerOptionId = answerOptionId
+            });
+
+        question.AnsweredQuestionAnswerOptionId = answerOptionId;
+    }
+
+    private async Task SubmitSurvey()
+    {
+        await ApiService.PostAsync($"api/result/{Token}/complete", new { });
+        NavigationManager.NavigateTo("/enkat-klar");
+    }
+}

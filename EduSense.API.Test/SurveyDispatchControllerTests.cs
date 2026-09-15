@@ -2,20 +2,45 @@
 using EduSense.BLL.Exceptions;
 using EduSense.BLL.Services;
 using EduSense.Shared;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
 using Xunit;
 
 namespace EduSense.API.Test
 {
     public class SurveyDispatchControllerTests
     {
+        // Mockar ISurveyDispatchService för att testa SurveyDispatchController
+        // utan att behöva en riktig implementation.
         private readonly Mock<ISurveyDispatchService> _serviceMock = new();
+
+        // Skapar en instans av SurveyDispatchController med den mockade servicen.
         private readonly SurveyDispatchController _surveyDispatchController;
 
         public SurveyDispatchControllerTests()
         {
             _surveyDispatchController = new SurveyDispatchController(_serviceMock.Object);
+            SetUser("authenticated-user-id");
+        }
+
+        // Simulerar en inloggad användare, ungefär som riktiga requests har efter inloggning.
+        private void SetUser(string? userId)
+        {
+            var claims = new List<Claim>();
+            if (userId is not null)
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, userId));
+            }
+
+            var identity = new ClaimsIdentity(claims, userId is not null ? "TestAuth" : null);
+            var principal = new ClaimsPrincipal(identity);
+
+            _surveyDispatchController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = principal }
+            };
         }
 
         [Fact]

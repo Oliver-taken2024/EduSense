@@ -1,9 +1,194 @@
 ﻿@page "/survey-sending"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "AdminOnly")]
+
+@using EduSense.Shared
+@using EduSense.UI.Services
+@inject ApiService ApiService
+
 
 <PageTitle>Skicka enkät</PageTitle>
 
+<a class="back-link" href="/">← Tillbaka</a>
+
+<div class="page-header">
+    <div>
+        <h1>Enkätutskick</h1>
+        <p class="page-subtitle">Bjud in respondenter och skicka enkät</p>
+    </div>
+</div>
+
+<!-- Visa status- och felmeddelanden om de finns -->
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert alert-success" role="status">@_statusMessage</div>
+}
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+<!-- Formulär för att bjuda in respondenter -->
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h5">Välj enkät</h2>
+        <div class="mb-3">
+            <label class="form-label" for="survey-select">Enkät</label>
+            <select id="survey-select" class="form-select" @bind="_selectedSurveyId" @bind:after="OnSurveyChangedAsync">
+                <option value="0">Välj enkät</option>
+                @foreach (var survey in _surveys)
+                {
+                    <option value="@survey.Id">@survey.Title</option>
+                }
+            </select>
+        </div>
+
+        @if (_selectedSurveyId != 0)
+        {
+            <div class="mb-3">
+                <label class="form-label" for="deadline">Sista svarsdatum</label>
+                <input id="deadline" type="date" class="form-control" @bind="_responseDeadline" />
+            </div>
+        }
+    </div>
+</div>
+
+@if (_selectedSurveyId != 0)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5">Respondenter</h2>
+
+            <div class="mb-3">
+                <label class="form-label" for="paste-area">Klistra in e-postadresser (en per rad, eller kommaseparerat)</label>
+                <textarea id="paste-area" class="form-control" rows="4" @bind="_pasteText"></textarea>
+                <button type="button" class="btn button-secondary mt-2" @onclick="ParsePastedEmails">
+                    Lägg till från inklistrad text
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <caption class="visually-hidden">Lista över respondenter att bjuda in</caption>
+                    <thead>
+                        <tr>
+                            <th>E-post</th>
+                            <th><span class="visually-hidden">Åtgärder</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < _emails.Count; i++)
+                        {
+                            var index = i;
+                            <tr>
+                                <td>
+                                    <input class="form-control" value="@_emails[index]"
+                                           @oninput="e => _emails[index] = e.Value?.ToString() ?? string.Empty" />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn button-logout"
+                                            @onclick="() => _emails.RemoveAt(index)">
+                                        Ta bort
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" class="btn button-secondary" @onclick="AddEmptyRow">
+                + Lägg till rad
+            </button>
+
+            <div class="mt-3">
+                <button type="button" class="btn button-login" disabled="@(_isSending || _emails.Count == 0)"
+                        @onclick="SendAsync">
+                    @(_isSending ? "Skickar..." : "Skicka enkät")
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
 
+    private List<SurveyDto> _surveys = [];
+    private int _selectedSurveyId = 0;
+    private DateTime _responseDeadline = DateTime.Today.AddDays(30);
+    private List<string> _emails = [];
+    private string _pasteText = string.Empty;
+
+    private bool _isSending;
+    private string? _statusMessage;
+    private string? _errorMessage;
+
+    // Hämtar listan över tillgängliga enkäter när sidan laddas
+
+    protected override async Task OnInitializedAsync()
+    {
+        _surveys = await ApiService.GetAsync<List<SurveyDto>>("api/survey") ?? [];
+    }
+
+    // Rensar e-postlistan när en ny enkät väljs
+        private Task OnSurveyChangedAsync()
+    {
+        _emails = [];
+        return Task.CompletedTask;
+    }
+
+    // Lägger till en tom rad i e-postlistan
+    private void AddEmptyRow()
+    {
+        _emails.Add(string.Empty);
+    }
+
+    // Delar upp inklistrad text på nya rader och/eller komman, filtrerar bort tomma/dubbletter.
+    private void ParsePastedEmails()
+    {
+        if (string.IsNullOrWhiteSpace(_pasteText))
+        {
+            return;
+        }
+
+        var parsed = _pasteText
+            .Split(['\n', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(e => e.Contains('@'))
+            .Where(e => !_emails.Contains(e, StringComparer.OrdinalIgnoreCase));
+
+        _emails.AddRange(parsed);
+        _pasteText = string.Empty;
+    }
+
+    // Skickar enkätutskicket till servern
+    private async Task SendAsync()
+    {
+        _statusMessage = null;
+        _errorMessage = null;
+        _isSending = true;
+
+        var dto = new SurveyDispatchSaveDto
+        {
+            SurveyId = _selectedSurveyId,
+            ResponseDeadline = _responseDeadline,
+            RespondentEmails = _emails
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .ToList()
+        };
+
+        try
+        {
+            await ApiService.PostAsync<SurveyDispatchDto>("api/surveydispatch", dto);
+            _statusMessage = $"Enkäten skickades till {dto.RespondentEmails.Count} respondenter.";
+            _emails = [];
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isSending = false;
+        }
+    }
 }

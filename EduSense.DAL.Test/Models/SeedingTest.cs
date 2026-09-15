@@ -54,21 +54,21 @@ public class SeedingTest
         var verifyAppContext = scope.ServiceProvider.GetRequiredService<EduSenseDbContext>();
 
         // Kontrollera organisationer
-        var organisations = await verifyAppContext.Organisations.ToListAsync();
+        var organisations = await verifyAppContext.Organisations.ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotEmpty(organisations);
         Assert.Contains(organisations, o => o.Name == "EduSense AB");
 
         // Kontrollera frågor
-        var questions = await verifyAppContext.Questions.ToListAsync();
+        var questions = await verifyAppContext.Questions.ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotEmpty(questions);
         Assert.True(questions.Count >= 2);
 
         // Kontrollera svaralternativ
-        var answerOptions = await verifyAppContext.AnswerOptions.ToListAsync();
+        var answerOptions = await verifyAppContext.AnswerOptions.ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotEmpty(answerOptions);
 
         // Kontrollera enkät
-        var surveys = await verifyAppContext.Surveys.ToListAsync();
+        var surveys = await verifyAppContext.Surveys.ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotEmpty(surveys);
         Assert.Contains(surveys, s => s.Title == "Kundnöjdhetsenkät");
 
@@ -101,25 +101,25 @@ public class SeedingTest
 
         // Kontrollera att det bara finns en admin-användare
         var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
-        Assert.Single(adminUsers);
-        Assert.Equal("admin@edusense.com", adminUsers[0].Email);
+        var adminUser = Assert.Single(adminUsers);
+        Assert.Equal("admin@edusense.com", adminUser.Email);
 
         // Kontrollera att organisationer inte duplicerades
         var orgCount = await verifyAppContext.Organisations
             .Where(o => o.Name == "EduSense AB")
-            .CountAsync();
+            .CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, orgCount);
 
         // Kontrollera att enkäter inte duplicerades
         var surveyCount = await verifyAppContext.Surveys
             .Where(s => s.Title == "Kundnöjdhetsenkät")
-            .CountAsync();
+            .CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, surveyCount);
 
         // Kontrollera att respondenter inte duplicerades
         var respondentCount = await verifyAppContext.Respondents
             .Where(r => r.Email == "respondent1@test.com")
-            .CountAsync();
+            .CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, respondentCount);
     }
 }

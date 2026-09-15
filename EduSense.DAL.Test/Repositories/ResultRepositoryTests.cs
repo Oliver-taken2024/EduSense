@@ -33,7 +33,7 @@ namespace EduSense.DAL.Test.Repositories
                 SurveyQuestionId = surveyQuestion.Id,
                 QuestionAnswerOptionId = answerOptionId1
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new ResultRepository(context);
             var result = await repository.GetTrackedByRespondentAndQuestionAsync(respondent.Id, surveyQuestion.Id);
@@ -58,7 +58,7 @@ namespace EduSense.DAL.Test.Repositories
                 QuestionAnswerOptionId = answerOptionId1
             });
 
-            Assert.Equal(1, await context.Responses.CountAsync());
+            Assert.Equal(1, await context.Responses.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -75,14 +75,14 @@ namespace EduSense.DAL.Test.Repositories
                 QuestionAnswerOptionId = answerOptionId1
             };
             context.Responses.Add(response);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new ResultRepository(context);
             response.QuestionAnswerOptionId = answerOptionId2;
             await repository.SaveChangesAsync();
 
             context.ChangeTracker.Clear();
-            var reloaded = await context.Responses.SingleAsync(r => r.Id == response.Id);
+            var reloaded = await context.Responses.SingleAsync(r => r.Id == response.Id, TestContext.Current.CancellationToken);
             Assert.Equal(answerOptionId2, reloaded.QuestionAnswerOptionId);
         }
 
@@ -246,7 +246,7 @@ namespace EduSense.DAL.Test.Repositories
         {
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var question = new QuestionModel { Text = "Trivs du?", CreatedByUserId = "user-1" };
             context.Questions.Add(question);
