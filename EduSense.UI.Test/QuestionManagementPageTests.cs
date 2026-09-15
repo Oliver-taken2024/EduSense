@@ -93,7 +93,7 @@ public class QuestionManagementPageTests : TestContext
         cut.Find("button.button-login").Click();
         Assert.Contains("Ny fråga", cut.Markup);
 
-        cut.Find("button.btn-secondary").Click();
+        cut.Find("button.button-secondary").Click();
 
         Assert.Contains("Hur trivs du?", cut.Markup);
         Assert.DoesNotContain("Ny fråga", cut.Markup);

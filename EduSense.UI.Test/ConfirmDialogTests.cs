@@ -63,7 +63,7 @@ namespace EduSense.UI.Test
                 .Add(p => p.IsVisible, true)
                 .Add(p => p.OnCancelled, EventCallback.Factory.Create(this, () => cancelled = true)));
 
-            cut.Find("button.btn-secondary").Click();
+            cut.Find("button.button-secondary").Click();
 
             Assert.True(cancelled);
         }

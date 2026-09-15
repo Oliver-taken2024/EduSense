@@ -238,24 +238,29 @@ namespace EduSense.DAL.Data
             await context.SaveChangesAsync();
 
             // Enkät 1 - alla 11 frågor
-            var survey1 = await EnsureSurveyAsync(context, "Kundnöjdhetsenkät", org1.Id, DateTime.UtcNow.AddDays(30));
+            var survey1 = await EnsureSurveyAsync(context, "Kundnöjdhetsenkät", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey1, allQuestions);
-            await EnsureRespondentAsync(context, survey1, "respondent1@test.com", "token-123");
-            await EnsureRespondentAsync(context, survey1, "respondent2@test.com", "token-456");
+            var dispatch1 = await EnsureDispatchAsync(context, survey1, DateTime.UtcNow.AddDays(30), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatch1, "respondent1@test.com", "token-123");
+            await EnsureRespondentAsync(context, dispatch1, "respondent2@test.com", "token-456");
 
             // Enkät 2 - föräldraenkät, skol-/fritidsrelaterade frågor
-            var survey2 = await EnsureSurveyAsync(context, "Föräldraenkät - skola och fritids", org1.Id, DateTime.UtcNow.AddDays(14));
+            var survey2 = await EnsureSurveyAsync(context, "Föräldraenkät - skola och fritids", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey2, [q3, q4, q5, q6, q7, q8, q9, q10, q11]);
-            await EnsureRespondentAsync(context, survey2, "respondent3@test.com", "token-789");
-            await EnsureRespondentAsync(context, survey2, "respondent4@test.com", "token-101");
+            var dispatch2 = await EnsureDispatchAsync(context, survey2, DateTime.UtcNow.AddDays(14), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatch2, "respondent3@test.com", "token-789");
+            await EnsureRespondentAsync(context, dispatch2, "respondent4@test.com", "token-101");
 
             // Enkät 3 - utgången, för att testa expired-flödet utan att vänta
-            var survey3 = await EnsureSurveyAsync(context, "Trivselenkät (utgången)", org2.Id, DateTime.UtcNow.AddDays(-5));
-            await LinkQuestionsToSurveyAsync(context, survey3, [q1, q2, q3]);
-            await EnsureRespondentAsync(context, survey3, "respondent5@test.com", "token-expired");
+            var survey3 = await EnsureSurveyAsync(context, "Trivselenkät (utgången)", org2.Id);
+            await LinkQuestionsToSurveyAsync(context, survey3, new[] { q1, q2, q3 });
+            var dispatch3 = await EnsureDispatchAsync(context, survey3, DateTime.UtcNow.AddDays(-5), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatch3, "respondent5@test.com", "token-expired");
         }
 
-        private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId, DateTime expiryDate)
+
+
+        private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId)
         {
             var survey = await context.Surveys.SingleOrDefaultAsync(x => x.Title == title && x.OrganisationId == organisationId);
             if (survey is null)
@@ -264,7 +269,6 @@ namespace EduSense.DAL.Data
                 {
                     Title = title,
                     CreatedByUserId = "admin@edusense.com",
-                    SurveyExpiryDate = DateTime.SpecifyKind(expiryDate.Date, DateTimeKind.Utc),
                     OrganisationId = organisationId
                 };
 
@@ -274,7 +278,28 @@ namespace EduSense.DAL.Data
 
             return survey;
         }
+        private static async Task<SurveyDispatchModel> EnsureDispatchAsync(
+            EduSenseDbContext context, SurveyModel survey, DateTime responseDeadline, string sentByUserId)
+        {
+            var dispatch = await context.SurveyDispatches
+                .SingleOrDefaultAsync(x => x.SurveyId == survey.Id);
 
+            if (dispatch is null)
+            {
+                dispatch = new SurveyDispatchModel
+                {
+                    SurveyId = survey.Id,
+                    ResponseDeadline = responseDeadline,
+                    SentByUserId = sentByUserId,
+                    SentAt = DateTime.UtcNow
+                };
+
+                context.SurveyDispatches.Add(dispatch);
+                await context.SaveChangesAsync();
+            }
+
+            return dispatch;
+        }
         private static async Task LinkQuestionsToSurveyAsync(EduSenseDbContext context, SurveyModel survey, IEnumerable<QuestionModel> questions)
         {
             foreach (var question in questions)
@@ -288,15 +313,15 @@ namespace EduSense.DAL.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task EnsureRespondentAsync(EduSenseDbContext context, SurveyModel survey, string email, string token)
+        private static async Task EnsureRespondentAsync(EduSenseDbContext context, SurveyDispatchModel surveyDispatch, string email, string token)
         {
-            if (!await context.Respondents.AnyAsync(x => x.Email == email && x.SurveyId == survey.Id))
+            if (!await context.Respondents.AnyAsync(x => x.Email == email && x.SurveyDispatchId == surveyDispatch.Id))
             {
                 context.Respondents.Add(new RespondentModel
                 {
                     Email = email,
                     Token = token,
-                    SurveyId = survey.Id,
+                    SurveyDispatchId = surveyDispatch.Id,
                     TokenIsUsed = false
                 });
 

@@ -26,13 +26,13 @@ namespace EduSense.BLL.Services
                 return RespondentResult<RespondentSurveyDto>.Failure(RespondentResultStatus.TokenNotFound);
             }
 
-            var survey = respondent.Survey;
+            var survey = respondent.SurveyDispatch;
             if (survey is null)
             {
                 throw new InvalidOperationException("Respondent saknar Survey.");
             }
 
-            if (survey.SurveyExpiryDate < DateTime.UtcNow)
+            if (survey.ResponseDeadline < DateTime.UtcNow)
             {
                 return RespondentResult<RespondentSurveyDto>.Failure(RespondentResultStatus.SurveyExpired);
             }
@@ -43,7 +43,7 @@ namespace EduSense.BLL.Services
 
         private static RespondentSurveyDto ToDto(RespondentModel respondent)
         {
-            var survey = respondent.Survey!;
+            var survey = respondent.SurveyDispatch!.Survey!;
 
             // Slår upp svarat alternativ per fråga via SurveyQuestionId, för förifyllnad vid återupptagning.
             var answeredBySurveyQuestionId = respondent.Responses
@@ -63,8 +63,8 @@ namespace EduSense.BLL.Services
                         .Select(qao => new RespondentAnswerOptionDto
                     {
                         Id = qao.Id,
-                        Description = qao.AnswerOption.Description,
-                        Value = qao.AnswerOption.Value,
+                        Description = qao.AnswerOption!.Description,
+                        Value = qao.AnswerOption!.Value,
                     }).ToList(),
                     AnsweredQuestionAnswerOptionId = answeredBySurveyQuestionId.TryGetValue(sq.Id, out var selectedId)
                         ? selectedId

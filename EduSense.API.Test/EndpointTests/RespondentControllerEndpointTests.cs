@@ -24,11 +24,11 @@ namespace EduSense.API.Test.EndpointTests
             const string token = "token-123";
 
             // Act
-            var response = await _client.GetAsync($"/api/respondent/{token}");
+            var response = await _client.GetAsync($"/api/respondent/{token}", TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var dto = await response.Content.ReadFromJsonAsync<RespondentSurveyDto>();
+            var dto = await response.Content.ReadFromJsonAsync<RespondentSurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(dto);
         }
 
@@ -39,7 +39,7 @@ namespace EduSense.API.Test.EndpointTests
             const string token = "does-not-exist";
 
             // Act
-            var response = await _client.GetAsync($"/api/respondent/{token}");
+            var response = await _client.GetAsync($"/api/respondent/{token}", TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -52,7 +52,7 @@ namespace EduSense.API.Test.EndpointTests
             const string token = "token-expired";
 
             // Act
-            var response = await _client.GetAsync($"/api/respondent/{token}");
+            var response = await _client.GetAsync($"/api/respondent/{token}", TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

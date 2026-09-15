@@ -44,7 +44,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = CreateClient();
 
-            var response = await client.GetAsync("/api/organisation");
+            var response = await client.GetAsync("/api/organisation", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -54,10 +54,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.GetAsync("/api/organisation");
+            var response = await client.GetAsync("/api/organisation", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var organisations = await response.Content.ReadFromJsonAsync<List<OrganisationDto>>();
+            var organisations = await response.Content.ReadFromJsonAsync<List<OrganisationDto>>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(organisations);
             Assert.NotEmpty(organisations);
         }
@@ -68,10 +68,10 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new OrganisationDto { Name = $"Ny organisation {Guid.NewGuid()}" };
 
-            var response = await client.PostAsJsonAsync("/api/organisation", dto);
+            var response = await client.PostAsJsonAsync("/api/organisation", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var created = await response.Content.ReadFromJsonAsync<OrganisationDto>();
+            var created = await response.Content.ReadFromJsonAsync<OrganisationDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(dto.Name, created!.Name);
         }
 
@@ -82,7 +82,7 @@ namespace EduSense.API.Test.EndpointTests
 
             var dto = new OrganisationDto { Name = "" };
 
-            var response = await client.PostAsJsonAsync("/api/organisation", dto);
+            var response = await client.PostAsJsonAsync("/api/organisation", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -93,7 +93,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAnalystClientAsync();
             var dto = new OrganisationDto { Name = "Newton" };
 
-            var response = await client.PostAsJsonAsync("/api/organisation", dto);
+            var response = await client.PostAsJsonAsync("/api/organisation", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -106,15 +106,15 @@ namespace EduSense.API.Test.EndpointTests
             var context = scope.ServiceProvider.GetRequiredService<EduSenseDbContext>();
             var organisation = new OrganisationModel { Name = "Newton" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var client = await CreateAdminClientAsync();
             var dto = new OrganisationDto { Id = organisation.Id, Name= "Malmö Universitet" };
 
-            var response = await client.PutAsJsonAsync($"/api/organisation/{organisation.Id}", dto);
+            var response = await client.PutAsJsonAsync($"/api/organisation/{organisation.Id}", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var updated = await response.Content.ReadFromJsonAsync<OrganisationDto>();
+            var updated = await response.Content.ReadFromJsonAsync<OrganisationDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(dto.Name, updated!.Name);
         }
 
@@ -124,7 +124,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new OrganisationDto { Id = 2, Name = "Fel id" };
 
-            var response = await client.PutAsJsonAsync("/api/organisation/1", dto);
+            var response = await client.PutAsJsonAsync("/api/organisation/1", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -135,7 +135,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAnalystClientAsync();
             var dto = new OrganisationDto { Id = 1, Name = "Otillåten uppdatering" };
 
-            var response = await client.PutAsJsonAsync("/api/organisation/1", dto);
+            var response = await client.PutAsJsonAsync("/api/organisation/1", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }

@@ -41,7 +41,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var unauthorizedClient = CreateClient();
 
-            var response = await unauthorizedClient.GetAsync("/api/question");
+            var response = await unauthorizedClient.GetAsync("/api/question", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -52,10 +52,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.GetAsync("/api/question");
+            var response = await client.GetAsync("/api/question", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var questions = await response.Content.ReadFromJsonAsync<List<QuestionDto>>();
+            var questions = await response.Content.ReadFromJsonAsync<List<QuestionDto>>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(questions);
             Assert.NotEmpty(questions);
         }
@@ -73,7 +73,7 @@ namespace EduSense.API.Test.EndpointTests
             TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var question = await response.Content.ReadFromJsonAsync<QuestionDto>();
+            var question = await response.Content.ReadFromJsonAsync<QuestionDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(question);
         }
 
@@ -83,7 +83,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new QuestionDto { Text = "", CreatedByUserId = "test-user-id" };
 
-            var response = await client.PostAsJsonAsync("/api/question", dto);
+            var response = await client.PostAsJsonAsync("/api/question", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -94,7 +94,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAnalystClientAsync();
             var dto = new QuestionDto { Text = $"Otillåten fråga {Guid.NewGuid()}", CreatedByUserId = "test-user-id" };
 
-            var response = await client.PostAsJsonAsync("/api/question", dto);
+            var response = await client.PostAsJsonAsync("/api/question", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -104,15 +104,15 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
             var createDto = new QuestionDto { Text = $"Uppdateras {Guid.NewGuid()}", CreatedByUserId = "test-user-id" };
-            var createResponse = await client.PostAsJsonAsync("/api/question", createDto);
-            var created = await createResponse.Content.ReadFromJsonAsync<QuestionDto>();
+            var createResponse = await client.PostAsJsonAsync("/api/question", createDto, TestContext.Current.CancellationToken);
+            var created = await createResponse.Content.ReadFromJsonAsync<QuestionDto>(cancellationToken: TestContext.Current.CancellationToken);
 
             var updateDto = new QuestionDto { Text = $"Uppdaterad text {Guid.NewGuid()}", CreatedByUserId = "test-user-id" };
 
-            var response = await client.PutAsJsonAsync($"/api/question/{created!.Id}", updateDto);
+            var response = await client.PutAsJsonAsync($"/api/question/{created!.Id}", updateDto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var updated = await response.Content.ReadFromJsonAsync<QuestionDto>();
+            var updated = await response.Content.ReadFromJsonAsync<QuestionDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(updateDto.Text, updated!.Text);
         }
 
@@ -122,7 +122,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new QuestionDto { Text = "Finns inte", CreatedByUserId = "test-user-id" };
 
-            var response = await client.PutAsJsonAsync("/api/question/999999", dto);
+            var response = await client.PutAsJsonAsync("/api/question/999999", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -132,10 +132,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
             var createDto = new QuestionDto { Text = $"Ta bort mig {Guid.NewGuid()}", CreatedByUserId = "test-user-id" };
-            var createResponse = await client.PostAsJsonAsync("/api/question", createDto);
-            var created = await createResponse.Content.ReadFromJsonAsync<QuestionDto>();
+            var createResponse = await client.PostAsJsonAsync("/api/question", createDto, TestContext.Current.CancellationToken);
+            var created = await createResponse.Content.ReadFromJsonAsync<QuestionDto>(cancellationToken: TestContext.Current.CancellationToken);
 
-            var response = await client.DeleteAsync($"/api/question/{created!.Id}");
+            var response = await client.DeleteAsync($"/api/question/{created!.Id}", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -145,7 +145,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
 
-            var response = await client.DeleteAsync("/api/question/999999");
+            var response = await client.DeleteAsync("/api/question/999999", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -155,7 +155,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.DeleteAsync("/api/question/1");
+            var response = await client.DeleteAsync("/api/question/1", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }

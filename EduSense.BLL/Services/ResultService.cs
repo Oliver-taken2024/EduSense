@@ -25,13 +25,14 @@ namespace EduSense.BLL.Services
                 return ResultSaveStatus.TokenNotFound;
             }
 
-            var survey = respondent.Survey;
+            var dispatch = respondent.SurveyDispatch;
+            var survey = dispatch?.Survey;
             if (survey is null)
             {
                 throw new InvalidOperationException("Respondent saknar Survey.");
             }
 
-            if (survey.SurveyExpiryDate < DateTime.UtcNow)
+            if (dispatch!.ResponseDeadline < DateTime.UtcNow)
             {
                 return ResultSaveStatus.SurveyExpired;
             }

@@ -24,15 +24,19 @@ namespace EduSense.BLL.Test
             Id = 1,
             Email = "test@test.se",
             Token = "token-1",
-            SurveyId = 1,
+            SurveyDispatchId = 1,
             TokenIsUsed = tokenIsUsed,
-            Survey = new SurveyModel
+            SurveyDispatch = new SurveyDispatchModel
             {
-                Title = "Enkät",
-                CreatedByUserId = "user-1",
-                SurveyExpiryDate = expiry ?? DateTime.UtcNow.AddDays(1),
-                SurveyQuestions =
-                [
+                SurveyId = 1,
+                SentByUserId = "user-1",
+                ResponseDeadline = expiry ?? DateTime.UtcNow.AddDays(1),
+                Survey = new SurveyModel
+                {
+                    Title = "Enkät",
+                    CreatedByUserId = "user-1",
+                    SurveyQuestions =
+                     [
                     new SurveyQuestionModel
                     {
                         Id = 30,
@@ -48,7 +52,8 @@ namespace EduSense.BLL.Test
                     }
                 ]
             }
-        };
+        }
+    };
 
         [Fact]
         public async Task SaveAnswerAsync_UnknownToken_ReturnsTokenNotFound()

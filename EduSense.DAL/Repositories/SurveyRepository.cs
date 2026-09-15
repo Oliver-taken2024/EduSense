@@ -76,11 +76,10 @@ namespace EduSense.DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> TitleExistsAsync(string title, DateTime surveyExpiryDate, int organisationId, int? excludeSurveyId = null)
+        public async Task<bool> TitleExistsAsync(string title, int organisationId, int? excludeSurveyId = null)
         {
             return await _context.Surveys
                 .Where(s => s.Title == title
-                    && s.SurveyExpiryDate == surveyExpiryDate
                     && s.OrganisationId == organisationId
                     && (excludeSurveyId == null || s.Id != excludeSurveyId))
                 .AnyAsync();

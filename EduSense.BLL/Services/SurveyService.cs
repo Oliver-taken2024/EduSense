@@ -12,7 +12,6 @@ namespace EduSense.BLL.Services
     public class SurveyService : ISurveyService
     {
         private readonly ISurveyRepository _surveyRepository;
-        private static DateTime ToUtcDate(DateTime date) => DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
 
         public SurveyService(ISurveyRepository surveyRepository)
         {
@@ -39,10 +38,8 @@ namespace EduSense.BLL.Services
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate),
                 OrganisationId = dto.OrganisationId,
                 CreatedByUserId = dto.CreatedByUserId,
-                CreatedAt = DateTime.UtcNow,
                 SurveyQuestions = dto.QuestionIds.Distinct()
                     .Select(questionId => new SurveyQuestionModel { QuestionId = questionId })
                     .ToList()
@@ -66,9 +63,7 @@ namespace EduSense.BLL.Services
 
             survey.Title = dto.Title;
             survey.Description = dto.Description;
-            survey.SurveyExpiryDate = ToUtcDate(dto.SurveyExpiryDate);
             survey.OrganisationId = dto.OrganisationId;
-
             survey.SurveyQuestions.Clear();
             foreach (var questionId in dto.QuestionIds.Distinct())
             {
@@ -93,10 +88,8 @@ namespace EduSense.BLL.Services
                 Id = survey.Id,
                 Title = survey.Title,
                 Description = survey.Description,
-                SurveyExpiryDate = survey.SurveyExpiryDate,
                 OrganisationId = survey.OrganisationId,
                 CreatedByUserId = survey.CreatedByUserId,
-                CreatedAt = survey.CreatedAt,
                 Organisation = survey.Organisation is null ? null : new OrganisationDto
                 {
                     Id = survey.Organisation.Id,
@@ -128,11 +121,11 @@ namespace EduSense.BLL.Services
             }
 
             var isDuplicate = await _surveyRepository.TitleExistsAsync(
-                dto.Title, ToUtcDate(dto.SurveyExpiryDate), dto.OrganisationId, excludeSurveyId);
+                dto.Title, dto.OrganisationId, excludeSurveyId);
 
             if (isDuplicate)
             {
-                errors.Add("Det finns redan en enkät med samma titel, utgångsdatum och organisation.");
+                errors.Add("Det finns redan en enkätmall med samma titel och organisation.");
             }
 
             if (errors.Count > 0)

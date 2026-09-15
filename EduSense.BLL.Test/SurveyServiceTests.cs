@@ -22,7 +22,6 @@ namespace EduSense.BLL.Test
         {
             Id = id,
             Title = title,
-            SurveyExpiryDate = DateTime.UtcNow.AddDays(30),
             OrganisationId = orgId,
             CreatedByUserId = "user-1",
         };
@@ -33,7 +32,6 @@ namespace EduSense.BLL.Test
             var dto = new SurveySaveDto
             {
                 Title = "Ny Enkät",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(10),
                 OrganisationId = 1,
                 CreatedByUserId = "user-1",
                 QuestionIds = [1, 2]
@@ -41,7 +39,7 @@ namespace EduSense.BLL.Test
 
             _surveyrepoMock.Setup(r => r.GetExistingQuestionIdsAsync(It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(new List<int> { 1 });
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, It.IsAny<DateTime>(), dto.OrganisationId, null))
+            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, dto.OrganisationId, null))
                 .ReturnsAsync(false);
 
             var ex = await Assert.ThrowsAsync<SurveyValidationException>(() => _surveyService.CreateAsync(dto));
@@ -56,13 +54,12 @@ namespace EduSense.BLL.Test
             var dto = new SurveySaveDto
             {
                 Title = "Dubblett",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(10),
                 OrganisationId = 1,
                 CreatedByUserId = "user-1",
                 QuestionIds = []
             };
 
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, It.IsAny<DateTime>(), dto.OrganisationId, null))
+            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, dto.OrganisationId, null))
                 .ReturnsAsync(true);
 
             await Assert.ThrowsAsync<SurveyValidationException>(() => _surveyService.CreateAsync(dto));
@@ -76,7 +73,6 @@ namespace EduSense.BLL.Test
             var dto = new SurveySaveDto
             {
                 Title = "Ny enkät",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(10),
                 OrganisationId = 1,
                 CreatedByUserId = "user-1",
                 QuestionIds = [1, 1, 2]
@@ -84,7 +80,7 @@ namespace EduSense.BLL.Test
 
             _surveyrepoMock.Setup(r => r.GetExistingQuestionIdsAsync(It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(new List<int> { 1, 2 });
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, It.IsAny<DateTime>(), dto.OrganisationId, null))
+            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, dto.OrganisationId, null))
                 .ReturnsAsync(false);
 
             SurveyModel? captured = null;
@@ -101,33 +97,6 @@ namespace EduSense.BLL.Test
         }
 
         [Fact]
-        public async Task CreateAsync_NormalizeSurveyExpiryDateToUtc()
-        {
-            var localDate = DateTime.SpecifyKind(new DateTime(2026, 12, 31), DateTimeKind.Local);
-            var dto = new SurveySaveDto
-            {
-                Title = "Datumtest",
-                SurveyExpiryDate = localDate,
-                OrganisationId = 1,
-                CreatedByUserId = "user-1",
-                QuestionIds = []
-            };
-
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(dto.Title, It.IsAny<DateTime>(), dto.OrganisationId, null))
-                .ReturnsAsync(false);
-
-            SurveyModel? captured = null;
-            _surveyrepoMock.Setup(r => r.AddAsync(It.IsAny<SurveyModel>()))
-                .Callback<SurveyModel>(s => { s.Id = 1; captured = s; })
-                .Returns(Task.CompletedTask);
-            _surveyrepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(() => captured);
-
-            await _surveyService.CreateAsync(dto);
-
-            Assert.Equal(DateTimeKind.Utc, captured!.SurveyExpiryDate.Kind);
-
-        }
-        [Fact]
         public async Task UpdateAsync_WhenSurveyNotFound_ReturnsNull()
         {
             _surveyrepoMock.Setup(r => r.GetTrackedByIdAsync(99)).ReturnsAsync((SurveyModel?)null);
@@ -142,15 +111,15 @@ namespace EduSense.BLL.Test
         {
             var survey = MakeSurvey(id: 5);
             _surveyrepoMock.Setup(r => r.GetTrackedByIdAsync(5)).ReturnsAsync(survey);
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<int>(), 5))
+            _surveyrepoMock.Setup(r => r.TitleExistsAsync(It.IsAny<string>(), It.IsAny<int>(), 5))
                 .ReturnsAsync(false);
             _surveyrepoMock.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(survey);
 
-            var dto = new SurveySaveDto { Title = "Uppdaterad", SurveyExpiryDate = DateTime.UtcNow, OrganisationId = 1, QuestionIds = [] };
+            var dto = new SurveySaveDto { Title = "Uppdaterad", OrganisationId = 1, QuestionIds = [] };
 
             await _surveyService.UpdateAsync(5, dto);
 
-            _surveyrepoMock.Verify(r => r.TitleExistsAsync(dto.Title, It.IsAny<DateTime>(), dto.OrganisationId, 5), Times.Once);
+            _surveyrepoMock.Verify(r => r.TitleExistsAsync(dto.Title, dto.OrganisationId, 5), Times.Once);
         }
 
         [Fact]
@@ -162,11 +131,11 @@ namespace EduSense.BLL.Test
             _surveyrepoMock.Setup(r => r.GetTrackedByIdAsync(5)).ReturnsAsync(survey);
             _surveyrepoMock.Setup(r => r.GetExistingQuestionIdsAsync(It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(new List<int> { 2, 3 });
-            _surveyrepoMock.Setup(r => r.TitleExistsAsync(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<int>(), 5))
+            _surveyrepoMock.Setup(r => r.TitleExistsAsync(It.IsAny<string>(), It.IsAny<int>(), 5))
                 .ReturnsAsync(false);
             _surveyrepoMock.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(survey);
 
-            var dto = new SurveySaveDto { Title = "T", SurveyExpiryDate = DateTime.UtcNow, OrganisationId = 1, QuestionIds = [2, 3] };
+            var dto = new SurveySaveDto { Title = "T", OrganisationId = 1, QuestionIds = [2, 3] };
 
             await _surveyService.UpdateAsync(5, dto);
 

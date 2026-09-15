@@ -41,7 +41,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = CreateClient();
 
-            var response = await client.GetAsync("/api/users");
+            var response = await client.GetAsync("/api/users", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -51,7 +51,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.GetAsync("/api/users");
+            var response = await client.GetAsync("/api/users", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -61,10 +61,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
 
-            var response = await client.GetAsync("/api/users");
+            var response = await client.GetAsync("/api/users", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var users = await response.Content.ReadFromJsonAsync<List<UserListItemDto>>();
+            var users = await response.Content.ReadFromJsonAsync<List<UserListItemDto>>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(users);
             Assert.Contains(users, u => u.Email == "admin@edusense.com");
         }
@@ -75,7 +75,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new InviteUserRequestDto { Email = $"invite-{Guid.NewGuid()}@test.se", Role = "Analyst" };
 
-            var response = await client.PostAsJsonAsync("/api/users/invite", dto);
+            var response = await client.PostAsJsonAsync("/api/users/invite", dto, TestContext.Current.CancellationToken );
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -86,7 +86,7 @@ namespace EduSense.API.Test.EndpointTests
             var client = await CreateAdminClientAsync();
             var dto = new InviteUserRequestDto { Email = $"invite-{Guid.NewGuid()}@test.se", Role = "SuperAdmin" };
 
-            var response = await client.PostAsJsonAsync("/api/users/invite", dto);
+            var response = await client.PostAsJsonAsync("/api/users/invite", dto, TestContext.Current.CancellationToken );
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -96,12 +96,12 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
             var inviteDto = new InviteUserRequestDto { Email = $"deactivate-{Guid.NewGuid()}@test.se", Role = "Analyst" };
-            await client.PostAsJsonAsync("/api/users/invite", inviteDto);
+            await client.PostAsJsonAsync("/api/users/invite", inviteDto, TestContext.Current.CancellationToken);
 
-            var users = await client.GetFromJsonAsync<List<UserListItemDto>>("/api/users");
+            var users = await client.GetFromJsonAsync<List<UserListItemDto>>("/api/users", cancellationToken: TestContext.Current.CancellationToken);
             var user = users!.First(u => u.Email == inviteDto.Email);
 
-            var response = await client.PostAsync($"/api/users/{user.Id}/deactivate", null);
+            var response = await client.PostAsync($"/api/users/{user.Id}/deactivate", null, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -111,12 +111,12 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
             var inviteDto = new InviteUserRequestDto { Email = $"activate-{Guid.NewGuid()}@test.se", Role = "Analyst" };
-            await client.PostAsJsonAsync("/api/users/invite", inviteDto);
+            await client.PostAsJsonAsync("/api/users/invite", inviteDto, TestContext.Current.CancellationToken);
 
-            var users = await client.GetFromJsonAsync<List<UserListItemDto>>("/api/users");
+            var users = await client.GetFromJsonAsync<List<UserListItemDto>>("/api/users", cancellationToken: TestContext.Current.CancellationToken);
             var user = users!.First(u => u.Email == inviteDto.Email);
 
-            var response = await client.PostAsync($"/api/users/{user.Id}/activate", null);
+            var response = await client.PostAsync($"/api/users/{user.Id}/activate", null, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -126,7 +126,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
 
-            var response = await client.PostAsync("/api/users/does-not-exist/deactivate", null);
+            var response = await client.PostAsync("/api/users/does-not-exist/deactivate", null, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }

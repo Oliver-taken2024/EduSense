@@ -42,7 +42,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = CreateClient();
 
-            var response = await client.GetAsync("/api/survey");
+            var response = await client.GetAsync("/api/survey", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -52,10 +52,10 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.GetAsync("/api/survey");
+            var response = await client.GetAsync("/api/survey", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var surveys = await response.Content.ReadFromJsonAsync<List<SurveyDto>>();
+            var surveys = await response.Content.ReadFromJsonAsync<List<SurveyDto>>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(surveys);
             Assert.NotEmpty(surveys);
         }
@@ -64,13 +64,13 @@ namespace EduSense.API.Test.EndpointTests
         public async Task GetById_AsAnalyst_KnownId_ReturnsOkWithMatchingSurvey()
         {
             var client = await CreateAnalystClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var existing = all!.First();
 
-            var response = await client.GetAsync($"/api/survey/{existing.Id}");
+            var response = await client.GetAsync($"/api/survey/{existing.Id}", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var survey = await response.Content.ReadFromJsonAsync<SurveyDto>();
+            var survey = await response.Content.ReadFromJsonAsync<SurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(existing.Title, survey!.Title);
         }
 
@@ -79,7 +79,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.GetAsync("/api/survey/999999");
+            var response = await client.GetAsync("/api/survey/999999", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -88,21 +88,20 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Create_AsAdmin_ValidSurvey_ReturnsCreatedWithSurvey()
         {
             var client = await CreateAdminClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var organisationId = all!.First().OrganisationId;
 
             var dto = new SurveySaveDto
             {
                 Title = $"Ny enkät {Guid.NewGuid()}",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(10),
                 OrganisationId = organisationId,
                 CreatedByUserId = "test-user-id"
             };
 
-            var response = await client.PostAsJsonAsync("/api/survey", dto);
+            var response = await client.PostAsJsonAsync("/api/survey", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var created = await response.Content.ReadFromJsonAsync<SurveyDto>();
+            var created = await response.Content.ReadFromJsonAsync<SurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(dto.Title, created!.Title);
         }
 
@@ -110,18 +109,17 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Create_AsAnalyst_ReturnsForbidden()
         {
             var client = await CreateAnalystClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var organisationId = all!.First().OrganisationId;
 
             var dto = new SurveySaveDto
             {
                 Title = $"Otillåten enkät {Guid.NewGuid()}",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(10),
                 OrganisationId = organisationId,
                 CreatedByUserId = "test-user-id"
             };
 
-            var response = await client.PostAsJsonAsync("/api/survey", dto);
+            var response = await client.PostAsJsonAsync("/api/survey", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -130,18 +128,17 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Create_AsAdmin_DuplicateTitleOrgAndExpiry_ReturnsBadRequest()
         {
             var client = await CreateAdminClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var existing = all!.First();
 
             var dto = new SurveySaveDto
             {
-                Title = existing.Title,
-                SurveyExpiryDate = existing.SurveyExpiryDate,
+                Title = existing.Title ?? string.Empty,
                 OrganisationId = existing.OrganisationId,
                 CreatedByUserId = "test-user-id"
             };
 
-            var response = await client.PostAsJsonAsync("/api/survey", dto);
+            var response = await client.PostAsJsonAsync("/api/survey", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -150,31 +147,29 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Update_AsAdmin_ExistingSurvey_ReturnsOkWithUpdatedTitle()
         {
             var client = await CreateAdminClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var organisationId = all!.First().OrganisationId;
 
             var createDto = new SurveySaveDto
             {
                 Title = $"Uppdateras {Guid.NewGuid()}",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(5),
                 OrganisationId = organisationId,
                 CreatedByUserId = "test-user-id"
             };
-            var createResponse = await client.PostAsJsonAsync("/api/survey", createDto);
-            var created = await createResponse.Content.ReadFromJsonAsync<SurveyDto>();
+            var createResponse = await client.PostAsJsonAsync("/api/survey", createDto, TestContext.Current.CancellationToken);
+            var created = await createResponse.Content.ReadFromJsonAsync<SurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
 
             var updateDto = new SurveySaveDto
             {
                 Title = $"Uppdaterad titel {Guid.NewGuid()}",
-                SurveyExpiryDate = createDto.SurveyExpiryDate,
                 OrganisationId = organisationId,
                 CreatedByUserId = "test-user-id"
             };
 
-            var response = await client.PutAsJsonAsync($"/api/survey/{created!.Id}", updateDto);
+            var response = await client.PutAsJsonAsync($"/api/survey/{created!.Id}", updateDto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var updated = await response.Content.ReadFromJsonAsync<SurveyDto>();
+            var updated = await response.Content.ReadFromJsonAsync<SurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal(updateDto.Title, updated!.Title);
         }
 
@@ -186,12 +181,11 @@ namespace EduSense.API.Test.EndpointTests
             var dto = new SurveySaveDto
             {
                 Title = "Finns inte",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(5),
                 OrganisationId = 1,
                 CreatedByUserId = "test-user-id"
             };
 
-            var response = await client.PutAsJsonAsync("/api/survey/999999", dto);
+            var response = await client.PutAsJsonAsync("/api/survey/999999", dto, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -200,20 +194,19 @@ namespace EduSense.API.Test.EndpointTests
         public async Task Delete_AsAdmin_ExistingSurvey_ReturnsNoContent()
         {
             var client = await CreateAdminClientAsync();
-            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey");
+            var all = await client.GetFromJsonAsync<List<SurveyDto>>("/api/survey", TestContext.Current.CancellationToken);
             var organisationId = all!.First().OrganisationId;
 
             var createDto = new SurveySaveDto
             {
                 Title = $"Ta bort mig {Guid.NewGuid()}",
-                SurveyExpiryDate = DateTime.UtcNow.AddDays(5),
                 OrganisationId = organisationId,
                 CreatedByUserId = "test-user-id"
             };
-            var createResponse = await client.PostAsJsonAsync("/api/survey", createDto);
-            var created = await createResponse.Content.ReadFromJsonAsync<SurveyDto>();
+            var createResponse = await client.PostAsJsonAsync("/api/survey", createDto, TestContext.Current.CancellationToken);
+            var created = await createResponse.Content.ReadFromJsonAsync<SurveyDto>(cancellationToken: TestContext.Current.CancellationToken);
 
-            var response = await client.DeleteAsync($"/api/survey/{created!.Id}");
+            var response = await client.DeleteAsync($"/api/survey/{created!.Id}", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -223,7 +216,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAdminClientAsync();
 
-            var response = await client.DeleteAsync("/api/survey/999999");
+            var response = await client.DeleteAsync("/api/survey/999999", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -233,7 +226,7 @@ namespace EduSense.API.Test.EndpointTests
         {
             var client = await CreateAnalystClientAsync();
 
-            var response = await client.DeleteAsync("/api/survey/1");
+            var response = await client.DeleteAsync("/api/survey/1", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }

@@ -94,7 +94,7 @@ public class QuestionFormTests : TestContext
         var cut = RenderComponent<QuestionForm>(parameters => parameters
             .Add(p => p.OnCancelled, EventCallback.Factory.Create(this, () => cancelled = true)));
 
-        await cut.Find("button.btn-secondary").ClickAsync(new MouseEventArgs());
+        await cut.Find("button.button-secondary").ClickAsync(new MouseEventArgs());
 
         Assert.True(cancelled);
     }

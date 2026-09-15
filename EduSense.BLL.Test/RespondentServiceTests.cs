@@ -37,12 +37,17 @@ namespace EduSense.BLL.Test
             {
                 Email = "test@test.se",
                 Token = "token-1",
-                SurveyId = 1,
-                Survey = new SurveyModel
+                SurveyDispatchId = 1,
+                SurveyDispatch = new SurveyDispatchModel
                 {
-                    Title = "Enkät",
-                    CreatedByUserId = "user-1",
-                    SurveyExpiryDate = DateTime.UtcNow.AddDays(-1)
+                    SurveyId = 1,
+                    SentByUserId = "user-1",
+                    ResponseDeadline = DateTime.UtcNow.AddDays(-1),
+                    Survey = new SurveyModel
+                    {
+                        Title = "Enkät",
+                        CreatedByUserId = "user-1"
+                    }
                 }
             };
 
@@ -71,15 +76,20 @@ namespace EduSense.BLL.Test
             {
                 Email = "test@test.se",
                 Token = "token-1",
-                SurveyId = 1,
+                SurveyDispatchId = 1,
                 TokenIsUsed = true,
-                Survey = new SurveyModel
+                SurveyDispatch = new SurveyDispatchModel
                 {
-                    Title = "Enkät",
-                    Description = "Beskrivning",
-                    CreatedByUserId = "user-1",
-                    SurveyExpiryDate = DateTime.UtcNow.AddDays(1),
-                    SurveyQuestions = [surveyQuestion]
+                    SurveyId = 1,
+                    SentByUserId = "user-1",
+                    ResponseDeadline = DateTime.UtcNow.AddDays(1),
+                    Survey = new SurveyModel
+                    {
+                        Title = "Enkät",
+                        Description = "Beskrivning",
+                        CreatedByUserId = "user-1",
+                        SurveyQuestions = [surveyQuestion]
+                    }
                 },
                 Responses = [new ResponseModel { SurveyQuestionId = 30, QuestionAnswerOptionId = 20 }]
             };

@@ -167,7 +167,7 @@ namespace EduSense.UI.Test
             var cut = RenderComponent<UserManagementPage>();
             cut.WaitForAssertion(() => Assert.Contains("Skicka inbjudan igen", cut.Markup));
 
-            cut.Find("button.btn-outline-secondary").Click();
+            cut.Find("button.button-secondary").Click();
 
             cut.WaitForAssertion(() =>
                 Assert.Contains("Inbjudan skickad igen till pending@edusense.com", cut.Markup));

@@ -16,8 +16,9 @@ namespace EduSense.DAL.Models
         [Required]
         public required string Token { get; set; }
 
-        public int SurveyId { get; set; }
-        public SurveyModel? Survey { get; set; }
+        public int SurveyDispatchId { get; set; }
+
+        public SurveyDispatchModel? SurveyDispatch { get; set; }
 
         public bool TokenIsUsed { get; set; }
 

@@ -21,6 +21,6 @@ namespace EduSense.DAL.Repositories
 
         Task<IReadOnlyList<int>> GetExistingQuestionIdsAsync(IEnumerable<int> questionIds);
 
-        Task<bool> TitleExistsAsync(string title, DateTime surveyExpiryDate, int organisationId, int? excludeSurveyId = null);
+        Task<bool> TitleExistsAsync(string title, int organisationId, int? excludeSurveyId = null);
     }
 }
