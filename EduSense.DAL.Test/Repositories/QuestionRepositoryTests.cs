@@ -16,7 +16,7 @@ public class QuestionRepositoryTests
 
         var organisation = new OrganisationModel { Name = "Business AB" };
         context.Organisations.Add(organisation);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         context.OrganisationUsers.Add(new OrganisationUserModel
         {
@@ -30,7 +30,7 @@ public class QuestionRepositoryTests
             CreatedByUserId = "user-1"
         });
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var repository = new QuestionRepository(context);
         var result = await repository.GetAllWithOrganisationAsync();
@@ -50,7 +50,7 @@ public class QuestionRepositoryTests
             Text = "Fråga utan organisation",
             CreatedByUserId = "orphan-user"
         });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var repository = new QuestionRepository(context);
         var result = await repository.GetAllWithOrganisationAsync();
@@ -73,7 +73,7 @@ public class QuestionRepositoryTests
         });
 
         Assert.True(created.Id > 0);
-        Assert.Equal(1, await context.Questions.CountAsync());
+        Assert.Equal(1, await context.Questions.CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class QuestionRepositoryTests
         var context = scope.Context;
         var question = new QuestionModel { Text = "Ta bort mig", CreatedByUserId = "user-1" };
         context.Questions.Add(question);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var repository = new QuestionRepository(context);
         await repository.DeleteAsync(question);
@@ -100,12 +100,12 @@ public class QuestionRepositoryTests
         var question = new QuestionModel { Text = "Uppdatera mig", CreatedByUserId = "user-1" };
         context.Questions.Add(question);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var repository = new QuestionRepository(context);
         question.Text = "Jag är uppdaterad";
 
         await repository.UpdateAsync(question);
-        var updated = await context.Questions.FirstOrDefaultAsync(q => q.Id == question.Id);
+        var updated = await context.Questions.FirstOrDefaultAsync(q => q.Id == question.Id, TestContext.Current.CancellationToken);
         Assert.Equal("Jag är uppdaterad", updated?.Text);
     }
 
@@ -118,7 +118,7 @@ public class QuestionRepositoryTests
         var question = new QuestionModel { Text = "Hitta mig", CreatedByUserId = "user-1" };
         context.Questions.Add(question);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var repository = new QuestionRepository(context);
         var result = await repository.GetByIdAsync(question.Id);
         Assert.NotNull(result);

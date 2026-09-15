@@ -28,7 +28,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var question = new QuestionModel { Text = "Trivs du?", CreatedByUserId = "user-1" };
             var answerOption = new AnswerOptionModel { Description = "Ja", Value = 1 };
@@ -42,14 +42,14 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var questionAnswerOption = new QuestionAnswerOptionModel { QuestionId = question.Id, AnswerOptionId = answerOption.Id };
             context.QuestionAnswerOptions.Add(questionAnswerOption);
 
             var surveyQuestion = new SurveyQuestionModel { SurveyId = survey.Id, QuestionId = question.Id };
             context.SurveyQuestions.Add(surveyQuestion);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dispatch = new SurveyDispatchModel
             {
@@ -58,11 +58,11 @@ namespace EduSense.DAL.Test.Repositories
                 ResponseDeadline = DateTime.UtcNow.AddDays(30)
             };
             context.SurveyDispatches.Add(dispatch);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var respondent = new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id };
             context.Respondents.Add(respondent);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             context.Responses.Add(new ResponseModel
             {
@@ -70,7 +70,7 @@ namespace EduSense.DAL.Test.Repositories
                 SurveyQuestionId = surveyQuestion.Id,
                 QuestionAnswerOptionId = questionAnswerOption.Id
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new RespondentRepository(context);
             var result = await repository.GetByTokenAsync("token-1");
@@ -95,7 +95,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -104,7 +104,7 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dispatch = new SurveyDispatchModel
             {
@@ -113,10 +113,10 @@ namespace EduSense.DAL.Test.Repositories
                 ResponseDeadline = DateTime.UtcNow.AddDays(30)
             };
             context.SurveyDispatches.Add(dispatch);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new RespondentRepository(context);
             var result = await repository.GetTrackedByTokenAsync("token-1");
@@ -133,7 +133,7 @@ namespace EduSense.DAL.Test.Repositories
 
             var organisation = new OrganisationModel { Name = "Business AB" };
             context.Organisations.Add(organisation);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var survey = new SurveyModel
             {
@@ -142,7 +142,7 @@ namespace EduSense.DAL.Test.Repositories
                 OrganisationId = organisation.Id
             };
             context.Surveys.Add(survey);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dispatch = new SurveyDispatchModel
             {
@@ -151,10 +151,10 @@ namespace EduSense.DAL.Test.Repositories
                 ResponseDeadline = DateTime.UtcNow.AddDays(30)
             };
             context.SurveyDispatches.Add(dispatch);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             context.Respondents.Add(new RespondentModel { Email = "test@test.se", Token = "token-1", SurveyDispatchId = dispatch.Id });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var repository = new RespondentRepository(context);
             var tracked = await repository.GetTrackedByTokenAsync("token-1");
@@ -162,7 +162,7 @@ namespace EduSense.DAL.Test.Repositories
             await repository.SaveChangesAsync();
 
             context.ChangeTracker.Clear();
-            var reloaded = await context.Respondents.SingleAsync(r => r.Token == "token-1");
+            var reloaded = await context.Respondents.SingleAsync(r => r.Token == "token-1", TestContext.Current.CancellationToken);
             Assert.True(reloaded.TokenIsUsed);
         }
 

@@ -34,8 +34,6 @@ namespace EduSense.API.Test.EndpointTests
         [Fact]
         public async Task Me_WithoutLogin_ReturnsUnathorized()
         {
-            var dto = new LoginRequestDto { Username = "", Password = "" };
-
             var response = await _client.GetAsync("/api/auth/me", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -49,7 +47,7 @@ namespace EduSense.API.Test.EndpointTests
 
             var response = await _client.GetAsync("/api/auth/me", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.OK, response?.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var responseInfo = await response.Content.ReadFromJsonAsync<UserInfoDto>(cancellationToken: TestContext.Current.CancellationToken);
 
