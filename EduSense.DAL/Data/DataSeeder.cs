@@ -371,12 +371,6 @@ namespace EduSense.DAL.Data
             await EnsureRespondentAsync(context, dispatch2, "respondent3@test.com", "token-789", RespondentSegment.GradeFTo6);
             await EnsureRespondentAsync(context, dispatch2, "respondent4@test.com", "token-101", RespondentSegment.GradeFTo6);
 
-            // Enkät 3 - utgången, för att testa expired-flödet utan att vänta
-            var survey3 = await EnsureSurveyAsync(context, "Trivselenkät (utgången)", org2.Id);
-            await LinkQuestionsToSurveyAsync(context, survey3, new[] { q1, q2, q3 });
-            var dispatch3 = await EnsureDispatchAsync(context, survey3, DateTime.UtcNow.AddDays(-5), "admin@edusense.com");
-            await EnsureRespondentAsync(context, dispatch3, "respondent5@test.com", "token-expired", RespondentSegment.Grade7To9);
-
             // ---- Omfattande svars- och respondentdata för analys/trend ----
             var random = new Random(12345); // fast seed - deterministiskt vid omkörning
 
@@ -398,6 +392,9 @@ namespace EduSense.DAL.Data
 
             // Extra historiska utskick av survey1 för en tidslinje (3, 2 och 1 månad tillbaka)
             var dispatch1b = await EnsureAdditionalDispatchAsync(context, survey1, 1, DateTime.UtcNow.AddMonths(-3), DateTime.UtcNow.AddMonths(-3).AddDays(14), "admin@edusense.com");
+            // Fast token på ett redan förfallet utskick, så expired-flödet fortfarande går att testa utan
+            // en egen "Trivselenkät" bara för det syftet.
+            await EnsureRespondentAsync(context, dispatch1b, "respondent5@test.com", "token-expired", RespondentSegment.Grade7To9);
             await SeedBulkRespondentsAsync(context, dispatch1b, survey1Questions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 80, random);
 
             var dispatch1c = await EnsureAdditionalDispatchAsync(context, survey1, 2, DateTime.UtcNow.AddMonths(-2), DateTime.UtcNow.AddMonths(-2).AddDays(14), "admin@edusense.com");
