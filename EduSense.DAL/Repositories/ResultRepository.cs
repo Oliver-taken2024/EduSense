@@ -13,6 +13,48 @@ namespace EduSense.DAL.Repositories
             _context = context;
         }
 
+        private IQueryable<RespondentModel> RespondentsWithResponses()
+        {
+            return _context.Respondents
+                .Include(r => r.Responses)
+                    .ThenInclude(resp => resp.SurveyQuestion!)
+                        .ThenInclude(sq => sq.Question!)
+                            .ThenInclude(q => q.Category)
+                .Include(r => r.Responses)
+                    .ThenInclude(resp => resp.SurveyQuestion!)
+                        .ThenInclude(sq => sq.Question!)
+                            .ThenInclude(q => q.QuestionAnswerOptions)
+                .Include(r => r.Responses)
+                    .ThenInclude(resp => resp.QuestionAnswerOption!)
+                        .ThenInclude(qao => qao.AnswerOption);
+        }
+
+        public async Task<IReadOnlyList<RespondentModel>> GetRespondentsForSurveyAsync(int surveyId)
+        {
+            return await RespondentsWithResponses()
+                .Where(r => r.SurveyDispatch!.SurveyId == surveyId)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<RespondentModel>> GetRespondentsForDispatchAsync(int dispatchId)
+        {
+            return await RespondentsWithResponses()
+                .Where(r => r.SurveyDispatchId == dispatchId)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<OrganisationModel>> GetOrganisationsWithResponsesAsync()
+        {
+            return await _context.Organisations
+                .Include(o => o.Surveys)
+                    .ThenInclude(s => s.Dispatches)
+                        .ThenInclude(d => d.Respondents)
+                            .ThenInclude(r => r.Responses)
+                                .ThenInclude(resp => resp.QuestionAnswerOption!)
+                                    .ThenInclude(qao => qao.AnswerOption)
+                .ToListAsync();
+        }
+
         public async Task<ResponseModel?> GetTrackedByRespondentAndQuestionAsync(int respondentId, int surveyQuestionId)
         {
             return await _context.Responses

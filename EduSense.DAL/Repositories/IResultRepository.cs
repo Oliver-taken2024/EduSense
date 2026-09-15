@@ -9,5 +9,9 @@ namespace EduSense.DAL.Repositories
         Task AddAsync(ResponseModel response);
 
         Task SaveChangesAsync();
+
+        Task<IReadOnlyList<RespondentModel>> GetRespondentsForSurveyAsync(int surveyId);
+        Task<IReadOnlyList<RespondentModel>> GetRespondentsForDispatchAsync(int dispatchId);
+        Task<IReadOnlyList<OrganisationModel>> GetOrganisationsWithResponsesAsync();
     }
 }

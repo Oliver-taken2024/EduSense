@@ -295,7 +295,7 @@ namespace EduSense.DAL.Data
             org2.Longitude = 13.19500;
             await context.SaveChangesAsync();
 
-            // NPS-fråga med egen 0-10-skala (delas inte med de övriga frågornas 1-5-svarsalternativ)
+            // NPS-fråga med egen 1-10-skala (delas inte med de övriga frågornas 1-5-svarsalternativ)
             var qNps = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur sannolikt är det att du skulle rekommendera oss till en vän eller kollega?");
             if (qNps is null)
             {
@@ -309,7 +309,7 @@ namespace EduSense.DAL.Data
             }
 
             var npsAnswerOptions = new List<AnswerOptionModel>();
-            for (var value = 0; value <= 10; value++)
+            for (var value = 1; value <= 10; value++)
             {
                 var description = $"NPS: {value}";
                 var option = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == description && x.Value == value);
@@ -524,11 +524,11 @@ namespace EduSense.DAL.Data
             (5, 8), (4, 17), (3, 25), (2, 28), (1, 22)
         ];
 
-        // NPS 0-10, skevad mot promoters (9-10) med ett tydligt men inte överdrivet svansat gäng detractors (0-6)
+        // NPS 1-10, skevad mot promoters (9-10) med ett tydligt men inte överdrivet svansat gäng detractors (1-6)
         private static readonly (int Value, int Weight)[] NpsWeights =
         [
             (10, 27), (9, 21), (8, 15), (7, 12), (6, 8),
-            (5, 5), (4, 4), (3, 3), (2, 2), (1, 2), (0, 1)
+            (5, 5), (4, 4), (3, 3), (2, 2), (1, 3)
         ];
 
         // Väger fram ett värde ur en (Value, Weight)-tabell utifrån en delad, seedad Random.

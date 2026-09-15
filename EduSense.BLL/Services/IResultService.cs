@@ -8,5 +8,9 @@ namespace EduSense.BLL.Services
         Task<ResultSaveStatus> SaveAnswerAsync(SaveResultDto dto);
 
         Task<ResultSaveStatus> CompleteAsync(string token);
+
+        Task<SurveyResultDto> GetResultForSurveyAsync(int surveyId);
+        Task<SurveyResultDto> GetResultForDispatchAsync(int dispatchId);
+        Task<IReadOnlyList<OrganisationLocationDto>> GetOrganisationOverviewAsync();
     }
 }
