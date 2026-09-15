@@ -45,7 +45,7 @@ namespace EduSense.BLL.Services
             var dispatch = new SurveyDispatchModel
             {
                 SurveyId = dto.SurveyId,
-                ResponseDeadline = dto.ResponseDeadline,
+                ResponseDeadline = DateTime.SpecifyKind(dto.ResponseDeadline, DateTimeKind.Utc),
                 SentByUserId = dto.SentByUserId,
                 SentAt = DateTime.UtcNow,
                 Respondents = dto.RespondentEmails
@@ -72,7 +72,7 @@ namespace EduSense.BLL.Services
 
             foreach (var respondent in dispatch.Respondents)
             {
-                var link = $"{clientBaseUrl}/survey/respond?token={Uri.EscapeDataString(respondent.Token)}";
+                var link = $"{clientBaseUrl}/enkat/{Uri.EscapeDataString(respondent.Token)}";
 
                 var subject = $"Inbjudan att svara på: {surveyTitle}";
                 var htmlBody =
