@@ -13,7 +13,12 @@ else
             <circle cx="@point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                     cy="@point.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                     r="@point.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                    fill="@point.Color" />
+                    fill="@point.Color"
+                    fill-opacity="0.85"
+                    stroke="@point.Color"
+                    stroke-width="1.5">
+                <title>@point.Name: snitt @point.AverageScore.ToString("0.0")</title>
+            </circle>
             @* <text> är ett Razor-reserverat taggnamn - kan inte ha @-bundna attribut direkt,
                så positioneringen läggs på en <g transform="..."> runt omkring istället. *@
             <g transform="@($"translate({point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)},{(point.Y - point.Radius - 4).ToString(System.Globalization.CultureInfo.InvariantCulture)})")">
@@ -21,6 +26,23 @@ else
             </g>
         }
     </svg>
+
+    @* Synlig färgförklaring - matchar ColorFor(). Håller kartan begriplig utan
+       att man behöver gissa vad grönt/gult/rött betyder. *@
+    <ul class="geo-legend">
+        <li><span class="donut-swatch" style="background:#2f9e44"></span> Snitt ≥ 4</li>
+        <li><span class="donut-swatch" style="background:#f59f00"></span> Snitt 3–4</li>
+        <li><span class="donut-swatch" style="background:#c92a2a"></span> Snitt &lt; 3</li>
+    </ul>
+
+    @* Textekvivalent till kartan (WCAG 1.1.1/1.4.1) - betyget kodas annars bara via cirkelns
+       färg (grön/gul/röd) och storlek, osynligt för skärmläsare och otydligt för färgblinda. *@
+    <ul class="visually-hidden">
+        @foreach (var point in _points.OrderByDescending(p => p.AverageScore))
+        {
+            <li>@point.Name: snitt @point.AverageScore.ToString("0.0"), @point.RespondentCount svar</li>
+        }
+    </ul>
 }
 
 @code {
@@ -52,7 +74,7 @@ else
             var y = maxLat == minLat ? 100.0 : 20 + (maxLat - l.Latitude!.Value) / (maxLat - minLat) * 160;
             var radius = 8 + (maxScore == minScore ? 4 : (l.AverageScore - minScore) / (maxScore - minScore) * 10);
 
-            return new GeoPoint(l.OrganisationName, x, y, radius, ColorFor(l.AverageScore));
+            return new GeoPoint(l.OrganisationName, x, y, radius, ColorFor(l.AverageScore), l.AverageScore, l.RespondentCount);
         }).ToList();
     }
 
@@ -63,5 +85,5 @@ else
         _ => "#c92a2a"
     };
 
-    private record GeoPoint(string Name, double X, double Y, double Radius, string Color);
+    private record GeoPoint(string Name, double X, double Y, double Radius, string Color, double AverageScore, int RespondentCount);
 }

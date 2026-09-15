@@ -3,10 +3,11 @@
 @using EduSense.Shared
 @using EduSense.UI.Services
 @inject ApiService ApiService
+@inject NavigationManager Navigation
 
 <PageTitle>Användarhantering</PageTitle>
 
-<a class="back-link" href="/">← Tillbaka</a>
+<button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
 
 <div class="page-header">
     <div>

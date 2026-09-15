@@ -7,25 +7,29 @@
 else
 {
     <div class="donut-wrapper">
-        <svg viewBox="0 0 120 120" width="160" height="160" role="img" aria-label="Svarsfördelning">
+        <svg viewBox="0 0 120 120" width="180" height="180" role="img" aria-label="Svarsfördelning">
             <circle cx="60" cy="60" r="50" fill="none" stroke="var(--donut-track, #e5e7eb)" stroke-width="20" />
             @{
                 var circumference = 2 * Math.PI * 50;
                 var offset = 0.0;
+                // Litet mellanrum mellan segmenten så de inte flyter ihop till en enda ring -
+                // bara vid fler än ett segment, annars äter rundade ändar upp hela cirkeln.
+                var gap = Data.Count > 1 ? 2.0 : 0.0;
             }
             @for (var i = 0; i < Data.Count; i++)
             {
                 var item = Data[i];
-                var dash = item.Percentage / 100 * circumference;
+                var dash = Math.Max(item.Percentage / 100 * circumference - gap, 0);
                 var dashArray = $"{dash.ToString(System.Globalization.CultureInfo.InvariantCulture)} {(circumference - dash).ToString(System.Globalization.CultureInfo.InvariantCulture)}";
                 var dashOffset = (-offset).ToString(System.Globalization.CultureInfo.InvariantCulture);
                 <circle cx="60" cy="60" r="50" fill="none"
                         stroke="@GetColor(i)"
                         stroke-width="20"
+                        stroke-linecap="round"
                         stroke-dasharray="@dashArray"
                         stroke-dashoffset="@dashOffset"
                         transform="rotate(-90 60 60)" />
-                offset += dash;
+                offset += item.Percentage / 100 * circumference;
             }
             <text x="60" y="56" text-anchor="middle" class="donut-center-value">@TotalCount</text>
             <text x="60" y="72" text-anchor="middle" class="donut-center-label">SVAR</text>

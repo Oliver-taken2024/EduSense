@@ -65,19 +65,21 @@
 .button-login {
     background: linear-gradient(135deg, #3FA184, var(--button-login-color));
     border: none;
-    box-shadow: 0 0 0 1px rgba(63, 161, 132, 0.5), 0 0 20px rgba(63, 161, 132, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
+    /* Inset-highlight upptill ger knappen en rundad, upphöjd "kant" (djup) istället
+       för den tidigare 0 0 20px-glöden (ett ljusskimmer runt om, ingen riktig form). */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.3), 0 6px 14px rgba(63, 161, 132, 0.22);
 }
 
 .button-logout {
     background: linear-gradient(135deg, #D9564C, var(--button-logout-color));
     border: none;
-    box-shadow: 0 0 0 1px rgba(217, 86, 76, 0.5), 0 0 20px rgba(217, 86, 76, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.3), 0 6px 14px rgba(217, 86, 76, 0.22);
 }
 
 .button-copy {
     background: linear-gradient(135deg, #E7C767, var(--accent-color-gold));
     border: none;
-    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.6), 0 0 20px rgba(212, 175, 55, 0.5), 0 4px 10px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.3), 0 6px 14px rgba(212, 175, 55, 0.22);
     /* Mörk text istället för --text-color, för att klara kontrastkravet
        mot den ljusa guldbakgrunden (WCAG 2.2 AA, 4.5:1). */
     color: var(--background-color-1);
@@ -88,33 +90,36 @@
 .button-secondary {
     background-color: rgba(169, 196, 192, 0.08);
     border: 1px solid rgba(169, 196, 192, 0.45);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .button-login:hover:not(:disabled),
 .button-logout:hover:not(:disabled),
 .button-copy:hover:not(:disabled),
 .button-secondary:hover:not(:disabled) {
-    filter: brightness(1.15);
+    filter: brightness(1.12);
     transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
 }
 
+/* Hover höjer knappen: skuggan flyttas längre ned/ut (större offset+blur) för att
+   efterlikna att knappen fysiskt lyfts närmare ljuskällan - det är det som läses
+   som "djup", till skillnad från en symmetrisk 0 0-glöd runt hela knappen. */
 .button-login:hover:not(:disabled) {
-    box-shadow: 0 0 0 1px rgba(63, 161, 132, 0.7), 0 0 28px rgba(63, 161, 132, 0.75), 0 10px 22px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 4px 8px rgba(0, 0, 0, 0.32), 0 16px 28px rgba(0, 0, 0, 0.35), 0 8px 18px rgba(63, 161, 132, 0.28);
 }
 
 .button-logout:hover:not(:disabled) {
-    box-shadow: 0 0 0 1px rgba(217, 86, 76, 0.7), 0 0 28px rgba(217, 86, 76, 0.75), 0 10px 22px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 4px 8px rgba(0, 0, 0, 0.32), 0 16px 28px rgba(0, 0, 0, 0.35), 0 8px 18px rgba(217, 86, 76, 0.28);
 }
 
 .button-copy:hover:not(:disabled) {
-    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.8), 0 0 28px rgba(212, 175, 55, 0.7), 0 10px 22px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 8px rgba(0, 0, 0, 0.32), 0 16px 28px rgba(0, 0, 0, 0.35), 0 8px 18px rgba(212, 175, 55, 0.28);
 }
 
 .button-secondary:hover:not(:disabled) {
     border-color: var(--accent-color-gold);
     background-color: rgba(212, 175, 55, 0.14);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
 }
 
 .button-login:active:not(:disabled),
@@ -122,7 +127,8 @@
 .button-copy:active:not(:disabled),
 .button-secondary:active:not(:disabled) {
     transform: translateY(0) scale(0.96);
-    box-shadow: none;
+    /* Inset-skugga vid klick - knappen ser intryckt ut istället för att bara tappa all skugga platt. */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
 .table-actions {
@@ -158,17 +164,21 @@
     font-family: var(--font-family-base);
     text-align: center;
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    /* Vilo-djup - tidigare hade knappen ingen skugga alls förrän man hovrade,
+       vilket gjorde den helt platt mot bakgrunden i sitt normala läge. */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 8px rgba(0, 0, 0, 0.28), 0 10px 20px rgba(0, 0, 0, 0.22);
 }
 
     .button-hub:hover {
         filter: brightness(1.1);
         color: #fff;
         transform: translateY(-3px);
-        box-shadow: 0 10px 24px rgba(51, 113, 228, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 12px rgba(0, 0, 0, 0.3), 0 18px 32px rgba(51, 113, 228, 0.35);
     }
 
     .button-hub:active {
         transform: translateY(0) scale(0.97);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
     }
 
 .card-panel {
@@ -176,7 +186,9 @@
     border-radius: 16px;
     padding: 1.5rem;
     border: 1px solid rgba(212, 175, 55, 0.15);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    /* Två skuggager istället för en (nära+kontaktskugga, fjärran+omgivningsskugga)
+       - det är kombinationen som läses som verkligt djup snarare än en suddig kant. */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 6px rgba(0, 0, 0, 0.25), 0 20px 45px rgba(0, 0, 0, 0.35);
 }
 
 /* Återanvänds för allt innehåll som byts ut inuti .card-panel (formulär/listor)
@@ -197,6 +209,14 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Bootstraps standard-padding i tabellceller (0.5rem) är snålare än resten
+   av appens rymliga kort/knappar - höjs här så raderna inte känns hopklämda.
+   Måste stå FÖRE media-blocket nedan: .table-responsive td där har samma
+   specificitet och måste vinna på mobil (källordning avgör vid oavgjort). */
+.table > :not(caption) > * > * {
+    padding: 0.85rem 1rem;
 }
 
 /* Tabeller kräver sidledsscroll för att nå knapparna så fort skärmen inte
@@ -224,6 +244,8 @@
         border: 1px solid rgba(212, 175, 55, 0.15);
         border-radius: 12px;
         background-color: rgba(255, 255, 255, 0.03);
+        /* Korten var tidigare helt platta (bara border, ingen skugga) på mobil/surfplatta. */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
     }
 
     .table-responsive td {
@@ -260,9 +282,13 @@
     }
 
 /* Guldglöd vid fokus på alla formulärfält i appen (inte bara login),
-   ovanpå (inte istället för) den globala fokusramen i app.css. */
+   ovanpå (inte istället för) den globala fokusramen i app.css. Höjer även
+   Bootstraps standard-padding (0.375rem 0.75rem), som känns snål mot
+   appens rymliga knappar/kort - LoginPage har egen scoped padding och
+   vinner ändå (högre specificitet), så den påverkas inte av detta. */
 .form-control,
 .form-select {
+    padding: 0.6rem 0.9rem;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -377,7 +403,7 @@ select:not(:disabled) {
 
 .donut-center-label {
     fill: var(--text-color-secondary);
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 0.05em;
 }
 
@@ -424,10 +450,52 @@ select:not(:disabled) {
 
 .trend-axis-label {
     fill: var(--text-color-secondary);
-    font-size: 8px;
+    font-size: 10px;
 }
 
 .geo-label {
     fill: var(--text-color);
-    font-size: 8px;
+    font-size: 10px;
 }
+
+/* Ramar in varje diagram (donut/trend/geo) i ett eget lätt kort inuti
+   .card-panel, så de inte flyter fritt mellan tabellerna på resultatsidan. */
+.chart-section {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(212, 175, 55, 0.12);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+    .chart-section h2 {
+        margin-top: 0;
+    }
+
+/* Rubrikstil för alla underrubriker på resultatsidan - egen klass (inte
+   global h2-regel) så det inte smittar av sig på t.ex. UserManagementPage. */
+.section-title {
+    font-family: var(--font-family-title);
+    color: var(--accent-color-gold);
+    font-size: 1.3rem;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.geo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+}
+
+    .geo-legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-color-secondary);
+        font-size: var(--font-size-text-medium, 0.875rem);
+    }

@@ -8,6 +8,8 @@ else
 {
     <div class="trend-wrapper">
         <svg viewBox="0 0 400 220" width="100%" height="220" role="img" aria-label="Utveckling över tid">
+            <rect x="10" y="6" width="386" height="192" rx="8" fill="var(--geo-bg, #f1f3f5)" />
+
             @* Y-axel-linjer för 1, 2, 3, 4, 5 *@
             @for (var score = 1; score <= 5; score++)
             {
@@ -20,10 +22,10 @@ else
 
             @foreach (var line in _lines)
             {
-                <polyline points="@line.PointsAttr" fill="none" stroke="@line.Color" stroke-width="2" />
+                <polyline points="@line.PointsAttr" fill="none" stroke="@line.Color" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                 @foreach (var (x, y) in line.Coordinates)
                 {
-                    <circle cx="@x" cy="@y" r="3" fill="@line.Color" />
+                    <circle cx="@x" cy="@y" r="3.5" fill="@line.Color" stroke="var(--background-color-2)" stroke-width="1.5" />
                 }
             }
 
@@ -39,6 +41,15 @@ else
             @foreach (var line in _lines)
             {
                 <li><span class="donut-swatch" style="background:@line.Color"></span> @line.CategoryName</li>
+            }
+        </ul>
+
+        @* Textekvivalent till linjediagrammet (WCAG 1.1.1/1.4.1) - punkterna kodas annars bara via
+           linjens position, osynligt för skärmläsare och otydligt för färgblinda. *@
+        <ul class="visually-hidden">
+            @foreach (var point in Points.OrderBy(p => p.PeriodStart).ThenBy(p => p.CategoryName))
+            {
+                <li>@point.CategoryName, @point.PeriodStart.ToString("MMMM yyyy"): @point.AverageScore.ToString("0.0")</li>
             }
         </ul>
     </div>

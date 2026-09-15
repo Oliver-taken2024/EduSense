@@ -10,6 +10,13 @@ namespace EduSense.DAL.Data
 {
     public static class DataSeeder
     {
+        // Fast tidpunkt för de ursprungliga 11 frågorna i frågebanken, så CreatedAt
+        // blir deterministiskt vid omkörning istället för DateTime.UtcNow varje gång.
+        private static readonly DateTime QuestionBankCreatedAt = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // NPS-frågan lades till senare än ursprungsfrågebanken, egen tidpunkt av samma anledning.
+        private static readonly DateTime NpsQuestionCreatedAt = new(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
+
         // SeedAsync-metoden skapar en scope och anropar metoderna
         // för att seed:a identitet och applikationsdata.
         public static async Task SeedAsync(IServiceProvider services)
@@ -143,21 +150,21 @@ namespace EduSense.DAL.Data
             var q1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur nöjd är du med skolans verksamhet överlag?");
             if (q1 is null)
             {
-                q1 = new QuestionModel { Text = "Hur nöjd är du med skolans verksamhet överlag?", CreatedByUserId = "admin@edusense.com" };
+                q1 = new QuestionModel { Text = "Hur nöjd är du med skolans verksamhet överlag?", CreatedByUserId = "admin@edusense.com", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q1);
             }
 
             var q2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Skulle du rekommendera oss?");
             if (q2 is null)
             {
-                q2 = new QuestionModel { Text = "Skulle du rekommendera oss?", CreatedByUserId = "admin@edusense.com" };
+                q2 = new QuestionModel { Text = "Skulle du rekommendera oss?", CreatedByUserId = "admin@edusense.com", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q2);
             }
 
             var q3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får bra information om vad som händer på skolan");
             if (q3 is null)
             {
-                q3 = new QuestionModel { Text = "Jag får bra information om vad som händer på skolan", CreatedByUserId = "admin@edusense.se" };
+                q3 = new QuestionModel { Text = "Jag får bra information om vad som händer på skolan", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q3);
             }
 
@@ -165,56 +172,56 @@ namespace EduSense.DAL.Data
             var q4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Inomhusmiljön är stimulerande och trivsam");
             if (q4 is null)
             {
-                q4 = new QuestionModel { Text = "Inomhusmiljön är stimulerande och trivsam", CreatedByUserId = "admin@edusense.se" };
+                q4 = new QuestionModel { Text = "Inomhusmiljön är stimulerande och trivsam", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q4);
             }
 
             var q5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Utomhusmiljön är stimulerande för mitt barn");
             if (q5 is null)
             {
-                q5 = new QuestionModel { Text = "Utomhusmiljön är stimulerande för mitt barn", CreatedByUserId = "admin@edusense.se" };
+                q5 = new QuestionModel { Text = "Utomhusmiljön är stimulerande för mitt barn", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q5);
             }
 
             var q6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att mitt barn äter skolmaten");
             if (q6 is null)
             {
-                q6 = new QuestionModel { Text = "Jag upplever att mitt barn äter skolmaten", CreatedByUserId = "admin@edusense.se" };
+                q6 = new QuestionModel { Text = "Jag upplever att mitt barn äter skolmaten", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q6);
             }
 
             var q7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Fritidshemmet erbjuder en utvecklande verksamhet för mitt barn");
             if (q7 is null)
             {
-                q7 = new QuestionModel { Text = "Fritidshemmet erbjuder en utvecklande verksamhet för mitt barn", CreatedByUserId = "admin@edusense.se" };
+                q7 = new QuestionModel { Text = "Fritidshemmet erbjuder en utvecklande verksamhet för mitt barn", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q7);
             }
 
             var q8 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att mitt barn trivs på fritids");
             if (q8 is null)
             {
-                q8 = new QuestionModel { Text = "Jag upplever att mitt barn trivs på fritids", CreatedByUserId = "admin@edusense.se" };
+                q8 = new QuestionModel { Text = "Jag upplever att mitt barn trivs på fritids", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q8);
             }
 
             var q9 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att skolan arbetar aktivt mot diskriminering och trakasserier");
             if (q9 is null)
             {
-                q9 = new QuestionModel { Text = "Jag upplever att skolan arbetar aktivt mot diskriminering och trakasserier", CreatedByUserId = "admin@edusense.se" };
+                q9 = new QuestionModel { Text = "Jag upplever att skolan arbetar aktivt mot diskriminering och trakasserier", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q9);
             }
 
             var q10 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Mitt barn får den arbetsro hen behöver");
             if (q10 is null)
             {
-                q10 = new QuestionModel { Text = "Mitt barn får den arbetsro hen behöver", CreatedByUserId = "admin@edusense.se" };
+                q10 = new QuestionModel { Text = "Mitt barn får den arbetsro hen behöver", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q10);
             }
 
             var q11 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag känner mig trygg med personalens tillsyn över eleverna");
             if (q11 is null)
             {
-                q11 = new QuestionModel { Text = "Jag känner mig trygg med personalens tillsyn över eleverna", CreatedByUserId = "admin@edusense.se" };
+                q11 = new QuestionModel { Text = "Jag känner mig trygg med personalens tillsyn över eleverna", CreatedByUserId = "admin@edusense.se", CreatedAt = QuestionBankCreatedAt };
                 context.Questions.Add(q11);
             }
 
@@ -230,6 +237,20 @@ namespace EduSense.DAL.Data
             q9.CategoryId = catStod.Id;
             q10.CategoryId = catUndervisning.Id;
             q11.CategoryId = catStod.Id;
+
+            // Fixar CreatedAt för frågor som redan seedades innan fältet sattes här (annars
+            // visar frågehanteringen 0001-01-01) - rör bara rader som fortfarande har standardvärdet.
+            if (q1.CreatedAt == default) q1.CreatedAt = QuestionBankCreatedAt;
+            if (q2.CreatedAt == default) q2.CreatedAt = QuestionBankCreatedAt;
+            if (q3.CreatedAt == default) q3.CreatedAt = QuestionBankCreatedAt;
+            if (q4.CreatedAt == default) q4.CreatedAt = QuestionBankCreatedAt;
+            if (q5.CreatedAt == default) q5.CreatedAt = QuestionBankCreatedAt;
+            if (q6.CreatedAt == default) q6.CreatedAt = QuestionBankCreatedAt;
+            if (q7.CreatedAt == default) q7.CreatedAt = QuestionBankCreatedAt;
+            if (q8.CreatedAt == default) q8.CreatedAt = QuestionBankCreatedAt;
+            if (q9.CreatedAt == default) q9.CreatedAt = QuestionBankCreatedAt;
+            if (q10.CreatedAt == default) q10.CreatedAt = QuestionBankCreatedAt;
+            if (q11.CreatedAt == default) q11.CreatedAt = QuestionBankCreatedAt;
 
             await context.SaveChangesAsync();
 
@@ -302,7 +323,8 @@ namespace EduSense.DAL.Data
                 qNps = new QuestionModel
                 {
                     Text = "Hur sannolikt är det att du skulle rekommendera oss till en vän eller kollega?",
-                    CreatedByUserId = "admin@edusense.com"
+                    CreatedByUserId = "admin@edusense.com",
+                    CreatedAt = NpsQuestionCreatedAt
                 };
                 context.Questions.Add(qNps);
                 await context.SaveChangesAsync();
@@ -562,17 +584,26 @@ namespace EduSense.DAL.Data
         {
             const double answeredRatio = 0.70; // ca 65-75% av nya respondenter har svarat
 
+            // En enda rundtur för befintlighetskollen istället för en AnyAsync per respondent.
+            var existingEmails = (await context.Respondents
+                .Where(x => x.SurveyDispatchId == dispatch.Id)
+                .Select(x => x.Email)
+                .ToListAsync())
+                .ToHashSet();
+
+            var newRespondents = new List<RespondentModel>();
+
             for (var i = 1; i <= respondentCount; i++)
             {
                 var email = $"respondent-d{dispatch.Id}-{i}@test.com";
 
-                if (await context.Respondents.AnyAsync(x => x.Email == email && x.SurveyDispatchId == dispatch.Id))
+                if (existingEmails.Contains(email))
                     continue; // redan seedad i en tidigare körning
 
                 var hasAnswered = random.NextDouble() < answeredRatio;
                 var segment = AllSegments[(i - 1) % AllSegments.Length]; // sprider segment jämnt över alla fem värden
 
-                var respondent = new RespondentModel
+                newRespondents.Add(new RespondentModel
                 {
                     Email = email,
                     Token = $"token-d{dispatch.Id}-{i}",
@@ -582,12 +613,21 @@ namespace EduSense.DAL.Data
                     TokenUsedAt = hasAnswered
                         ? DateTime.UtcNow.AddDays(-random.Next(1, 60)).AddHours(-random.Next(0, 24))
                         : null
-                };
+                });
+            }
 
-                context.Respondents.Add(respondent);
-                await context.SaveChangesAsync(); // krävs för att få Id innan Response-raderna skapas
+            if (newRespondents.Count == 0)
+                return;
 
-                if (!hasAnswered)
+            // En enda rundtur för samtliga nya respondenter - EF fyller i alla genererade Id:n på en gång.
+            context.Respondents.AddRange(newRespondents);
+            await context.SaveChangesAsync();
+
+            var newResponses = new List<ResponseModel>();
+
+            foreach (var respondent in newRespondents)
+            {
+                if (!respondent.TokenIsUsed)
                     continue;
 
                 foreach (var surveyQuestion in surveyQuestions)
@@ -600,16 +640,18 @@ namespace EduSense.DAL.Data
                     var chosenValue = PickWeightedValue(random, weights);
                     var chosenOption = options.Single(x => x.AnswerOption!.Value == chosenValue);
 
-                    context.Responses.Add(new ResponseModel
+                    newResponses.Add(new ResponseModel
                     {
                         RespondentId = respondent.Id,
                         SurveyQuestionId = surveyQuestion.Id,
                         QuestionAnswerOptionId = chosenOption.Id
                     });
                 }
-
-                await context.SaveChangesAsync();
             }
+
+            // En enda rundtur för samtliga svar, istället för en per respondent.
+            context.Responses.AddRange(newResponses);
+            await context.SaveChangesAsync();
         }
     }
 }

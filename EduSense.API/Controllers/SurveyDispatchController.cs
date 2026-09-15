@@ -8,7 +8,6 @@ namespace EduSense.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "AdminOnly")]
     public class SurveyDispatchController : ControllerBase
     {
         private readonly ISurveyDispatchService _surveyDispatchService;
@@ -20,7 +19,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet]
-
+        [Authorize(Policy = "AdminOrAnalyst")]
         public async Task<ActionResult<IReadOnlyList<SurveyDispatchDto>>> GetAll([FromQuery] int? surveyId)
         {
             var dispatches = surveyId.HasValue
@@ -30,6 +29,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrAnalyst")]
         public async Task<ActionResult<SurveyDispatchDto>> GetById(int id)
         {
             var dispatch = await _surveyDispatchService.GetByIdAsync(id);
@@ -41,6 +41,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<SurveyDispatchDto>> Create(SurveyDispatchSaveDto dto)
         {
             try
@@ -55,6 +56,7 @@ namespace EduSense.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _surveyDispatchService.DeleteAsync(id);

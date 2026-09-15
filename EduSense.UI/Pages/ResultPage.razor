@@ -52,9 +52,11 @@
                             <td>@dispatch.ResponseDeadline.ToString("yyyy-MM-dd")</td>
                             <td>@dispatch.ResponseCount / @dispatch.RespondentCount</td>
                             <td>
-                                <button type="button" class="btn button-login" @onclick="() => SelectDispatch(dispatch.Id)">
-                                    Visa resultat
-                                </button>
+                                <div class="table-actions">
+                                    <button type="button" class="btn button-login" @onclick="() => SelectDispatch(dispatch.Id)">
+                                        Visa resultat
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -96,7 +98,7 @@ else
             </table>
             <p class="page-subtitle">Jämfört med föregående utskick av samma enkät@(_result.TotalResponsesChangePercent is null && _result.CriticalAreasCountChange is null ? " (inget tidigare utskick att jämföra med)" : "")</p>
 
-            <h2>Snittbetyg per kategori</h2>
+            <h2 class="section-title">Snittbetyg per kategori</h2>
             @if (_result.CategoryScores.Count == 0)
             {
                 <p>Ingen kategoridata.</p>
@@ -114,7 +116,7 @@ else
                 </table>
             }
 
-            <h2>Toppstyrkor</h2>
+            <h2 class="section-title">Toppstyrkor</h2>
             <ul>
                 @foreach (var q in _result.TopStrengths)
                 {
@@ -122,7 +124,7 @@ else
                 }
             </ul>
 
-            <h2>Utmaningar</h2>
+            <h2 class="section-title">Utmaningar</h2>
             <ul>
                 @foreach (var q in _result.Challenges)
                 {
@@ -130,27 +132,33 @@ else
                 }
             </ul>
 
-            <h2>Svarsfördelning</h2>
-            <AnswerDistributionDonut Data="_result.AnswerDistribution" />
+            <div class="chart-section">
+                <h2 class="section-title">Svarsfördelning</h2>
+                <AnswerDistributionDonut Data="_result.AnswerDistribution" />
+            </div>
 
-            <h2>Utveckling över tid</h2>
-            <TrendChart Points="_result.Trend" />
+            <div class="chart-section">
+                <h2 class="section-title">Utveckling över tid</h2>
+                <TrendChart Points="_result.Trend" />
+            </div>
 
-            <h2>Geografisk fördelning</h2>
-            @if (_isLoadingGeo)
-            {
-                <p role="status">Laddar...</p>
-            }
-            else if (_geoError is not null)
-            {
-                <p class="text-danger" role="alert">@_geoError</p>
-            }
-            else
-            {
-                <GeoDistribution Locations="_organisationLocations" />
-            }
+            <div class="chart-section">
+                <h2 class="section-title">Geografisk fördelning</h2>
+                @if (_isLoadingGeo)
+                {
+                    <p role="status">Laddar...</p>
+                }
+                else if (_geoError is not null)
+                {
+                    <p class="text-danger" role="alert">@_geoError</p>
+                }
+                else
+                {
+                    <GeoDistribution Locations="_organisationLocations" />
+                }
+            </div>
 
-            <h2>Resultat per segment</h2>
+            <h2 class="section-title">Resultat per segment</h2>
             <table class="table">
                 <thead>
                     <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th>NPS</th></tr>
