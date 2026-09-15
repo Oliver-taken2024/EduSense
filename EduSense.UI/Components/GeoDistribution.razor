@@ -1,0 +1,67 @@
+@* Schematisk geografisk fördelning - punkter placerade efter relativ lat/long, ingen riktig kartkälla. *@
+
+@if (_points.Count == 0)
+{
+    <p>Ingen geografisk data.</p>
+}
+else
+{
+    <svg viewBox="0 0 300 200" width="100%" height="220" role="img" aria-label="Geografisk fördelning">
+        <rect x="0" y="0" width="300" height="200" fill="var(--geo-bg, #f1f3f5)" rx="8" />
+        @foreach (var point in _points)
+        {
+            <circle cx="@point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                    cy="@point.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                    r="@point.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                    fill="@point.Color" />
+            @* <text> är ett Razor-reserverat taggnamn - kan inte ha @-bundna attribut direkt,
+               så positioneringen läggs på en <g transform="..."> runt omkring istället. *@
+            <g transform="@($"translate({point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)},{(point.Y - point.Radius - 4).ToString(System.Globalization.CultureInfo.InvariantCulture)})")">
+                <text text-anchor="middle" class="geo-label">@point.Name</text>
+            </g>
+        }
+    </svg>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<OrganisationLocationDto> Locations { get; set; } = [];
+
+    private List<GeoPoint> _points = [];
+
+    protected override void OnParametersSet()
+    {
+        var withCoords = Locations.Where(l => l.Latitude.HasValue && l.Longitude.HasValue).ToList();
+
+        if (withCoords.Count == 0)
+        {
+            _points = [];
+            return;
+        }
+
+        var minLat = withCoords.Min(l => l.Latitude!.Value);
+        var maxLat = withCoords.Max(l => l.Latitude!.Value);
+        var minLng = withCoords.Min(l => l.Longitude!.Value);
+        var maxLng = withCoords.Max(l => l.Longitude!.Value);
+        var minScore = withCoords.Min(l => l.AverageScore);
+        var maxScore = withCoords.Max(l => l.AverageScore);
+
+        _points = withCoords.Select(l =>
+        {
+            var x = maxLng == minLng ? 150.0 : 20 + (l.Longitude!.Value - minLng) / (maxLng - minLng) * 260;
+            // Högre latitud (norrut) ska hamna högre upp på bilden, dvs mindre y-värde.
+            var y = maxLat == minLat ? 100.0 : 20 + (maxLat - l.Latitude!.Value) / (maxLat - minLat) * 160;
+            var radius = 8 + (maxScore == minScore ? 4 : (l.AverageScore - minScore) / (maxScore - minScore) * 10);
+
+            return new GeoPoint(l.OrganisationName, x, y, radius, ColorFor(l.AverageScore));
+        }).ToList();
+    }
+
+    private static string ColorFor(double averageScore) => averageScore switch
+    {
+        >= 4 => "#2f9e44",
+        >= 3 => "#f59f00",
+        _ => "#c92a2a"
+    };
+
+    private record GeoPoint(string Name, double X, double Y, double Radius, string Color);
+}

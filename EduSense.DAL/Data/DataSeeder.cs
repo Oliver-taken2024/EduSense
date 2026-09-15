@@ -70,7 +70,7 @@ namespace EduSense.DAL.Data
                     IsActive = true
                 };
 
-                await userManager.CreateAsync(analystUser, "AnalystPw123!");
+                await userManager.CreateAsync(analystUser, "Analytiker123!");
                 await userManager.AddToRoleAsync(analystUser, "Analyst");
             }
         }

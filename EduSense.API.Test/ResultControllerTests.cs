@@ -92,5 +92,41 @@ namespace EduSense.API.Test
 
             Assert.IsType<NotFoundResult>(result);
         }
+
+        [Fact]
+        public async Task GetForSurvey_ReturnsOkWithResult()
+        {
+            var dto = new SurveyResultDto { TotalResponses = 5 };
+            _serviceMock.Setup(s => s.GetResultForSurveyAsync(1)).ReturnsAsync(dto);
+
+            var result = await _resultController.GetForSurvey(1);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(dto, okResult.Value);
+        }
+
+        [Fact]
+        public async Task GetForDispatch_ReturnsOkWithResult()
+        {
+            var dto = new SurveyResultDto { TotalResponses = 3 };
+            _serviceMock.Setup(s => s.GetResultForDispatchAsync(7)).ReturnsAsync(dto);
+
+            var result = await _resultController.GetForDispatch(7);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(dto, okResult.Value);
+        }
+
+        [Fact]
+        public async Task GetOrganisationOverview_ReturnsOkWithLocations()
+        {
+            var locations = new List<OrganisationLocationDto> { new() { OrganisationName = "Skola A" } };
+            _serviceMock.Setup(s => s.GetOrganisationOverviewAsync()).ReturnsAsync(locations);
+
+            var result = await _resultController.GetOrganisationOverview();
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(locations, okResult.Value);
+        }
     }
 }

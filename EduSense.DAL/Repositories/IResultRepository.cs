@@ -13,5 +13,6 @@ namespace EduSense.DAL.Repositories
         Task<IReadOnlyList<RespondentModel>> GetRespondentsForSurveyAsync(int surveyId);
         Task<IReadOnlyList<RespondentModel>> GetRespondentsForDispatchAsync(int dispatchId);
         Task<IReadOnlyList<OrganisationModel>> GetOrganisationsWithResponsesAsync();
+        Task<int?> GetPreviousDispatchIdAsync(int dispatchId);
     }
 }

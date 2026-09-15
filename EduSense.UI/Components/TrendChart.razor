@@ -1,0 +1,108 @@
+@* Linjediagram över kategori-snitt per månad, ren SVG (inget chart-bibliotek). *@
+
+@if (Points.Count == 0)
+{
+    <p>Ingen trenddata ännu.</p>
+}
+else
+{
+    <div class="trend-wrapper">
+        <svg viewBox="0 0 400 220" width="100%" height="220" role="img" aria-label="Utveckling över tid">
+            @* Y-axel-linjer för 1, 2, 3, 4, 5 *@
+            @for (var score = 1; score <= 5; score++)
+            {
+                var y = YFor(score);
+                <line x1="30" y1="@y" x2="390" y2="@y" stroke="var(--trend-gridline, #e5e7eb)" stroke-width="1" />
+                <g transform="@($"translate(24,{(y + 3).ToString(System.Globalization.CultureInfo.InvariantCulture)})")">
+                    <text text-anchor="end" class="trend-axis-label">@score</text>
+                </g>
+            }
+
+            @foreach (var line in _lines)
+            {
+                <polyline points="@line.PointsAttr" fill="none" stroke="@line.Color" stroke-width="2" />
+                @foreach (var (x, y) in line.Coordinates)
+                {
+                    <circle cx="@x" cy="@y" r="3" fill="@line.Color" />
+                }
+            }
+
+            @for (var i = 0; i < _periods.Count; i++)
+            {
+                <g transform="@($"translate({XFor(i).ToString(System.Globalization.CultureInfo.InvariantCulture)},212)")">
+                    <text text-anchor="middle" class="trend-axis-label">@_periods[i].ToString("MMM")</text>
+                </g>
+            }
+        </svg>
+
+        <ul class="trend-legend">
+            @foreach (var line in _lines)
+            {
+                <li><span class="donut-swatch" style="background:@line.Color"></span> @line.CategoryName</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<TrendPointDto> Points { get; set; } = [];
+
+    private const double ChartLeft = 30;
+    private const double ChartRight = 390;
+    private const double ChartTop = 10;
+    private const double ChartBottom = 190;
+
+    private List<DateTime> _periods = [];
+    private List<TrendLine> _lines = [];
+
+    private static readonly string[] Palette =
+    [
+        "#2f9e44", "#5c7cfa", "#f59f00", "#e8590c", "#9c36b5", "#1098ad"
+    ];
+
+    protected override void OnParametersSet()
+    {
+        _periods = Points.Select(p => p.PeriodStart).Distinct().OrderBy(d => d).ToList();
+
+        var categories = Points.Select(p => p.CategoryName).Distinct().OrderBy(c => c).ToList();
+
+        _lines = categories.Select((category, index) =>
+        {
+            var coordinates = _periods
+                .Select((period, periodIndex) =>
+                {
+                    var point = Points.FirstOrDefault(p => p.CategoryName == category && p.PeriodStart == period);
+                    var x = XFor(periodIndex);
+                    var y = point is null ? (double?)null : YFor(point.AverageScore);
+                    return (X: x, Y: y);
+                })
+                .Where(c => c.Y.HasValue)
+                .Select(c => (c.X, Y: c.Y!.Value))
+                .ToList();
+
+            var pointsAttr = string.Join(" ", coordinates.Select(c =>
+                $"{c.X.ToString(System.Globalization.CultureInfo.InvariantCulture)},{c.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+
+            return new TrendLine(category, Palette[index % Palette.Length], pointsAttr, coordinates);
+        }).ToList();
+    }
+
+    private double XFor(int periodIndex)
+    {
+        if (_periods.Count <= 1)
+        {
+            return ChartLeft;
+        }
+
+        return ChartLeft + (ChartRight - ChartLeft) * periodIndex / (_periods.Count - 1);
+    }
+
+    private double YFor(double score)
+    {
+        // Skala 1-5, botten av grafen = 1, toppen = 5.
+        var clamped = Math.Clamp(score, 1, 5);
+        return ChartBottom - (ChartBottom - ChartTop) * (clamped - 1) / 4;
+    }
+
+    private record TrendLine(string CategoryName, string Color, string PointsAttr, List<(double X, double Y)> Coordinates);
+}

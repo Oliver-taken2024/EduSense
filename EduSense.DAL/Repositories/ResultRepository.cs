@@ -55,6 +55,21 @@ namespace EduSense.DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<int?> GetPreviousDispatchIdAsync(int dispatchId)
+        {
+            var dispatch = await _context.SurveyDispatches.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dispatchId);
+            if (dispatch is null)
+            {
+                return null;
+            }
+
+            return await _context.SurveyDispatches
+                .Where(d => d.SurveyId == dispatch.SurveyId && d.SentAt < dispatch.SentAt)
+                .OrderByDescending(d => d.SentAt)
+                .Select(d => (int?)d.Id)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<ResponseModel?> GetTrackedByRespondentAndQuestionAsync(int respondentId, int surveyQuestionId)
         {
             return await _context.Responses

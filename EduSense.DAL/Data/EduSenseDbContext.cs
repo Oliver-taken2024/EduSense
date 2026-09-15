@@ -199,6 +199,9 @@ namespace EduSense.DAL.Data
                 entity.Property(x => x.TokenIsUsed)
                     .IsRequired();
 
+                entity.Property(x => x.Segment)
+                    .IsRequired();
+
                 entity.HasIndex(x => new { x.Email, x.Token, x.SurveyDispatchId })
                     .IsUnique();
 

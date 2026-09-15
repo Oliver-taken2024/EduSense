@@ -101,7 +101,32 @@ namespace EduSense.BLL.Services
         public async Task<SurveyResultDto> GetResultForDispatchAsync(int dispatchId)
         {
             var respondents = await _resultRepository.GetRespondentsForDispatchAsync(dispatchId);
-            return BuildResult(respondents);
+            var result = BuildResult(respondents);
+
+            // "Föregående period" = föregående utskick av samma enkät, kronologiskt.
+            var previousDispatchId = await _resultRepository.GetPreviousDispatchIdAsync(dispatchId);
+            if (previousDispatchId.HasValue)
+            {
+                var previousRespondents = await _resultRepository.GetRespondentsForDispatchAsync(previousDispatchId.Value);
+                var previousResult = BuildResult(previousRespondents);
+                ApplyPeriodComparison(result, previousResult);
+            }
+
+            return result;
+        }
+
+        private static void ApplyPeriodComparison(SurveyResultDto current, SurveyResultDto previous)
+        {
+            current.TotalResponsesChangePercent = previous.TotalResponses == 0
+                ? null
+                : (double)(current.TotalResponses - previous.TotalResponses) / previous.TotalResponses * 100;
+
+            current.ResponseRateChangePoints = current.ResponseRate - previous.ResponseRate;
+            current.AverageScoreChangePoints = current.AverageScore - previous.AverageScore;
+            current.NpsChangePoints = current.Nps.HasValue && previous.Nps.HasValue
+                ? current.Nps.Value - previous.Nps.Value
+                : null;
+            current.CriticalAreasCountChange = current.CriticalAreasCount - previous.CriticalAreasCount;
         }
 
         private static SurveyResultDto BuildResult(IReadOnlyList<RespondentModel> respondents)

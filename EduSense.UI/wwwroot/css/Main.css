@@ -353,3 +353,81 @@ select:not(:disabled) {
 .form-select {
     caret-color: currentColor;
 }
+
+/* Resultatsidans SVG-diagram (donut/trend/geo) - egna variabler så de matchar
+   det mörka kortet (--background-color-2) istället för att anta ljust tema. */
+:root {
+    --donut-track: rgba(243, 234, 215, 0.15);
+    --trend-gridline: rgba(243, 234, 215, 0.15);
+    --geo-bg: rgba(243, 234, 215, 0.08);
+}
+
+.donut-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.donut-center-value {
+    fill: var(--text-color);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.donut-center-label {
+    fill: var(--text-color-secondary);
+    font-size: 7px;
+    letter-spacing: 0.05em;
+}
+
+.donut-legend,
+.trend-legend {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.donut-legend li,
+.trend-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color-secondary);
+    font-size: var(--font-size-text-medium, 0.875rem);
+    margin-bottom: 0.35rem;
+}
+
+.donut-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.trend-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.trend-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+
+.trend-legend li {
+    margin-bottom: 0;
+}
+
+.trend-axis-label {
+    fill: var(--text-color-secondary);
+    font-size: 8px;
+}
+
+.geo-label {
+    fill: var(--text-color);
+    font-size: 8px;
+}
