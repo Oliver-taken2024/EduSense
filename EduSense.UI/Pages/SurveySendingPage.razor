@@ -5,11 +5,15 @@
 @using EduSense.UI.Services
 @using System.ComponentModel.DataAnnotations
 @inject ApiService ApiService
+@inject NavigationManager Navigation
 
 
 <PageTitle>Skicka enkät</PageTitle>
 
-<a class="back-link" href="/">← Tillbaka</a>
+<a href="#main-content" class="skip-link">Hoppa till huvudinnehåll</a>
+
+<button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
+
 
 <div class="page-header">
     <div>
@@ -18,6 +22,7 @@
     </div>
 </div>
 
+<main id="main-content">
 <!-- Visa status- och felmeddelanden om de finns -->
 @if (!string.IsNullOrEmpty(_statusMessage))
 {
@@ -28,21 +33,26 @@
     <div class="alert alert-danger" role="alert">@_errorMessage</div>
 }
 
-<!-- Formulär för att bjuda in respondenter -->
+@if (_isLoading)
+    {
+        <p role="status">Laddar enkäter...</p>
+    }
+    else
+    {
+        <!-- Formulär för att bjuda in respondenter -->
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h2 class="h5">Välj enkät</h2>
-        <div class="mb-3">
-            <label class="form-label" for="survey-select">Enkät</label>
-            <select id="survey-select" class="form-select" @bind="_selectedSurveyId" @bind:after="OnSurveyChangedAsync">
-                <option value="0">Välj enkät</option>
-                @foreach (var survey in _surveys)
-                {
-                    <option value="@survey.Id">@survey.Title</option>
-                }
-            </select>
-        </div>
+        <div class="card-panel mb-4">
+            <h2 class="h5">Välj enkät</h2>
+            <div class="mb-3">
+                <label class="form-label" for="survey-select">Enkät</label>
+                <select id="survey-select" class="form-select" @bind="_selectedSurveyId" @bind:after="OnSurveyChangedAsync">
+                    <option value="0">Välj enkät</option>
+                    @foreach (var survey in _surveys)
+                    {
+                        <option value="@survey.Id">@survey.Title</option>
+                    }
+                </select>
+            </div>
 
         @if (_selectedSurveyId != 0)
         {
@@ -52,84 +62,98 @@
             </div>
         }
     </div>
-</div>
 
-@if (_selectedSurveyId != 0)
-{
-    <div class="card mb-4">
-        <div class="card-body">
+    @if (_selectedSurveyId != 0)
+    {
+        <div class="card-panel mb-4">
             <h2 class="h5">Respondenter</h2>
 
-            <div class="mb-3">
-                <label class="form-label" for="paste-area">Klistra in e-postadresser (en per rad, eller kommaseparerat)</label>
-                <textarea id="paste-area" class="form-control" rows="4" @bind="_pasteText"></textarea>
-                <button type="button" class="btn button-secondary mt-2" @onclick="ParsePastedEmails">
-                    Lägg till från inklistrad text
-                </button>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table">
-                    <caption class="visually-hidden">Lista över respondenter att bjuda in</caption>
-                    <thead>
-                        <tr>
-                            <th>E-post</th>
-                            <th>Målgrupp</th>
-                            <th><span class="visually-hidden">Åtgärder</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (var i = 0; i < _emails.Count; i++)
+                <div class="mb-3">
+                    <label class="form-label" for="segment-select">Målgrupp för nya rader</label>
+                    <select id="segment-select" class="form-select" @bind="_selectedSegment">
+                        @foreach (var segment in Enum.GetValues<RespondentSegmentDto>())
                         {
-                            var index = i;
-                            <tr>
-                                <td>
-                                    <input class="form-control" value="@_emails[index]"
-                                           @oninput="e => _emails[index] = e.Value?.ToString() ?? string.Empty" />
-                                </td>
-                                <td>
-                                    <select class="form-select" @bind="_segments[index]">
-                                        @foreach (var segment in Enum.GetValues<RespondentSegmentDto>())
-                                        {
-                                            <option value="@segment">@GetSegmentDisplayName(segment)</option>
-                                        }
-                                    </select>
-                                </td>
-                                <td>
-                                    <button type="button" class="btn button-logout"
-                                            @onclick="() => _emails.RemoveAt(index)">
-                                        Ta bort
-                                    </button>
-                                </td>
-                            </tr>
+                            <option value="@segment">@GetSegmentDisplayName(segment)</option>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    </select>
+                </div>
 
-            <button type="button" class="btn button-secondary" @onclick="AddEmptyRow">
-                + Lägg till rad
-            </button>
+                <div class="mb-3">
+                    <label class="form-label" for="paste-area">Klistra in eller skriv e-postadresser (en per rad, eller kommaseparerat)</label>
+                    <textarea id="paste-area" class="form-control" rows="4" @bind="_pasteText"></textarea>
+                    <button type="button" class="btn button-secondary mt-2" @onclick="ParsePastedEmails">
+                        Lägg till
+                    </button>
+                </div>
 
-            <div class="mt-3">
-                <button type="button" class="btn button-login" disabled="@(_isSending || _emails.Count == 0)"
+                <div class="table-responsive">
+                    <table class="table">
+                            <caption class="visually-hidden">Lista över respondenter att bjuda in</caption>
+                            <thead>
+                                <tr>
+                                    <th>E-post</th>
+                                    <th>Målgrupp</th>
+                                    <th><span class="visually-hidden">Åtgärder</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < _emails.Count; i++)
+                                {
+                                    var index = i;
+                                    <tr>
+                                        <td>
+                                            <label class="visually-hidden" for="@($"email-{index}")">E-postadress rad @(index + 1)</label>
+                                            <input id="@($"email-{index}")" class="form-control" value="@_emails[index]"
+                                            @oninput="e => _emails[index] = e.Value?.ToString() ?? string.Empty" />
+                                        </td>
+                                        <td>
+                                            <label class="visually-hidden" for="@($"segment-{index}")">Målgrupp för rad @(index + 1)</label>
+                                            <select id="@($"segment-{index}")" class="form-select" @bind="_segments[index]">
+                                                @foreach (var segment in Enum.GetValues<RespondentSegmentDto>())
+                                                {
+                                                    <option value="@segment">@GetSegmentDisplayName(segment)</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn button-logout"
+                                            aria-label="@($"Ta bort rad {index + 1}")"
+                                            @onclick="() => RemoveRow(index)">
+                                                Ta bort
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="btn button-secondary" @onclick="AddEmptyRow">
+                        + Lägg till rad
+                    </button>
+
+                    <div class="mt-3">
+                        <button type="button" class="btn button-login" disabled="@(_isSending || _emails.Count == 0)"
                         @onclick="SendAsync">
-                    @(_isSending ? "Skickar..." : "Skicka enkät")
-                </button>
-            </div>
-        </div>
-    </div>
-}
+                            @(_isSending ? "Skickar..." : "Skicka enkät")
+                        </button>
+                    </div>
+                </div>
+        }
+    }
+ </main>
 
-@code {
+ @code {
 
     private List<SurveyDto> _surveys = [];
     private int _selectedSurveyId = 0;
     private DateTime _responseDeadline = DateTime.Today.AddDays(30);
     private List<string> _emails = [];
     private List<RespondentSegmentDto> _segments = [];
+    private RespondentSegmentDto _selectedSegment = RespondentSegmentDto.GradeFTo6;
     private string _pasteText = string.Empty;
 
+    private bool _isLoading = true;
     private bool _isSending;
     private string? _statusMessage;
     private string? _errorMessage;
@@ -138,11 +162,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _surveys = await ApiService.GetAsync<List<SurveyDto>>("api/survey") ?? [];
+        try
+        {
+            _surveys = await ApiService.GetAsync<List<SurveyDto>>("api/survey") ?? [];
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     // Rensar e-postlistan när en ny enkät väljs
-        private Task OnSurveyChangedAsync()
+    private Task OnSurveyChangedAsync()
     {
         _emails = [];
         _segments = [];
@@ -153,7 +184,7 @@
     private void AddEmptyRow()
     {
         _emails.Add(string.Empty);
-        _segments.Add(RespondentSegmentDto.GradeFTo6);
+        _segments.Add(_selectedSegment);
     }
 
     // Tar bort en rad och håller e-post/segment i synk
@@ -179,7 +210,7 @@
             .ToList();
 
         _emails.AddRange(parsed);
-        _segments.AddRange(parsed.Select(_ => RespondentSegmentDto.GradeFTo6));
+        _segments.AddRange(parsed.Select(_ => _selectedSegment));
         _pasteText = string.Empty;
     }
 
@@ -202,12 +233,12 @@
 
         var dto = new SurveyDispatchSaveDto
         {
-            SurveyId = _selectedSurveyId,
-            ResponseDeadline = _responseDeadline,
-            RespondentEmails = _emails
-                .Select((email, index) => new RespondentInviteDto { Email = email, Segment = _segments[index] })
-                .Where(e => !string.IsNullOrWhiteSpace(e.Email))
-                .ToList()
+        SurveyId = _selectedSurveyId,
+        ResponseDeadline = _responseDeadline,
+        RespondentEmails = _emails
+            .Select((email, index) => new RespondentInviteDto { Email = email, Segment = _segments[index] })
+            .Where(e => !string.IsNullOrWhiteSpace(e.Email))
+            .ToList()
         };
 
         try
