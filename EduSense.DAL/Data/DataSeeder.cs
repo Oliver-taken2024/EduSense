@@ -145,6 +145,26 @@ namespace EduSense.DAL.Data
                 await userManager.AddToRoleAsync(henrikAdminUser, "Admin");
             }
 
+            // Skapa Henrik Analytiker
+            var henrikAnalytikerEmail = "henrikanalytiker@edusense.se";
+            var henrikAnalytikerUserName = "HenrikAnalytiker";
+            var henrikAnalytikerUser = await userManager.FindByNameAsync(henrikAnalytikerUserName);
+
+            if (henrikAnalytikerUser is null)
+            {
+                henrikAnalytikerUser = new ApplicationUser
+                {
+                    UserName = henrikAnalytikerUserName,
+                    Email = henrikAnalytikerEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Henrik Analytiker",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(henrikAnalytikerUser, "Newton123!");
+                await userManager.AddToRoleAsync(henrikAnalytikerUser, "Analyst");
+            }
+
             // Skapa Robin Admin
             var robinAdminEmail = "robinadmin@edusense.se";
             var robinAdminUserName = "RobinAdmin";
@@ -163,6 +183,26 @@ namespace EduSense.DAL.Data
 
                 await userManager.CreateAsync(robinAdminUser, "Newton123!");
                 await userManager.AddToRoleAsync(robinAdminUser, "Admin");
+            }
+
+            // Skapa Robin Analytiker
+            var robinAnalytikerEmail = "robinanalytiker@edusense.se";
+            var robinAnalytikerUserName = "RobinAnalytiker";
+            var robinAnalytikerUser = await userManager.FindByNameAsync(robinAnalytikerUserName);
+
+            if (robinAnalytikerUser is null)
+            {
+                robinAnalytikerUser = new ApplicationUser
+                {
+                    UserName = robinAnalytikerUserName,
+                    Email = robinAnalytikerEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Robin Analytiker",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(robinAnalytikerUser, "Newton123!");
+                await userManager.AddToRoleAsync(robinAnalytikerUser, "Analyst");
             }
         }
 
