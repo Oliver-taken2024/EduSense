@@ -120,7 +120,8 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromDays(1);
 });
 
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+var emailProvider = builder.Configuration["Email:Provider"] ?? "Sandbox";
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection($"Smtp:{emailProvider}"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 //builder.Services.AddScoped<IEmailSender, NullEmailSender>();
