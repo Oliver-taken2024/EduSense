@@ -149,22 +149,22 @@ if(!app.Environment.IsEnvironment("Testing"))
         await using var directAppDb = new EduSenseDbContext(appDbOptions);
         await using var directUserDb = new EduSenseUserDbContext(userDbOptions);
 
-        if (app.Environment.IsDevelopment())
-        //Bygg om databasen från migrationerna
+        if (args.Contains("--reset-db"))
+        // Nollställ delad Neon-DB - körs bara manuellt, aldrig automatiskt
         {
             await directAppDb.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
             await directAppDb.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
-            await directAppDb.Database.MigrateAsync();
-            await directUserDb.Database.MigrateAsync();
         }
-        else
-        //Om production mode, kör migrationer som ev inte är körda
-        {
-            await directAppDb.Database.MigrateAsync();
-            await directUserDb.Database.MigrateAsync();
-        }
+
+        // Kör ev. ej applicerade migrationer
+        await directAppDb.Database.MigrateAsync();
+        await directUserDb.Database.MigrateAsync();
+
+        if (args.Contains("--seed"))
         //Lägg in seedningsdatat
-        await DataSeeder.SeedAsync(app.Services);
+        {
+            await DataSeeder.SeedAsync(app.Services);
+        }
     }
 
 }

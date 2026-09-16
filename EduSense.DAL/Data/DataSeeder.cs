@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EduSense.DAL.Data
@@ -16,6 +17,9 @@ namespace EduSense.DAL.Data
 
         // NPS-frågan lades till senare än ursprungsfrågebanken, egen tidpunkt av samma anledning.
         private static readonly DateTime NpsQuestionCreatedAt = new(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // Tidpunkt för de nya standardenkäterna (medarbetar-, elev- och uppföljningsenkäter), egen tidpunkt av samma anledning som ovan.
+        private static readonly DateTime ExpandedSurveysCreatedAt = new(2026, 9, 16, 0, 0, 0, DateTimeKind.Utc);
 
         // SeedAsync-metoden skapar en scope och anropar metoderna
         // för att seed:a identitet och applikationsdata.
@@ -79,6 +83,86 @@ namespace EduSense.DAL.Data
 
                 await userManager.CreateAsync(analystUser, "Analytiker123!");
                 await userManager.AddToRoleAsync(analystUser, "Analyst");
+            }
+
+            // Skapa Oliver Analytiker
+            var oliverAnalytikerEmail = "oliveranalytiker@edusense.se";
+            var oliverAnalytikerUserName = "OliverAnalytiker";
+            var oliverAnalytikerUser = await userManager.FindByNameAsync(oliverAnalytikerUserName);
+
+            if (oliverAnalytikerUser is null)
+            {
+                oliverAnalytikerUser = new ApplicationUser
+                {
+                    UserName = oliverAnalytikerUserName,
+                    Email = oliverAnalytikerEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Oliver Analytiker",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(oliverAnalytikerUser, "Newton123!");
+                await userManager.AddToRoleAsync(oliverAnalytikerUser, "Analyst");
+            }
+
+            // Skapa Oliver Admin
+            var oliverAdminEmail = "oliveradmin@edusense.se";
+            var oliverAdminUserName = "OliverAdmin";
+            var oliverAdminUser = await userManager.FindByNameAsync(oliverAdminUserName);
+
+            if (oliverAdminUser is null)
+            {
+                oliverAdminUser = new ApplicationUser
+                {
+                    UserName = oliverAdminUserName,
+                    Email = oliverAdminEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Oliver Admin",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(oliverAdminUser, "Newton123!");
+                await userManager.AddToRoleAsync(oliverAdminUser, "Admin");
+            }
+
+            // Skapa Henrik Admin
+            var henrikAdminEmail = "henrikadmin@edusense.se";
+            var henrikAdminUserName = "HenrikAdmin";
+            var henrikAdminUser = await userManager.FindByNameAsync(henrikAdminUserName);
+
+            if (henrikAdminUser is null)
+            {
+                henrikAdminUser = new ApplicationUser
+                {
+                    UserName = henrikAdminUserName,
+                    Email = henrikAdminEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Henrik Admin",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(henrikAdminUser, "Newton123!");
+                await userManager.AddToRoleAsync(henrikAdminUser, "Admin");
+            }
+
+            // Skapa Robin Admin
+            var robinAdminEmail = "robinadmin@edusense.se";
+            var robinAdminUserName = "RobinAdmin";
+            var robinAdminUser = await userManager.FindByNameAsync(robinAdminUserName);
+
+            if (robinAdminUser is null)
+            {
+                robinAdminUser = new ApplicationUser
+                {
+                    UserName = robinAdminUserName,
+                    Email = robinAdminEmail,
+                    EmailConfirmed = true,
+                    DisplayName = "Robin Admin",
+                    IsActive = true
+                };
+
+                await userManager.CreateAsync(robinAdminUser, "Newton123!");
+                await userManager.AddToRoleAsync(robinAdminUser, "Admin");
             }
         }
 
@@ -225,6 +309,249 @@ namespace EduSense.DAL.Data
                 context.Questions.Add(q11);
             }
 
+            // Medarbetarenkät - frågor
+            var qMed1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag upplever att jag har en rimlig arbetsbelastning");
+            if (qMed1 is null)
+            {
+                qMed1 = new QuestionModel { Text = "Jag upplever att jag har en rimlig arbetsbelastning", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qMed1);
+            }
+
+            var qMed2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Min närmaste chef ger mig det stöd jag behöver");
+            if (qMed2 is null)
+            {
+                qMed2 = new QuestionModel { Text = "Min närmaste chef ger mig det stöd jag behöver", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qMed2);
+            }
+
+            var qMed3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får möjlighet till kompetensutveckling i min roll");
+            if (qMed3 is null)
+            {
+                qMed3 = new QuestionModel { Text = "Jag får möjlighet till kompetensutveckling i min roll", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(qMed3);
+            }
+
+            var qMed4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag känner mig delaktig i beslut som rör min arbetsplats");
+            if (qMed4 is null)
+            {
+                qMed4 = new QuestionModel { Text = "Jag känner mig delaktig i beslut som rör min arbetsplats", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qMed4);
+            }
+
+            var qMed5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Samarbetet mellan kollegor fungerar bra");
+            if (qMed5 is null)
+            {
+                qMed5 = new QuestionModel { Text = "Samarbetet mellan kollegor fungerar bra", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qMed5);
+            }
+
+            var qMed6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag trivs med min fysiska arbetsmiljö");
+            if (qMed6 is null)
+            {
+                qMed6 = new QuestionModel { Text = "Jag trivs med min fysiska arbetsmiljö", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLokaler.Id };
+                context.Questions.Add(qMed6);
+            }
+
+            var qMed7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag skulle rekommendera denna arbetsplats till en kollega");
+            if (qMed7 is null)
+            {
+                qMed7 = new QuestionModel { Text = "Jag skulle rekommendera denna arbetsplats till en kollega", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qMed7);
+            }
+
+            // Elevenkät åk 7-9 - frågor
+            var q79_1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får den studiero jag behöver på lektionerna");
+            if (q79_1 is null)
+            {
+                q79_1 = new QuestionModel { Text = "Jag får den studiero jag behöver på lektionerna", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catUndervisning.Id };
+                context.Questions.Add(q79_1);
+            }
+
+            var q79_2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Undervisningen känns varierad och intressant");
+            if (q79_2 is null)
+            {
+                q79_2 = new QuestionModel { Text = "Undervisningen känns varierad och intressant", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catUndervisning.Id };
+                context.Questions.Add(q79_2);
+            }
+
+            var q79_3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag vågar be om hjälp när jag inte förstår");
+            if (q79_3 is null)
+            {
+                q79_3 = new QuestionModel { Text = "Jag vågar be om hjälp när jag inte förstår", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(q79_3);
+            }
+
+            var q79_4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag känner mig trygg i skolmiljön");
+            if (q79_4 is null)
+            {
+                q79_4 = new QuestionModel { Text = "Jag känner mig trygg i skolmiljön", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(q79_4);
+            }
+
+            var q79_5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag är delaktig i hur mitt lärande planeras");
+            if (q79_5 is null)
+            {
+                q79_5 = new QuestionModel { Text = "Jag är delaktig i hur mitt lärande planeras", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(q79_5);
+            }
+
+            var q79_6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Skolans lokaler fungerar bra för mitt lärande");
+            if (q79_6 is null)
+            {
+                q79_6 = new QuestionModel { Text = "Skolans lokaler fungerar bra för mitt lärande", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLokaler.Id };
+                context.Questions.Add(q79_6);
+            }
+
+            var q79_7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag trivs på min skola");
+            if (q79_7 is null)
+            {
+                q79_7 = new QuestionModel { Text = "Jag trivs på min skola", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(q79_7);
+            }
+
+            // Elevenkät gymnasiet - frågor
+            var qGym1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Undervisningen förbereder mig väl för fortsatta studier eller arbete");
+            if (qGym1 is null)
+            {
+                qGym1 = new QuestionModel { Text = "Undervisningen förbereder mig väl för fortsatta studier eller arbete", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catUndervisning.Id };
+                context.Questions.Add(qGym1);
+            }
+
+            var qGym2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får den studievägledning jag behöver");
+            if (qGym2 is null)
+            {
+                qGym2 = new QuestionModel { Text = "Jag får den studievägledning jag behöver", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qGym2);
+            }
+
+            var qGym3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag har möjlighet att påverka innehållet i mina kurser");
+            if (qGym3 is null)
+            {
+                qGym3 = new QuestionModel { Text = "Jag har möjlighet att påverka innehållet i mina kurser", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(qGym3);
+            }
+
+            var qGym4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag känner mig stressad av kraven i skolan");
+            if (qGym4 is null)
+            {
+                qGym4 = new QuestionModel { Text = "Jag känner mig stressad av kraven i skolan", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qGym4);
+            }
+
+            var qGym5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Skolans lokaler och utrustning håller god standard");
+            if (qGym5 is null)
+            {
+                qGym5 = new QuestionModel { Text = "Skolans lokaler och utrustning håller god standard", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLokaler.Id };
+                context.Questions.Add(qGym5);
+            }
+
+            var qGym6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag trivs i mötet med lärare och personal");
+            if (qGym6 is null)
+            {
+                qGym6 = new QuestionModel { Text = "Jag trivs i mötet med lärare och personal", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qGym6);
+            }
+
+            var qGym7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag är nöjd med mina studieval hittills");
+            if (qGym7 is null)
+            {
+                qGym7 = new QuestionModel { Text = "Jag är nöjd med mina studieval hittills", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(qGym7);
+            }
+
+            // Enkät vuxenutbildning - frågor
+            var qVux1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Utbildningen går att kombinera med mitt övriga liv (arbete/familj)");
+            if (qVux1 is null)
+            {
+                qVux1 = new QuestionModel { Text = "Utbildningen går att kombinera med mitt övriga liv (arbete/familj)", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qVux1);
+            }
+
+            var qVux2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Undervisningen är anpassad efter mina förkunskaper");
+            if (qVux2 is null)
+            {
+                qVux2 = new QuestionModel { Text = "Undervisningen är anpassad efter mina förkunskaper", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catUndervisning.Id };
+                context.Questions.Add(qVux2);
+            }
+
+            var qVux3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag får det stöd jag behöver från lärare och studievägledare");
+            if (qVux3 is null)
+            {
+                qVux3 = new QuestionModel { Text = "Jag får det stöd jag behöver från lärare och studievägledare", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qVux3);
+            }
+
+            var qVux4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Utbildningen ger mig relevanta kunskaper för arbetslivet");
+            if (qVux4 is null)
+            {
+                qVux4 = new QuestionModel { Text = "Utbildningen ger mig relevanta kunskaper för arbetslivet", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(qVux4);
+            }
+
+            var qVux5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag är nöjd med de digitala verktyg som används i utbildningen");
+            if (qVux5 is null)
+            {
+                qVux5 = new QuestionModel { Text = "Jag är nöjd med de digitala verktyg som används i utbildningen", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catUndervisning.Id };
+                context.Questions.Add(qVux5);
+            }
+
+            var qVux6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Studiemiljön (lokaler/digital plattform) fungerar bra för mig");
+            if (qVux6 is null)
+            {
+                qVux6 = new QuestionModel { Text = "Studiemiljön (lokaler/digital plattform) fungerar bra för mig", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLokaler.Id };
+                context.Questions.Add(qVux6);
+            }
+
+            var qVux7 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag skulle rekommendera denna utbildning till andra");
+            if (qVux7 is null)
+            {
+                qVux7 = new QuestionModel { Text = "Jag skulle rekommendera denna utbildning till andra", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qVux7);
+            }
+
+            // Uppföljningsenkät efter nystart - frågor
+            var qIntro1 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Introduktionen gav mig en bra start");
+            if (qIntro1 is null)
+            {
+                qIntro1 = new QuestionModel { Text = "Introduktionen gav mig en bra start", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qIntro1);
+            }
+
+            var qIntro2 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag fick den information jag behövde inför starten");
+            if (qIntro2 is null)
+            {
+                qIntro2 = new QuestionModel { Text = "Jag fick den information jag behövde inför starten", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catOrganisation.Id };
+                context.Questions.Add(qIntro2);
+            }
+
+            var qIntro3 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Bemötandet från personalen kändes välkomnande");
+            if (qIntro3 is null)
+            {
+                qIntro3 = new QuestionModel { Text = "Bemötandet från personalen kändes välkomnande", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qIntro3);
+            }
+
+            var qIntro4 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Mina förväntningar har hittills infriats");
+            if (qIntro4 is null)
+            {
+                qIntro4 = new QuestionModel { Text = "Mina förväntningar har hittills infriats", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLarande.Id };
+                context.Questions.Add(qIntro4);
+            }
+
+            var qIntro5 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Jag vet vart jag ska vända mig om jag har frågor");
+            if (qIntro5 is null)
+            {
+                qIntro5 = new QuestionModel { Text = "Jag vet vart jag ska vända mig om jag har frågor", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catStod.Id };
+                context.Questions.Add(qIntro5);
+            }
+
+            var qIntro6 = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Lokalerna kändes välkomnande vid start");
+            if (qIntro6 is null)
+            {
+                qIntro6 = new QuestionModel { Text = "Lokalerna kändes välkomnande vid start", CreatedByUserId = "admin@edusense.se", CreatedAt = ExpandedSurveysCreatedAt, CategoryId = catLokaler.Id };
+                context.Questions.Add(qIntro6);
+            }
+
             // Koppla varje fråga till rätt kategori (idempotent - sätts om varje körning, skapar inga dubbletter)
             q1.CategoryId = catOrganisation.Id;
             q2.CategoryId = catOrganisation.Id;
@@ -293,10 +620,20 @@ namespace EduSense.DAL.Data
             await context.SaveChangesAsync();
 
             // Länka alla frågor till alla svarsalternativ (1-5-skala på varje fråga).
+            // allQuestions används fortsatt för att länka till survey1 (Kundnöjdhetsenkät) nedan -
+            // newSurveyQuestions ska bara få svarsalternativ, inte hamna i survey1.
             var allQuestions = new[] { q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11 };
+            var newSurveyQuestions = new[]
+            {
+                qMed1, qMed2, qMed3, qMed4, qMed5, qMed6, qMed7,
+                q79_1, q79_2, q79_3, q79_4, q79_5, q79_6, q79_7,
+                qGym1, qGym2, qGym3, qGym4, qGym5, qGym6, qGym7,
+                qVux1, qVux2, qVux3, qVux4, qVux5, qVux6, qVux7,
+                qIntro1, qIntro2, qIntro3, qIntro4, qIntro5, qIntro6
+            };
             var allAnswerOptions = new[] { ans1, ans2, ans3, ans4, ans5 };
 
-            foreach (var question in allQuestions)
+            foreach (var question in allQuestions.Concat(newSurveyQuestions))
             {
                 foreach (var answerOption in allAnswerOptions)
                 {
@@ -402,6 +739,42 @@ namespace EduSense.DAL.Data
 
             var dispatch1d = await EnsureAdditionalDispatchAsync(context, survey1, 3, DateTime.UtcNow.AddMonths(-1), DateTime.UtcNow.AddMonths(-1).AddDays(14), "admin@edusense.com");
             await SeedBulkRespondentsAsync(context, dispatch1d, survey1Questions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 80, random);
+
+            // ---- Nya standardenkäter per segment + uppföljningsenkät ----
+            var surveyMed = await EnsureSurveyAsync(context, "Medarbetarenkät", org1.Id);
+            await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qMed1, qMed2, qMed3, qMed4, qMed5, qMed6, qMed7 });
+            var dispatchMed = await EnsureDispatchAsync(context, surveyMed, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatchMed, "respondent-med1@test.com", "token-med-1", RespondentSegment.Personal);
+            var surveyMedQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyMed.Id).ToListAsync();
+            await SeedBulkRespondentsAsync(context, dispatchMed, surveyMedQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 60, random);
+
+            var survey79 = await EnsureSurveyAsync(context, "Elevenkät åk 7-9", org1.Id);
+            await LinkQuestionsToSurveyAsync(context, survey79, new[] { q79_1, q79_2, q79_3, q79_4, q79_5, q79_6, q79_7 });
+            var dispatch79 = await EnsureDispatchAsync(context, survey79, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatch79, "respondent-79-1@test.com", "token-79-1", RespondentSegment.Grade7To9);
+            var survey79Questions = await context.SurveyQuestions.Where(x => x.SurveyId == survey79.Id).ToListAsync();
+            await SeedBulkRespondentsAsync(context, dispatch79, survey79Questions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 90, random);
+
+            var surveyGym = await EnsureSurveyAsync(context, "Elevenkät gymnasiet", org1.Id);
+            await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qGym1, qGym2, qGym3, qGym4, qGym5, qGym6, qGym7 });
+            var dispatchGym = await EnsureDispatchAsync(context, surveyGym, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatchGym, "respondent-gym1@test.com", "token-gym-1", RespondentSegment.Gymnasiet);
+            var surveyGymQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyGym.Id).ToListAsync();
+            await SeedBulkRespondentsAsync(context, dispatchGym, surveyGymQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 90, random);
+
+            var surveyVux = await EnsureSurveyAsync(context, "Enkät vuxenutbildning", org1.Id);
+            await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qVux1, qVux2, qVux3, qVux4, qVux5, qVux6, qVux7 });
+            var dispatchVux = await EnsureDispatchAsync(context, surveyVux, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatchVux, "respondent-vux1@test.com", "token-vux-1", RespondentSegment.Vuxenutbildning);
+            var surveyVuxQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyVux.Id).ToListAsync();
+            await SeedBulkRespondentsAsync(context, dispatchVux, surveyVuxQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 70, random);
+
+            var surveyIntro = await EnsureSurveyAsync(context, "Uppföljningsenkät efter nystart", org1.Id);
+            await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qIntro1, qIntro2, qIntro3, qIntro4, qIntro5, qIntro6 });
+            var dispatchIntro = await EnsureDispatchAsync(context, surveyIntro, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
+            await EnsureRespondentAsync(context, dispatchIntro, "respondent-intro1@test.com", "token-intro-1", RespondentSegment.GradeFTo6);
+            var surveyIntroQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyIntro.Id).ToListAsync();
+            await SeedBulkRespondentsAsync(context, dispatchIntro, surveyIntroQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 60, random);
         }
 
 
