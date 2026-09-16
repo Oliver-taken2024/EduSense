@@ -216,7 +216,7 @@ namespace EduSense.UI.Test
             cut.FindAll("button.Question-nav-arrow")[1].Click();
 
             var navigationManager = Services.GetRequiredService<FakeNavigationManager>();
-            cut.WaitForAssertion(() => Assert.EndsWith("/enkat-klar", navigationManager.Uri), timeout: TimeSpan.FromSeconds(5));
+            cut.WaitForAssertion(() => Assert.EndsWith("/enkat/token-1/granska", navigationManager.Uri), timeout: TimeSpan.FromSeconds(5));
         }
     }
 }
