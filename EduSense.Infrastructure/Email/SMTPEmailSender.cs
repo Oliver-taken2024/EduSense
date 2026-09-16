@@ -1,10 +1,11 @@
-﻿using MailKit.Net.Smtp;
+﻿using EduSense.BLL.Services;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace EduSense.BLL.Services
+namespace EduSense.Infrastructure.Email
 {
   
     // Skickar riktiga mail via SMTP (Mailtrap under utveckling,

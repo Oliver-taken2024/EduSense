@@ -53,6 +53,22 @@ namespace EduSense.DAL.Repositories
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
 
+        // Metod för att hämta en SurveyDispatch med ett specifikt id, inklusive resultaten
+        public async Task<SurveyDispatchModel?> GetByIdWithResultsAsync(int id)
+        {
+            return await _context.SurveyDispatches
+                .Include(d => d.Survey)
+                .Include(d => d.Respondents)
+                    .ThenInclude(r => r.Responses)
+                        .ThenInclude(resp => resp.SurveyQuestion!)
+                            .ThenInclude(sq => sq.Question)
+                .Include(d => d.Respondents)
+                    .ThenInclude(r => r.Responses)
+                        .ThenInclude(resp => resp.QuestionAnswerOption!)
+                            .ThenInclude(qao => qao.AnswerOption)
+                .FirstOrDefaultAsync(d => d.Id == id);
+        }
+
         // Metod för att kontrollera om en SurveyDispatch med ett specifikt surveyId finns
         public async Task<bool> SurveyExistsAsync(int surveyId)
         {
