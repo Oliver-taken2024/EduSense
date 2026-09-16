@@ -66,7 +66,10 @@ builder.Services.AddScoped<IResultService, ResultService>();
 builder.Services.AddScoped<ISurveyDispatchRepository, SurveyDispatchRepository>();
 builder.Services.AddScoped<ISurveyDispatchService, SurveyDispatchService>();
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
-builder.Services.AddHttpClient<IOllamaClient, OllamaClient>();
+builder.Services.AddHttpClient<IOllamaClient, OllamaClient>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
 builder.Services.AddScoped<ISurveyAiService, SurveyAiService>();
 
 builder.Services.AddCors(options =>
