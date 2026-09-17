@@ -86,12 +86,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("AnalystOnly", policy => policy.RequireRole("Analyst"));
-    options.AddPolicy("AdminOrAnalyst", policy => policy.RequireRole("Admin", "Analyst"));
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+    .AddPolicy("AnalystOnly", policy => policy.RequireRole("Analyst"))
+    .AddPolicy("AdminOrAnalyst", policy => policy.RequireRole("Admin", "Analyst"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

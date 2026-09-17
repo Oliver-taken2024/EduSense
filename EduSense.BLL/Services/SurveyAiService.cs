@@ -30,7 +30,7 @@ namespace EduSense.BLL.Services
                 AiPromptType.LowestSatisfactionActionPlan => BuildAggregatedResultsText(dispatch),
                 AiPromptType.TrendSummaryReport => BuildAggregatedResultsText(dispatch),
                 AiPromptType.CorrelationAnalysis => BuildCorrelationInput(dispatch),
-                _ => throw new ArgumentOutOfRangeException(nameof(request.PromptType))
+                _ => throw new ArgumentOutOfRangeException(nameof(request), request.PromptType, "Okänd prompttyp.")
             };
 
             var systemPrompt = GetSystemPrompt(request.PromptType);
