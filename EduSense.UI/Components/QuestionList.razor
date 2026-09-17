@@ -1,7 +1,13 @@
 <div class="fade-in-up">
-<div class="mb-3">
-    <label for="questionFilter" class="visually-hidden">Sök fråga</label>
-    <input id="questionFilter" class="form-control" placeholder="Sök fråga..." value="@_filterText" @oninput="OnFilterChanged" />
+<div class="toolbar">
+    <div class="toolbar-search">
+        <label for="questionFilter" class="form-label">Sök</label>
+        <input id="questionFilter" type="search" class="form-control" placeholder="Sök fråga..." value="@_filterText" @oninput="OnFilterChanged" />
+    </div>
+    @if (Questions.Count > 0)
+    {
+        <p class="toolbar-meta">@FilteredQuestions.Count av @Questions.Count frågor</p>
+    }
 </div>
 
 @if (FilteredQuestions.Count == 0)
@@ -26,11 +32,11 @@ else
             @foreach (var question in PagedQuestions)
             {
                 <tr>
-                    <td data-label="Text">@question.Text</td>
-                    <td data-label="Organisation">@question.Organisation?.Name</td>
-                    <td data-label="Skapad av">@question.CreatedByUserId</td>
-                    <td data-label="Skapad">@question.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>
+                    <td data-label="Text" class="col-text">@question.Text</td>
+                    <td data-label="Organisation" class="cell-nowrap">@question.Organisation?.Name</td>
+                    <td data-label="Skapad av" class="cell-nowrap cell-muted">@question.CreatedByUserId</td>
+                    <td data-label="Skapad" class="cell-nowrap cell-muted">@question.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td data-label="Åtgärder">
                         <div class="table-actions">
                             <button type="button" class="btn button-login"
                                     aria-label="@($"Redigera frågan {question.Text}")" @onclick="() => OnEdit.InvokeAsync(question)">

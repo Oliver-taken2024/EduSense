@@ -8,10 +8,10 @@
   <Folder Name="/Solution Items/">
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="EduSense.Infrastructure/EduSense.Infrastructure.csproj" Id="1d1f8481-ef22-4c7d-a7c6-33503b3d40b2" />
   <Project Path="EduSense.API/EduSense.API.csproj" />
   <Project Path="EduSense.BLL/EduSense.BLL.csproj" />
   <Project Path="EduSense.DAL/EduSense.DAL.csproj" />
+  <Project Path="EduSense.Infrastructure/EduSense.Infrastructure.csproj" Id="1d1f8481-ef22-4c7d-a7c6-33503b3d40b2" />
   <Project Path="EduSense.Shared/EduSense.Shared.csproj" />
   <Project Path="EduSense.UI/EduSense.UI.csproj" Id="425ddbf5-1bce-49d0-9e78-366531fa4a85" />
 </Solution>

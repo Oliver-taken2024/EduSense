@@ -4,6 +4,9 @@
     --text-color-secondary: #A9C4C0;
     --accent-color: #2E6B5E;
     --accent-color-gold: #D4AF37;
+    /* Ljusare guld för små texter (tabellrubriker) - #D4AF37 landar på 4.64:1
+       mot kortbakgrunden, precis över AA-gränsen; den här ger 5.97:1. */
+    --accent-color-gold-light: #E7C767;
     --background-color-1: #0F2E33;
     --background-color-2: #134C48;
     --background-color-3: #2E6B5E;
@@ -51,6 +54,9 @@
     color: var(--text-color);
     border-radius: 999px;
     padding: 0.7rem 1.6rem;
+    /* Golv på höjden så alla knappvarianter blir exakt lika höga oavsett om de
+       innehåller ikon+text eller bara text, och når 44px träffyta (WCAG 2.5.8). */
+    min-height: 2.75rem;
     font-size: 1rem;
     font-weight: 600;
     line-height: 1.2;
@@ -499,3 +505,232 @@ select:not(:disabled) {
         color: var(--text-color-secondary);
         font-size: var(--font-size-text-medium, 0.875rem);
     }
+
+/* ============================================================
+   Delade layoutklasser (auth-kort, toolbar, tabeller, badgar)
+   ============================================================ */
+
+/* ---- Auth-sidor: login, glömt/återställ/skapa lösenord ----
+   Ett gemensamt kort-utseende för hela inloggningsflödet, så sidorna inte
+   ser ut som fyra olika appar. Ligger globalt (inte i LoginPage.razor.css)
+   eftersom scoped CSS inte träffar <input> inuti InputText-komponenter. */
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* dvh istället för vh: mobilens adressfält räknas bort, annars hamnar
+       kortet strax under mitten och sidan får onödig scroll. Minus 1.1rem
+       för .content:s padding-top (app.css) - utan avdraget blir sidan
+       exakt så mycket högre än skärmen och får en scrollbar i onödan. */
+    min-height: calc(100dvh - 1.1rem);
+    padding: 2rem 1.25rem;
+    box-sizing: border-box;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 26rem;
+    background: linear-gradient(165deg, var(--background-color-2), var(--background-color-1) 130%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 60px rgba(212, 175, 55, 0.08);
+    box-sizing: border-box;
+}
+
+    .auth-card h1 {
+        font-size: 1.75rem;
+        text-align: center;
+        margin: 0 0 0.4rem;
+    }
+
+.auth-logo {
+    display: block;
+    width: 100%;
+    max-width: 15rem;
+    margin: 0 auto 1.25rem;
+}
+
+.auth-subtitle {
+    color: var(--text-color-secondary);
+    text-align: center;
+    font-size: var(--font-size-text-medium);
+    margin: 0 0 1.75rem;
+}
+
+.auth-field {
+    margin-bottom: 1.15rem;
+}
+
+    .auth-field label,
+    .auth-card .form-label {
+        display: block;
+        font-size: var(--font-size-text-medium);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+    }
+
+/* Behåller det ljusa fältet ur paletten (--input-background-color), men samma
+   utseende på alla fyra auth-sidor istället för bara på login. */
+.auth-card .form-control {
+    width: 100%;
+    min-height: 2.75rem;
+    background-color: var(--input-background-color);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    color: #000;
+    caret-color: #000;
+    box-sizing: border-box;
+}
+
+    .auth-card .form-control::placeholder {
+        color: #2b2b2b; /* mot #808080-fältet: 4.9:1, klarar AA */
+    }
+
+    .auth-card .form-control:focus {
+        border-color: var(--accent-color-gold);
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+    }
+
+.auth-card .button-login,
+.auth-card .button-secondary {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.auth-links {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: var(--font-size-text-medium);
+}
+
+.auth-error {
+    /* #ff8a8a ger bara 4.3:1 mot kortbakgrunden - denna klarar AA. */
+    color: #ff9999;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .auth-logo {
+        max-width: 12rem;
+    }
+}
+
+/* ---- Toolbar: sökfält/filter ovanför en lista ---- */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.toolbar-search {
+    /* Växer i tillgängligt utrymme men blir aldrig en absurt bred sökruta. */
+    flex: 1 1 22rem;
+    max-width: 30rem;
+}
+
+.toolbar-meta {
+    color: var(--text-color-secondary);
+    font-size: var(--font-size-text-medium);
+    margin-left: auto;
+}
+
+/* ---- Knappraden i formulär ---- */
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+/* ---- Tabeller ---- */
+.table > thead > tr > th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--accent-color-gold-light);
+    white-space: nowrap;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.table > tbody > tr > * {
+    /* Celler med bara text hamnade i överkant medan cellen med knappar satte
+       radhöjden - allt centreras vertikalt istället. */
+    vertical-align: middle;
+}
+
+/* Kolumner som aldrig ska brytas mitt i (datum, roll, status, åtgärder). */
+.cell-nowrap {
+    white-space: nowrap;
+}
+
+/* Textkolumnen (frågetext) får golv på bredden, annars pressas den ihop till
+   en smal remsa när knappkolumnen tar plats och varje fråga bryts på 3-4 rader. */
+.col-text {
+    min-width: 20rem;
+}
+
+.cell-muted {
+    color: var(--text-color-secondary);
+}
+
+/* ---- Statusbadgar med AA-kontrast ----
+   Bootstraps .bg-secondary (#6c757d + vit text, ~4.0:1) och .bg-success
+   klarar inte 4.5:1-kravet i dark-läge. */
+.badge-status {
+    display: inline-block;
+    padding: 0.35em 0.8em;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-status-active {
+    background-color: #1E5B3E;
+    color: #D7F5E3; /* 6.9:1 */
+    border: 1px solid rgba(215, 245, 227, 0.3);
+}
+
+.badge-status-pending {
+    background-color: #5C4405;
+    color: #FFE7A3; /* 7.5:1 */
+    border: 1px solid rgba(255, 231, 163, 0.3);
+}
+
+.badge-status-inactive {
+    background-color: rgba(243, 234, 215, 0.12);
+    color: var(--text-color); /* 6.0:1 */
+    border: 1px solid rgba(243, 234, 215, 0.3);
+}
+
+/* Mindre knappar i tabellrader - smalare padding (0.7rem/1rem känns för brett
+   när tre åtgärder ska dela en rad), men höjden hålls kvar på 2.75rem/44px
+   (WCAG 2.5.8) - att krympa den under 44px enbart för att det är en tabellrad
+   vore precis den typen av träffyta-brist kravet ska förhindra. */
+.table-actions .btn {
+    padding: 0.45rem 0.95rem;
+    min-height: 2.75rem;
+    font-size: var(--font-size-text-medium);
+}
+
+/* Kortläget för tabeller (samma brytpunkt som blocket längre upp) staplar
+   varje rad som ett kort - då måste nowrap/minbredd släppas, annars sticker
+   innehållet ut utanför kortet på smala telefoner. */
+@media (max-width: 1024px) {
+    .table-responsive .cell-nowrap,
+    .table-responsive .col-text {
+        white-space: normal;
+        min-width: 0;
+    }
+}
