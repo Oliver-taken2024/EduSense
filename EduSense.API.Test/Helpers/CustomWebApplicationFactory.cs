@@ -1,14 +1,15 @@
-﻿using EduSense.DAL.Data;
+﻿using EduSense.BLL.Services;
+using EduSense.DAL.Data;
+using EduSense.Infrastructure.Email;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage; 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions; // ger RemoveAll<T>()
-using Microsoft.EntityFrameworkCore.Storage; // IRelationalDatabaseCreator
-using EduSense.BLL.Services;
-using EduSense.Infrastructure.Email;
+using Microsoft.Extensions.DependencyInjection.Extensions; 
+using Moq;
 
 namespace EduSense.API.Test.Helpers
 {
@@ -17,18 +18,37 @@ namespace EduSense.API.Test.Helpers
         // Hålls öppen hela factoryns livstid - stängs anslutningen försvinner in-memory-databasen.
         private readonly SqliteConnection _connection = new("Data Source=:memory:");
 
+        // Konfigurera web-host för testning
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
 
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll(typeof(DbContextOptions<EduSenseDbContext>));
-                services.RemoveAll(typeof(IDbContextOptionsConfiguration<EduSenseDbContext>));
-                services.RemoveAll(typeof(DbContextOptions<EduSenseUserDbContext>));
-                services.RemoveAll(typeof(IDbContextOptionsConfiguration<EduSenseUserDbContext>));
-                services.RemoveAll(typeof(IEmailSender));
+                services.RemoveAll<DbContextOptions<EduSenseDbContext>>();
+                services.RemoveAll<IDbContextOptionsConfiguration<EduSenseDbContext>>();
+                services.RemoveAll<DbContextOptions<EduSenseUserDbContext>>();
+                services.RemoveAll<IDbContextOptionsConfiguration<EduSenseUserDbContext>>();
+                services.RemoveAll<IEmailSender>();
                 services.AddScoped<IEmailSender, NullEmailSender>();
+                services.RemoveAll<IOllamaClient>();
+                services.AddScoped<IOllamaClient>(_ =>
+                {
+                    var mock = new Mock<IOllamaClient>();
+                    mock.Setup(o => o.GenerateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("Testsvar från AI");
+                    return mock.Object;
+                });
+
+                services.AddAuthentication(TestAuthHandler.SchemeName)
+                    .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(
+                        TestAuthHandler.SchemeName, options => { });
+
+                services.PostConfigure<Microsoft.AspNetCore.Authentication.AuthenticationOptions>(options =>
+                {
+                    options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
+                    options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
+                });
 
                 _connection.Open();
 
