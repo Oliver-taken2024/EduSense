@@ -40,16 +40,22 @@ namespace EduSense.API.Test.Helpers
                     return mock.Object;
                 });
 
-                services.AddAuthentication(TestAuthHandler.SchemeName)
+                services.AddAuthentication()
                     .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(
-                        TestAuthHandler.SchemeName, options => { });
+                        TestAuthHandler.SchemeName, options => { })
+                    .AddPolicyScheme("TestOrJwt", "TestOrJwt", options =>
+                    {
+                        options.ForwardDefaultSelector = context =>
+                            context.Request.Headers.ContainsKey("Test-Role") || context.Request.Headers.ContainsKey("Test-No-Auth")
+                                ? TestAuthHandler.SchemeName
+                                : Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+                    });
 
                 services.PostConfigure<Microsoft.AspNetCore.Authentication.AuthenticationOptions>(options =>
                 {
-                    options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
-                    options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
+                    options.DefaultAuthenticateScheme = "TestOrJwt";
+                    options.DefaultChallengeScheme = "TestOrJwt";
                 });
-
                 _connection.Open();
 
                 services.AddDbContext<EduSenseDbContext>(options => options.UseSqlite(_connection));

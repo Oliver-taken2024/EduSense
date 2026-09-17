@@ -71,14 +71,14 @@ namespace EduSense.BLL.Services
                 .SelectMany(r => r.Responses.Select(resp => new
                 {
                     QuestionText = resp.SurveyQuestion!.Question!.Text,
-                    Value = resp.QuestionAnswerOption!.AnswerOption!.Value,
+                    resp.QuestionAnswerOption!.AnswerOption!.Value,
                     Segment = r.Segment
                 }))
                 .ToList();
 
             if (allResponses.Count == 0)
             {
-                return "Inga svar har registrerats för detta enkätutskick ännu.";
+                return $"Enkät: {dispatch.Survey?.Title}\nInga svar har registrerats för detta enkätutskick ännu.";
             }
 
             var perQuestion = allResponses

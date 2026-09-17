@@ -25,7 +25,7 @@ namespace EduSense.BLL.Services
         public async Task<IReadOnlyList<SurveyDispatchDto>> GetAllAsync()
         {
             var dispatches = await _dispatchRepository.GetAllAsync();
-            return dispatches.Select(ToDto).ToList();
+            return [.. dispatches.Select(ToDto)];
         }
 
         // Metod för att hämta alla SurveyDispatches för en specifik enkät och konvertera dem till DTOs
@@ -53,7 +53,7 @@ namespace EduSense.BLL.Services
                 ResponseDeadline = DateTime.SpecifyKind(dto.ResponseDeadline, DateTimeKind.Utc),
                 SentByUserId = dto.SentByUserId,
                 SentAt = DateTime.UtcNow,
-                Respondents = dto.RespondentEmails
+                Respondents = [.. dto.RespondentEmails
                     .GroupBy(r => r.Email, StringComparer.OrdinalIgnoreCase)
                     .Select(g => g.First())
                     .Select(invite => new RespondentModel
@@ -61,8 +61,7 @@ namespace EduSense.BLL.Services
                         Email = invite.Email,
                         Segment = MapSegment(invite.Segment),
                         Token = GenerateToken()
-                    })
-                    .ToList()
+                    })]
             };
 
             await _dispatchRepository.AddAsync(dispatch);

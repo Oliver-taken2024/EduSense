@@ -64,7 +64,7 @@ namespace EduSense.UI.Test
 
             // Assert
             Assert.NotNull(component);
-            Assert.Contains("ForgotPassword", component.Markup);
+            Assert.Contains("namn@exempel.se", component.Markup);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace EduSense.UI.Test
 
             // Assert
             Assert.NotNull(emailInput);
-            Assert.Equal("Enter your email", emailInput.GetAttribute("placeholder"));
+            Assert.Equal("namn@exempel.se", emailInput.GetAttribute("placeholder"));
         }
 
         [Fact]
