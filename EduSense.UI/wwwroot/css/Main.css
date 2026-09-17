@@ -714,11 +714,13 @@ select:not(:disabled) {
     border: 1px solid rgba(243, 234, 215, 0.3);
 }
 
-/* Mindre knappar i tabellrader - full storlek (0.7rem/1rem) gör att tre
-   åtgärder per rad dominerar hela tabellen och trycker ut textkolumnen. */
+/* Mindre knappar i tabellrader - smalare padding (0.7rem/1rem känns för brett
+   när tre åtgärder ska dela en rad), men höjden hålls kvar på 2.75rem/44px
+   (WCAG 2.5.8) - att krympa den under 44px enbart för att det är en tabellrad
+   vore precis den typen av träffyta-brist kravet ska förhindra. */
 .table-actions .btn {
     padding: 0.45rem 0.95rem;
-    min-height: 2.25rem;
+    min-height: 2.75rem;
     font-size: var(--font-size-text-medium);
 }
 
@@ -730,10 +732,5 @@ select:not(:disabled) {
     .table-responsive .col-text {
         white-space: normal;
         min-width: 0;
-    }
-
-    .table-responsive .table-actions .btn {
-        /* I kortläget finns gott om bredd - tillbaka till full träffyta. */
-        min-height: 2.75rem;
     }
 }
