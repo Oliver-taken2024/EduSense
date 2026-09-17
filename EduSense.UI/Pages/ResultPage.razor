@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using System.ComponentModel.DataAnnotations
 @using System.Reflection
+@using EduSense.Shared
 
 <PageTitle>Resultat</PageTitle>
 
@@ -176,6 +177,46 @@ else
                     }
                 </tbody>
             </table>
+
+            <h2 class="section-title">AI-assistans</h2>
+            <div class="ai-analysis-section">
+                @if (_promptTypes.Count > 0)
+                {
+                    <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
+                    <div class="button-group">
+                        @foreach (var promptType in _promptTypes)
+                        {
+                            <button type="button" 
+                                    class="btn button-login" 
+                                    @onclick="() => GenerateAiAnalysisAsync(promptType.Value)"
+                                    disabled="@_isLoadingAiAnalysis">
+                                🤖 @promptType.DisplayName
+                            </button>
+                        }
+                    </div>
+
+                    @if (_isLoadingAiAnalysis)
+                    {
+                        <p role="status">Analyserar med AI...</p>
+                    }
+                    else if (_aiAnalysisError is not null)
+                    {
+                        <p class="text-danger" role="alert">@_aiAnalysisError</p>
+                    }
+                    else if (_aiAnalysisResult is not null)
+                    {
+                        <div class="ai-result-box">
+                            <h3>@_selectedPromptType?.ToString()</h3>
+                            <p>@_aiAnalysisResult.SummaryText</p>
+                            <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
+                }
+            </div>
         }
     </div>
 }
@@ -197,6 +238,13 @@ else
     private List<OrganisationLocationDto> _organisationLocations = [];
     private bool _isLoadingGeo;
     private string? _geoError;
+
+    // AI Analysis state
+    private List<AiPromptTypeOptionDto> _promptTypes = [];
+    private AiPromptType? _selectedPromptType;
+    private SurveyAiSummaryResultDto? _aiAnalysisResult;
+    private bool _isLoadingAiAnalysis;
+    private string? _aiAnalysisError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -222,6 +270,49 @@ else
         }
     }
 
+    private async Task LoadPromptTypesAsync()
+    {
+        _promptTypes = [];
+        try
+        {
+            _promptTypes = await Api.GetAsync<List<AiPromptTypeOptionDto>>("api/surveyai/prompt-types") ?? [];
+        }
+        catch (ApiException ex)
+        {
+            // Silent fail - AI prompts are optional feature
+        }
+    }
+
+    private async Task GenerateAiAnalysisAsync(AiPromptType promptType)
+    {
+        if (_selectedDispatchId is null)
+            return;
+
+        _selectedPromptType = promptType;
+        _isLoadingAiAnalysis = true;
+        _aiAnalysisError = null;
+        _aiAnalysisResult = null;
+
+        try
+        {
+            var request = new SurveyAiSummaryRequestDto
+            {
+                SurveyDispatchId = _selectedDispatchId.Value,
+                PromptType = promptType
+            };
+
+            _aiAnalysisResult = await Api.PostAsync<SurveyAiSummaryResultDto>("api/surveyai/summary", request);
+        }
+        catch (ApiException ex)
+        {
+            _aiAnalysisError = string.Join(" ", ex.Errors);
+        }
+        finally
+        {
+            _isLoadingAiAnalysis = false;
+        }
+    }
+
     private async Task SelectDispatch(int id)
     {
         _selectedDispatchId = id;
@@ -229,6 +320,11 @@ else
         _isLoadingResult = true;
         _resultError = null;
         _result = null;
+
+        // Reset AI analysis state
+        _selectedPromptType = null;
+        _aiAnalysisResult = null;
+        _aiAnalysisError = null;
 
         try
         {
@@ -243,6 +339,8 @@ else
             _isLoadingResult = false;
         }
 
+        // Load available prompt types for AI analysis
+        await LoadPromptTypesAsync();
         await LoadGeoAsync();
     }
 
@@ -269,6 +367,9 @@ else
     {
         _selectedDispatchId = null;
         _result = null;
+        _selectedPromptType = null;
+        _aiAnalysisResult = null;
+        _aiAnalysisError = null;
     }
 
     // Formaterar jämförelsen mot föregående utskick, t.ex. "(+12.4%)" eller "(-1.3 p.e.)".
