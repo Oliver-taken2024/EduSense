@@ -23,16 +23,14 @@ namespace EduSense.API.Controllers
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IConfiguration _configuration;
         private readonly IPasswordResetService _passwordResetService;
-        private readonly IWebHostEnvironment _environment;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService, IWebHostEnvironment environment)
+        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService)
         {
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
             _passwordResetService = passwordResetService;
-            _environment = environment;
-        }
+         }
 
         [HttpPost("set-initial-password")]
         [AllowAnonymous]
@@ -161,15 +159,11 @@ namespace EduSense.API.Controllers
                 signingCredentials: credentials);
              
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            // I development, allow HTTP + SameSite.Lax för att cookies ska fungera
-            // I production, require HTTPS + SameSite.Strict för säkerhet
-            var isProduction = _environment.IsProduction();
             Response.Cookies.Append("accessToken", accessToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = isProduction,
-                SameSite = isProduction ? SameSiteMode.Strict : SameSiteMode.Lax,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
                 Expires = accessTokenExpiry
             });
 
@@ -186,8 +180,8 @@ namespace EduSense.API.Controllers
             Response.Cookies.Append("refreshToken", refreshTokenValue, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = isProduction,
-                SameSite = isProduction ? SameSiteMode.Strict : SameSiteMode.Lax,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
                 Expires = refreshTokenExpiry
             });
 

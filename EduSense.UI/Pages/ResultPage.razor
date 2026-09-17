@@ -8,6 +8,49 @@
 
 <button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
 
+<h2 class="section-title">AI-assistans</h2>
+<div class="ai-analysis-section">
+    @if (_promptTypes.Count > 0)
+    {
+        <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
+        <div class="button-group">
+            @foreach (var promptType in _promptTypes)
+            {
+                <button type="button"
+                        class="btn button-login"
+                        @onclick="() => GenerateAiAnalysisAsync(promptType.Value)"
+                        disabled="@_isLoadingAiAnalysis">
+                    🤖 @promptType.DisplayName
+                </button>
+            }
+        </div>
+
+        @if (_isLoadingAiAnalysis)
+        {
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p role="status">Analyserar med AI...</p>
+            </div>
+        }
+        else if (_aiAnalysisError is not null)
+        {
+            <p class="text-danger" role="alert">@_aiAnalysisError</p>
+        }
+        else if (_aiAnalysisResult is not null)
+        {
+            <div class="ai-result-box">
+                <h3>@_selectedPromptType?.ToString()</h3>
+                <p>@_aiAnalysisResult.SummaryText</p>
+                <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
+    }
+</div>
+
 @if (_selectedDispatchId is null)
 {
     <div class="page-header">
@@ -178,45 +221,7 @@ else
                 </tbody>
             </table>
 
-            <h2 class="section-title">AI-assistans</h2>
-            <div class="ai-analysis-section">
-                @if (_promptTypes.Count > 0)
-                {
-                    <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
-                    <div class="button-group">
-                        @foreach (var promptType in _promptTypes)
-                        {
-                            <button type="button" 
-                                    class="btn button-login" 
-                                    @onclick="() => GenerateAiAnalysisAsync(promptType.Value)"
-                                    disabled="@_isLoadingAiAnalysis">
-                                🤖 @promptType.DisplayName
-                            </button>
-                        }
-                    </div>
-
-                    @if (_isLoadingAiAnalysis)
-                    {
-                        <p role="status">Analyserar med AI...</p>
-                    }
-                    else if (_aiAnalysisError is not null)
-                    {
-                        <p class="text-danger" role="alert">@_aiAnalysisError</p>
-                    }
-                    else if (_aiAnalysisResult is not null)
-                    {
-                        <div class="ai-result-box">
-                            <h3>@_selectedPromptType?.ToString()</h3>
-                            <p>@_aiAnalysisResult.SummaryText</p>
-                            <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
-                }
-            </div>
+            
         }
     </div>
 }
