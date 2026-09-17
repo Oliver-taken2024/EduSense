@@ -80,7 +80,8 @@ namespace EduSense.UI.Test
             {
                 ["api/surveydispatch"] = dispatches,
                 ["api/result/dispatch/1"] = result,
-                ["api/result/organisations"] = new List<OrganisationLocationDto>()
+                ["api/result/organisations"] = new List<OrganisationLocationDto>(),
+                ["api/surveyai/prompt-types"] = new List<AiPromptTypeOptionDto>()
             });
 
             var cut = RenderComponent<ResultPage>();
