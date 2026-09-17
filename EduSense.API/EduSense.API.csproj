@@ -23,6 +23,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
 	<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,6 +7,11 @@
     <title>EduSense.UI</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
+    <!-- Typsnitten som Main.css redan refererar via --font-family-*. Utan dessa
+         faller allt tillbaka på systemets serif/sans-serif. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Lora:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/Main.css" />

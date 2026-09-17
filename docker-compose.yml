@@ -1,0 +1,16 @@
+# Ingen "version:"-nyckel behövs — Compose v2 ignorerar den och varnar.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: edusense-ollama
+    ports:
+      # host:container — 11434 matchar Ollama:BaseUrl i appsettings.json
+      - "11434:11434"
+    volumes:
+      # named volume: modellvikterna (flera GB) hamnar i Docker, inte i repot
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+# Named volumes måste deklareras här för att kunna refereras ovan
+volumes:
+  ollama-models:

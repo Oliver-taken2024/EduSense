@@ -1,4 +1,8 @@
 ﻿@page "/login"
+@* BlankLayout istället för standardlayouten: annars ritas den tomma sidomenyn
+   (250px) även på inloggningsskärmen, och kortet centreras mot ytan efter
+   menyn i stället för mot skärmen. *@
+@layout BlankLayout
 
 @using EduSense.Shared
 @using EduSense.UI.Services
@@ -9,34 +13,35 @@
 
 <PageTitle>Logga in</PageTitle>
 
-<div class="Login-container">
+<div class="auth-page">
 
-    <div class="Login-box">
-        <img src="/Images/MainLogo.png" alt="EduSense" class="Login-logo" />
+    <div class="auth-card">
+        <img src="/Images/MainLogo.png" alt="EduSense" class="auth-logo" />
 
         <h1>Logga in</h1>
+        <p class="auth-subtitle">Logga in för att hantera enkäter och resultat</p>
 
         <EditForm Model="@loginRequest" OnValidSubmit="@LoginAsync">
             <DataAnnotationsValidator />
 
-            <div class="form-group">
-                <label for="username">Username</label>
-                <InputText id="username" class="form-control" @bind-Value="loginRequest.Username" />
+            <div class="auth-field">
+                <label for="username">Användarnamn</label>
+                <InputText id="username" class="form-control" autocomplete="username" @bind-Value="loginRequest.Username" />
                 <ValidationMessage For="@(() => loginRequest.Username)" />
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <InputText id="password" type="password" class="form-control" @bind-Value="loginRequest.Password" />
+            <div class="auth-field">
+                <label for="password">Lösenord</label>
+                <InputText id="password" type="password" class="form-control" autocomplete="current-password" @bind-Value="loginRequest.Password" />
                 <ValidationMessage For="@(() => loginRequest.Password)" />
             </div>
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="error-message" role="alert">
+                <div class="auth-error" role="alert">
                     @errorMessage
                 </div>
             }
 
-            <button type="submit" class="login-button" disabled="@isLoading">
+            <button type="submit" class="btn button-login" disabled="@isLoading">
                 @if (isLoading)
                 {
                     <span>Loggar in...</span>
@@ -46,15 +51,12 @@
                     <span>Logga in</span>
                 }
             </button>
+        </EditForm>
 
-
-            </EditForm>
-
-        <a href="/forgot-password">
-            Glömt lösenord?
-        </a>
+        <div class="auth-links">
+            <a href="/forgot-password">Glömt lösenord?</a>
+        </div>
     </div>
-
 
 </div>
 

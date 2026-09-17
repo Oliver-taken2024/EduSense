@@ -1,5 +1,5 @@
 ﻿<div class="fade-in-up">
-    <h4>@(IsEditing ? "Redigera fråga" : "Ny fråga")</h4>
+    <h2 class="h5">@(IsEditing ? "Redigera fråga" : "Ny fråga")</h2>
 
     <form @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
         <div class="mb-3">
@@ -10,8 +10,9 @@
         @if (!IsEditing)
         {
             <div class="mb-3">
-                <label class="form-label" for="createdByUserId">Skapad av (user id) — tillfälligt fält tills inloggning finns</label>
+                <label class="form-label" for="createdByUserId">Skapad av (user id)</label>
                 <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
+                <div class="form-text">Tillfälligt fält tills inloggningen kopplas på.</div>
             </div>
         }
 
@@ -25,8 +26,10 @@
             </ul>
         }
 
-        <button type="submit" class="btn button-login" disabled="@_isSaving">Spara</button>
-        <button type="button" class="btn button-secondary" @onclick="Cancel">Avbryt</button>
+        <div class="form-actions">
+            <button type="submit" class="btn button-login" disabled="@_isSaving">Spara</button>
+            <button type="button" class="btn button-secondary" @onclick="Cancel">Avbryt</button>
+        </div>
     </form>
 </div>
 
