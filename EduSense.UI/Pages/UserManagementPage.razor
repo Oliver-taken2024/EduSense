@@ -28,58 +28,66 @@
 
 <!-- Formulär för att bjuda in ny användare -->
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h2 class="h5">Bjud in ny användare</h2>
+<div class="card-panel mb-4">
+    <h2 class="h5">Bjud in ny användare</h2>
 
-        <EditForm Model="@_inviteModel" OnValidSubmit="HandleInviteSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary role="alert" />
+    <EditForm Model="@_inviteModel" OnValidSubmit="HandleInviteSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary role="alert" />
 
-            <div class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <label for="invite-email" class="form-label">E-postadress</label>
-                    <InputText id="invite-email" class="form-control" @bind-Value="_inviteModel.Email" />
-                </div>
-                <div class="col-md-4">
-                    <label for="invite-role" class="form-label">Roll</label>
-                    <InputSelect id="invite-role" class="form-select" @bind-Value="_inviteModel.Role">
-                        <option value="Admin">Admin</option>
-                        <option value="Analyst">Analytiker</option>
-                    </InputSelect>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn button-login w-100" disabled="@_isInviting" aria-busy="@_isInviting">
-                        @(_isInviting ? "Skickar..." : "Skicka inbjudan")
-                    </button>
-                </div>
+        <!-- g-3 istället för g-2: fälten satt nästan ihop. sm-brytpunkter gör att
+             e-post och roll delar rad redan på surfplatta i stället för att
+             stapla hela vägen upp till 768px. -->
+        <div class="row g-3 align-items-end">
+            <div class="col-sm-7 col-lg-5">
+                <label for="invite-email" class="form-label">E-postadress</label>
+                <InputText id="invite-email" class="form-control" autocomplete="email" @bind-Value="_inviteModel.Email" />
             </div>
-        </EditForm>
+            <div class="col-sm-5 col-lg-4">
+                <label for="invite-role" class="form-label">Roll</label>
+                <InputSelect id="invite-role" class="form-select" @bind-Value="_inviteModel.Role">
+                    <option value="Admin">Admin</option>
+                    <option value="Analyst">Analytiker</option>
+                </InputSelect>
+            </div>
+            <div class="col-lg-3">
+                <button type="submit" class="btn button-login w-100" disabled="@_isInviting" aria-busy="@_isInviting">
+                    @(_isInviting ? "Skickar..." : "Skicka inbjudan")
+                </button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+<div class="card-panel">
+    <!-- Sökfält för att filtrera användarlistan -->
+    <div class="toolbar">
+        <div class="toolbar-search">
+            <label for="user-search" class="form-label">Sök</label>
+            <input id="user-search" type="search" class="form-control" placeholder="Sök på användarnamn, e-post eller namn..."
+                   @bind="_searchTerm" @bind:event="oninput" />
+        </div>
+        @if (!_isLoading && _users.Count > 0)
+        {
+            <p class="toolbar-meta">@FilteredUsers.Count av @_users.Count användare</p>
+        }
     </div>
-</div>
 
-<!-- Sökfält för att filtrera användarlistan -->
-<div class="mb-3">
-    <label for="user-search" class="form-label">Sök</label>
-    <input id="user-search" type="search" class="form-control" placeholder="Sök på användarnamn, e-post eller namn..."
-           @bind="_searchTerm" @bind:event="oninput" />
-</div>
-
-<!-- Lista över användare -->
-@if (_isLoading)
-{
-    <p>Laddar användare...</p>
-}
-else if (_users.Count == 0)
-{
-    <p>Inga användare hittades.</p>
-}
-else if (FilteredUsers.Count == 0)
-{
-    <p>Inga användare matchar sökningen.</p>
-}
-else
-{
+    <!-- Lista över användare -->
+    @if (_isLoading)
+    {
+        <p role="status">Laddar användare...</p>
+    }
+    else if (_users.Count == 0)
+    {
+        <p>Inga användare hittades.</p>
+    }
+    else if (FilteredUsers.Count == 0)
+    {
+        <p>Inga användare matchar sökningen.</p>
+    }
+    else
+    {
     <div class="table-responsive">
         <table class="table">
             <caption class="visually-hidden">Lista över admin- och analytikerkonton</caption>
@@ -97,25 +105,25 @@ else
                 @foreach (var user in FilteredUsers)
                 {
                     <tr>
-                        <td data-label="Användarnamn">@user.Username</td>
-                        <td data-label="E-post">@user.Email</td>
+                        <td data-label="Användarnamn" class="cell-nowrap">@user.Username</td>
+                        <td data-label="E-post" class="cell-nowrap">@user.Email</td>
                         <td data-label="Namn">@(user.DisplayName ?? "-")</td>
-                        <td data-label="Roll">@string.Join(", ", user.Roles)</td>
+                        <td data-label="Roll" class="cell-nowrap">@string.Join(", ", user.Roles)</td>
                         <td data-label="Status">
                             @if (!user.EmailConfirmed)
                             {
-                                <span class="badge bg-warning text-dark">Väntar på svar</span>
+                                <span class="badge-status badge-status-pending">Väntar på svar</span>
                             }
                             else if (user.IsActive)
                             {
-                                <span class="badge bg-success">Aktiv</span>
+                                <span class="badge-status badge-status-active">Aktiv</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Inaktiverad</span>
+                                <span class="badge-status badge-status-inactive">Inaktiverad</span>
                             }
                         </td>
-                        <td>
+                        <td data-label="Åtgärder">
                             <div class="table-actions">
                                 @if (!user.EmailConfirmed)
                                 {
@@ -145,7 +153,8 @@ else
             </tbody>
         </table>
     </div>
-}
+    }
+</div>
 
 @code {
     private List<UserListItemDto> _users = [];

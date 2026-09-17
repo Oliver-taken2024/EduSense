@@ -132,15 +132,19 @@ var emailProvider = builder.Configuration["Email:Provider"] ?? "Sandbox";
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection($"Smtp:{emailProvider}"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 //builder.Services.AddScoped<IEmailSender, NullEmailSender>();
 
 var app = builder.Build();
 
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi(); 
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 if(!app.Environment.IsEnvironment("Testing"))
