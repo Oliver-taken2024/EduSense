@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\EduSense.API\EduSense.API.csproj" />
+		<ProjectReference Include="..\EduSense.Infrastructure\EduSense.Infrastructure.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

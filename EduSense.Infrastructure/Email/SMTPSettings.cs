@@ -1,4 +1,4 @@
-﻿namespace EduSense.BLL.Services
+﻿namespace EduSense.Infrastructure.Email
 {
     public class SmtpSettings
     {

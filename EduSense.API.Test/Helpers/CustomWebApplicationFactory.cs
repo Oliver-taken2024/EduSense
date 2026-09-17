@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions; // ger RemoveAll<T>()
 using Microsoft.EntityFrameworkCore.Storage; // IRelationalDatabaseCreator
 using EduSense.BLL.Services;
+using EduSense.Infrastructure.Email;
 
 namespace EduSense.API.Test.Helpers
 {

@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EduSense.Infrastructure\EduSense.Infrastructure.csproj" />
     <ProjectReference Include="..\EduSense.BLL\EduSense.BLL.csproj" />
     <ProjectReference Include="..\EduSense.DAL\EduSense.DAL.csproj" />
     <ProjectReference Include="..\EduSense.Shared\EduSense.Shared.csproj" />

@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using EduSense.BLL.Services;
+using Microsoft.Extensions.Logging;
 
-namespace EduSense.BLL.Services
+namespace EduSense.Infrastructure.Email
 {
     public class NullEmailSender : IEmailSender
     {

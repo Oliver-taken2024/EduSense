@@ -4,6 +4,7 @@ using EduSense.DAL.Repositories;
 using EduSense.Shared;
 using Microsoft.Extensions.Configuration;
 
+
 namespace EduSense.BLL.Services
 {
     public class SurveyDispatchService : ISurveyDispatchService
@@ -12,7 +13,7 @@ namespace EduSense.BLL.Services
 
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
-
+     
         public SurveyDispatchService(ISurveyDispatchRepository dispatchRepository, IEmailSender emailSender, IConfiguration configuration)
         {
             _dispatchRepository = dispatchRepository;
@@ -20,24 +21,28 @@ namespace EduSense.BLL.Services
             _configuration = configuration;
         }
 
+        // Metod för att hämta alla SurveyDispatches och konvertera dem till DTOs
         public async Task<IReadOnlyList<SurveyDispatchDto>> GetAllAsync()
         {
             var dispatches = await _dispatchRepository.GetAllAsync();
             return dispatches.Select(ToDto).ToList();
         }
 
+        // Metod för att hämta alla SurveyDispatches för en specifik enkät och konvertera dem till DTOs
         public async Task<IReadOnlyList<SurveyDispatchDto>> GetAllForSurveyAsync(int surveyId)
         {
             var dispatches = await _dispatchRepository.GetAllForSurveyAsync(surveyId);
             return dispatches.Select(ToDto).ToList();
         }
 
+        // Metod för att hämta en specifik SurveyDispatch baserat på dess ID och konvertera den till DTO
         public async Task<SurveyDispatchDto?> GetByIdAsync(int id)
         {
             var dispatch = await _dispatchRepository.GetByIdAsync(id);
             return dispatch is null ? null : ToDto(dispatch);
         }
 
+        // Metod för att skapa och skicka en ny SurveyDispatch baserat på DTO
         public async Task<SurveyDispatchDto> CreateAndSendAsync(SurveyDispatchSaveDto dto)
         {
             await ValidateAsync(dto);
@@ -67,6 +72,7 @@ namespace EduSense.BLL.Services
             return ToDto(created!);
         }
 
+        // Metod för att skicka e-postinbjudningar till respondenterna i en SurveyDispatch
         private async Task SendInvitationsAsync(SurveyDispatchModel dispatch)
         {
             var surveyTitle = dispatch.Survey?.Title ?? "Enkät";
@@ -85,12 +91,14 @@ namespace EduSense.BLL.Services
                 await _emailSender.SendAsync(respondent.Email, subject, htmlBody);
             }
         }
-
+        
+        // Metod för att ta bort en SurveyDispatch baserat på dess ID
         public async Task<bool> DeleteAsync(int id)
         {
             return await _dispatchRepository.DeleteAsync(id);
         }
 
+        // Metod för att konvertera en SurveyDispatchModel till en SurveyDispatchDto
         private static SurveyDispatchDto ToDto(SurveyDispatchModel dispatch)
         {
             return new SurveyDispatchDto
@@ -106,6 +114,7 @@ namespace EduSense.BLL.Services
             };
         }
 
+        // Metod för att validera en SurveyDispatchSaveDto innan den skapas och skickas
         private async Task ValidateAsync(SurveyDispatchSaveDto dto)
         {
             var errors = new List<string>();

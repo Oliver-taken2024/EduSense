@@ -9,6 +9,8 @@ using System.Text;
 using Npgsql;
 using Microsoft.AspNetCore.Identity;
 using EduSense.DAL.Models;
+using EduSense.Infrastructure.Email;
+using EduSense.Infrastructure.Ai;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -63,6 +65,12 @@ builder.Services.AddScoped<IResultRepository, ResultRepository>();
 builder.Services.AddScoped<IResultService, ResultService>();
 builder.Services.AddScoped<ISurveyDispatchRepository, SurveyDispatchRepository>();
 builder.Services.AddScoped<ISurveyDispatchService, SurveyDispatchService>();
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
+builder.Services.AddHttpClient<IOllamaClient, OllamaClient>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
+builder.Services.AddScoped<ISurveyAiService, SurveyAiService>();
 
 builder.Services.AddCors(options =>
 {

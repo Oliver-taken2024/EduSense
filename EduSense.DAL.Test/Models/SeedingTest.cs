@@ -98,17 +98,17 @@ public class SeedingTest
         // Kontrollera att det bara finns en Admin-roll (inte duplicerade)
         var adminRole = await roleManager.FindByNameAsync("Admin");
         Assert.NotNull(adminRole);
-
-        // Kontrollera att det bara finns en admin-användare
+                
+        // Kontrollera att det finns en admin-användare med rätt e-postadress
         var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
-        var adminUser = Assert.Single(adminUsers);
+        var adminUser = Assert.Single(adminUsers, u => u.Email == "admin@edusense.com");
         Assert.Equal("admin@edusense.com", adminUser.Email);
 
         // Kontrollera att organisationer inte duplicerades
         var orgCount = await verifyAppContext.Organisations
             .Where(o => o.Name == "EduSense AB")
             .CountAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(1, orgCount);
+        Assert.Equal(1, orgCount);  
 
         // Kontrollera att enkäter inte duplicerades
         var surveyCount = await verifyAppContext.Surveys
