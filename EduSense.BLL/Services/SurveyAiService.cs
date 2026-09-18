@@ -49,22 +49,110 @@ namespace EduSense.BLL.Services
         private static string GetSystemPrompt(AiPromptType type) => type switch
         {
             AiPromptType.LowestSatisfactionActionPlan =>
-                "Du är en analytiker som hjälper skolor tolka enkätresultat. " +
-                "Identifiera de tre frågor med lägst genomsnittligt betyg i datan nedan och föreslå " +
-                "en konkret, kort handlingsplan (2-3 punkter) per fråga. Svara på svenska, koncist.",
+                """
+        Du är en analytiker som hjälper skolor att tolka enkätresultat.
+
+        UPPGIFT:
+        Identifiera de tre frågor som har lägst genomsnittligt betyg.
+        Föreslå en konkret handlingsplan för varje fråga med 2–3 korta åtgärder.
+
+        SVARSFORMAT:
+        HANDLINGSPLAN FÖR LÄGST NÖJDHET
+
+        1. [Frågetext]
+        Genomsnittligt betyg: [värde]
+        Åtgärder:
+        - [åtgärd]
+        - [åtgärd]
+
+        2. [Frågetext]
+        Genomsnittligt betyg: [värde]
+        Åtgärder:
+        - [åtgärd]
+        - [åtgärd]
+
+        3. [Frågetext]
+        Genomsnittligt betyg: [värde]
+        Åtgärder:
+        - [åtgärd]
+        - [åtgärd]
+
+        REGLER:
+        - Svara endast på svenska.
+        - Var konkret och kortfattad.
+        - Använd endast information från underlaget.
+        - Hitta inte på värden eller orsaker.
+        - Använd inte Markdown, asterisker eller kodblock.
+        """,
+
             AiPromptType.TrendSummaryReport =>
-                "Du är en analytiker. Sammanfatta de viktigaste trenderna i enkätresultaten nedan " +
-                "i en kort rapport (max 200 ord) på svenska, riktad till skolledning.",
+                """
+        Du är en analytiker som sammanfattar enkätresultat för skolledning.
+
+        UPPGIFT:
+        Sammanfatta de viktigaste trenderna i resultatet.
+        Lyft fram positiva resultat, förbättringsområden och eventuella skillnader
+        mellan målgrupper.
+
+        SVARSFORMAT:
+        TRENDRAPPORT
+
+        SAMMANFATTNING
+        Skriv ett kort sammanhängande stycke på högst 100 ord.
+
+        VIKTIGASTE TRENDER
+        1. [Trend]
+        2. [Trend]
+        3. [Trend]
+
+        SKILLNADER MELLAN MÅLGRUPPER
+        Beskriv endast tydliga skillnader som framgår av underlaget.
+
+        REKOMMENDATION
+        Skriv 2–3 konkreta rekommendationer.
+
+        REGLER:
+        - Svara endast på svenska.
+        - Max 200 ord totalt.
+        - Använd endast information från underlaget.
+        - Använd inte Markdown, asterisker eller kodblock.
+        """,
+
             AiPromptType.CorrelationAnalysis =>
-                "Du är en analytiker. Undersök om det finns tydliga samband mellan hur respondenter " +
-                "svarat på olika frågor (t.ex. högt på en fråga, lågt på en annan). Beskriv max 3 samband " +
-                "kort och konkret på svenska.",
+                """
+        Du är en analytiker som undersöker samband i enkätresultat.
+
+        UPPGIFT:
+        Beskriv högst tre tydliga statistiska samband mellan frågorna.
+        Använd korrelationsvärdet för att förklara sambandets riktning och styrka.
+
+        SVARSFORMAT:
+        SAMBANDSANALYS
+
+        1. [Fråga A] och [Fråga B]
+        Korrelationsvärde: [r]
+        Tolkning: [kort förklaring]
+
+        2. [Fråga A] och [Fråga B]
+        Korrelationsvärde: [r]
+        Tolkning: [kort förklaring]
+
+        SLUTSATS
+        Skriv en kort sammanfattning av de viktigaste sambanden.
+
+        REGLER:
+        - Svara endast på svenska.
+        - Ta endast med samband som finns i underlaget.
+        - Blanda inte ihop korrelation med orsakssamband.
+        - Använd inte Markdown, asterisker eller kodblock.
+        """,
+
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
 
-    
+
         // Aggregerar per fråga: medelvärde, antal svar, min/max, samt per målgrupp (segment).
-      
+
         private static string BuildAggregatedResultsText(SurveyDispatchModel dispatch)
         {
             var allResponses = dispatch.Respondents

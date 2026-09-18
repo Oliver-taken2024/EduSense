@@ -478,6 +478,34 @@ select:not(:disabled) {
         margin-top: 0;
     }
 
+/* AI-knapparna centreras i sin egen chart-section-yta istället för att
+   flyta vänsterjusterat - matchar hur donut/trend/geo-korten centrerar sitt innehåll. */
+.ai-analysis-section {
+    text-align: center;
+}
+
+.ai-analysis-section .button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.ai-analysis-section .ai-result-box {
+    text-align: left;
+    margin-top: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 12px;
+}
+
+    .ai-analysis-section .ai-result-box h3 {
+        margin-top: 0;
+        color: var(--accent-color-gold-light);
+    }
+
 /* Rubrikstil för alla underrubriker på resultatsidan - egen klass (inte
    global h2-regel) så det inte smittar av sig på t.ex. UserManagementPage. */
 .section-title {

@@ -30,7 +30,7 @@ namespace EduSense.API.Controllers
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
             _passwordResetService = passwordResetService;
-         }
+        }
 
         [HttpPost("set-initial-password")]
         [AllowAnonymous]
