@@ -282,7 +282,7 @@ else
         {
             _promptTypes = await Api.GetAsync<List<AiPromptTypeOptionDto>>("api/surveyai/prompt-types") ?? [];
         }
-        catch (ApiException ex)
+        catch (ApiException)
         {
             // Silent fail - AI prompts are optional feature
         }
