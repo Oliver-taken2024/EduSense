@@ -1,5 +1,5 @@
 ﻿@page "/question-management"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "AdminOnly")]
 @inject NavigationManager Navigation
 
 <PageTitle>Frågehantering</PageTitle>
