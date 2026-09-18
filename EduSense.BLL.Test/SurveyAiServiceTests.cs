@@ -2,7 +2,6 @@ using EduSense.BLL.Services;
 using EduSense.Shared;
 using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
-using EduSense.Shared;
 using Moq;
 using Xunit;
 

@@ -3,7 +3,9 @@ using EduSense.Shared;
 using EduSense.UI.Pages;
 using EduSense.UI.Services;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Net;
 using System.Net.Http.Json;
 using TestContext = Bunit.TestContext;
@@ -90,5 +92,31 @@ namespace EduSense.UI.Test
 
             cut.WaitForAssertion(() => Assert.Contains("4,2", cut.Markup));
         }
+
+        
+        [Fact]
+public void ShowsAiUnavailableMessage_WhenNoPromptTypesExist()
+{
+    var apiService = new Mock<ApiService>();
+
+    apiService
+        .Setup(x => x.GetAsync<List<AiPromptTypeOptionDto>>(
+            It.IsAny<string>()))
+        .ReturnsAsync(new List<AiPromptTypeOptionDto>());
+
+    Services.AddSingleton(apiService.Object);
+
+    var cut = RenderComponent<ResultPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+        Assert.Contains(
+            "AI-assistans är inte tillgänglig",
+            cut.Markup);
+    });
+}
+
+        
+
     }
 }
