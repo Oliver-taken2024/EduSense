@@ -81,7 +81,7 @@
                 <div class="mb-3">
                     <label class="form-label" for="paste-area">Klistra in eller skriv e-postadresser (en per rad, eller kommaseparerat)</label>
                     <textarea id="paste-area" class="form-control" rows="4" @bind="_pasteText"></textarea>
-                    <button type="button" class="btn button-secondary mt-2" @onclick="ParsePastedEmails">
+                    <button type="button" class="btn button-secondary mt-2 button-add-from-paste" @onclick="ParsePastedEmails">
                         Lägg till
                     </button>
                 </div>
@@ -128,7 +128,7 @@
                         </table>
                     </div>
 
-                    <button type="button" class="btn button-secondary" @onclick="AddEmptyRow">
+                <button type="button" class="btn button-secondary button-add-row" @onclick="AddEmptyRow">
                         + Lägg till rad
                     </button>
 

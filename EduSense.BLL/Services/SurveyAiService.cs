@@ -30,7 +30,7 @@ namespace EduSense.BLL.Services
                 AiPromptType.LowestSatisfactionActionPlan => BuildAggregatedResultsText(dispatch),
                 AiPromptType.TrendSummaryReport => BuildAggregatedResultsText(dispatch),
                 AiPromptType.CorrelationAnalysis => BuildCorrelationInput(dispatch),
-                _ => throw new ArgumentOutOfRangeException(nameof(request.PromptType))
+                _ => throw new ArgumentOutOfRangeException(nameof(request), request.PromptType, "Okänd prompttyp.")
             };
 
             var systemPrompt = GetSystemPrompt(request.PromptType);
@@ -71,14 +71,14 @@ namespace EduSense.BLL.Services
                 .SelectMany(r => r.Responses.Select(resp => new
                 {
                     QuestionText = resp.SurveyQuestion!.Question!.Text,
-                    Value = resp.QuestionAnswerOption!.AnswerOption!.Value,
+                    resp.QuestionAnswerOption!.AnswerOption!.Value,
                     Segment = r.Segment
                 }))
                 .ToList();
 
             if (allResponses.Count == 0)
             {
-                return "Inga svar har registrerats för detta enkätutskick ännu.";
+                return $"Enkät: {dispatch.Survey?.Title}\nInga svar har registrerats för detta enkätutskick ännu.";
             }
 
             var perQuestion = allResponses

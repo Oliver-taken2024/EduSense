@@ -35,6 +35,7 @@
 	<ItemGroup>
 		<PackageReference Include="bunit" />
 		<PackageReference Include="Moq" />
+		<PackageReference Include="AngleSharp" />
 	</ItemGroup>
 
 </Project>
