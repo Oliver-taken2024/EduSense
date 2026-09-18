@@ -28,7 +28,6 @@ public class SurveyAiServiceTests
     [Fact]
     public async Task GenerateSummaryAsync_calls_ollama_with_aggregated_text()
     {
-            // Arrange
         var dispatch = new SurveyDispatchModel
         {
             Id = 1,
