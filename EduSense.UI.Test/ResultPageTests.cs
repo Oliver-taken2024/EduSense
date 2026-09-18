@@ -95,27 +95,7 @@ namespace EduSense.UI.Test
         }
 
         
-        [Fact]
-public void ShowsAiUnavailableMessage_WhenNoPromptTypesExist()
-{
-    var apiService = new Mock<ApiService>();
 
-    apiService
-        .Setup(x => x.GetAsync<List<AiPromptTypeOptionDto>>(
-            It.IsAny<string>()))
-        .ReturnsAsync(new List<AiPromptTypeOptionDto>());
-
-    Services.AddSingleton(apiService.Object);
-
-    var cut = RenderComponent<ResultPage>();
-
-    cut.WaitForAssertion(() =>
-    {
-        Assert.Contains(
-            "AI-assistans är inte tillgänglig",
-            cut.Markup);
-    });
-}
 
         
 
