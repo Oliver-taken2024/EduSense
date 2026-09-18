@@ -41,7 +41,8 @@ namespace EduSense.UI.Test.Helpers
             var component = RenderComponent<ResetPasswordPage>();
 
             // Assert
-            Assert.NotNull(component.Find("input[placeholder*='Nytt lösenord']"));
+            Assert.NotNull(component.Find("input#new-password"));
+            Assert.NotNull(component.Find("input#confirm-password"));
             Assert.Contains("Byt lösenord", component.Find("button").TextContent);
         }
 
@@ -55,8 +56,8 @@ namespace EduSense.UI.Test.Helpers
             var component = RenderComponent<ResetPasswordPage>();
 
             // Act
-            component.Find("input[placeholder*='Nytt lösenord']").Change("Password123!");
-            component.Find("input[placeholder*='Bekräfta']").Change("Password456!");
+            component.Find("input#new-password").Change("Password123!");
+            component.Find("input#confirm-password").Change("Password456!");
             component.Find("button").Click();
 
             // Assert
@@ -78,8 +79,8 @@ namespace EduSense.UI.Test.Helpers
             var password = "ValidPassword123!";
 
             // Act
-            component.Find("input[placeholder*='Nytt lösenord']").Change(password);
-            component.Find("input[placeholder*='Bekräfta']").Change(password);
+            component.Find("input#new-password").Change(password);
+            component.Find("input#confirm-password").Change(password);
             component.Find("button").Click();
 
             // Assert - verify that no validation error messages appear
@@ -101,8 +102,8 @@ namespace EduSense.UI.Test.Helpers
             var component = RenderComponent<ResetPasswordPage>();
 
             // Act
-            component.Find("input[placeholder*='Nytt lösenord']").Change("Short1!");
-            component.Find("input[placeholder*='Bekräfta']").Change("Short1!");
+            component.Find("input#new-password").Change("Short1!");
+            component.Find("input#confirm-password").Change("Short1!");
             component.Find("button").Click();
 
             // Assert

@@ -55,10 +55,10 @@ namespace EduSense.UI.Test
         // Sidan har flera knappar med klassen button-secondary, så vi väljer
         // rätt knapp baserat på text istället för att förlita oss på ordning.
         private static void ClickAddRow(IRenderedComponent<SurveySendingPage> cut) =>
-            cut.FindAll("button.button-secondary").First(b => b.TextContent.Contains("Lägg till rad")).Click();
+            cut.Find("button.button-add-row").Click();
 
         private static void ClickAddFromPaste(IRenderedComponent<SurveySendingPage> cut) =>
-            cut.FindAll("button.button-secondary").First(b => b.TextContent.Contains("inklistrad text")).Click();
+            cut.Find("button.button-add-from-paste").Click();
 
 
         [Fact]
