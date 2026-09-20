@@ -101,12 +101,12 @@
                                 {
                                     var index = i;
                                     <tr>
-                                        <td>
+                                        <td data-label="E-post">
                                             <label class="visually-hidden" for="@($"email-{index}")">E-postadress rad @(index + 1)</label>
                                             <input id="@($"email-{index}")" class="form-control" value="@_emails[index]"
                                             @oninput="e => _emails[index] = e.Value?.ToString() ?? string.Empty" />
                                         </td>
-                                        <td>
+                                        <td data-label="Målgrupp">
                                             <label class="visually-hidden" for="@($"segment-{index}")">Målgrupp för rad @(index + 1)</label>
                                             <select id="@($"segment-{index}")" class="form-select" @bind="_segments[index]">
                                                 @foreach (var segment in Enum.GetValues<RespondentSegmentDto>())
@@ -115,7 +115,7 @@
                                                 }
                                             </select>
                                         </td>
-                                        <td>
+                                        <td data-label="Åtgärder">
                                             <button type="button" class="btn button-logout"
                                             aria-label="@($"Ta bort rad {index + 1}")"
                                             @onclick="() => RemoveRow(index)">

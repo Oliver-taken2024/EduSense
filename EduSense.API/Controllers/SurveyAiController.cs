@@ -29,6 +29,12 @@ namespace EduSense.API.Controllers
                 // T.ex. "Dispatch hittades inte."
                 return NotFound(new { message = ex.Message });
             }
+            catch (OllamaUnavailableException ex)
+            {
+                // Ollama svarade inte i tid (timeout) eller gick inte att nå - inte samma
+                // sak som att resursen saknas, ska inte se ut som ett 404 i UI:t.
+                return StatusCode(StatusCodes.Status504GatewayTimeout, new { message = ex.Message });
+            }
         }
 
         // GET /api/surveyai/prompt-types - listar tillgängliga promptar för UI:ts väljare.

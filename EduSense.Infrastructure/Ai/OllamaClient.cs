@@ -12,6 +12,16 @@ namespace EduSense.Infrastructure.Ai
     {
         public string BaseUrl { get; set; } = "http://localhost:11434";
         public string Model { get; set; } = "llama3";
+
+        // Hur länge HttpClient väntar på svar från Ollama innan anropet kapas.
+        // CPU-körda modeller som mistral:7b kan ta flera minuter - 2 min (tidigare
+        // hårdkodat värde) var för snålt och gav ett missvisande 404 i UI:t.
+        public int TimeoutSeconds { get; set; } = 300;
+
+        // Tak på antal genererade tokens. Systemprompterna ber om max 100-200 ord
+        // (~150-300 tokens på svenska) - 220 ger marginal utan att lämna dörren
+        // öppen för onödigt långa svar som drar ut på svarstiden.
+        public int NumPredict { get; set; } = 220;
     }
 
     // Implementation av IOllamaClient som använder HttpClient för att kommunicera med Ollama API.
@@ -41,7 +51,8 @@ namespace EduSense.Infrastructure.Ai
                 Model = _options.Model,
                 System = systemPrompt,
                 Prompt = userContent,
-                Stream = false
+                Stream = false,
+                Options = new OllamaGenerateOptions { NumPredict = _options.NumPredict }
             };
 
             try
@@ -55,7 +66,7 @@ namespace EduSense.Infrastructure.Ai
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fel vid anrop till Ollama.");
-                throw new InvalidOperationException("Kunde inte generera AI-sammanfattning just nu.", ex);
+                throw new OllamaUnavailableException("Kunde inte generera AI-sammanfattning just nu.", ex);
             }
         }
 
@@ -73,6 +84,15 @@ namespace EduSense.Infrastructure.Ai
 
             [JsonPropertyName("stream")]
             public bool Stream { get; set; }
+
+            [JsonPropertyName("options")]
+            public OllamaGenerateOptions? Options { get; set; }
+        }
+
+        private class OllamaGenerateOptions
+        {
+            [JsonPropertyName("num_predict")]
+            public int NumPredict { get; set; }
         }
 
         private class OllamaGenerateResponse

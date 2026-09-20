@@ -120,6 +120,9 @@
 
 .button-copy:hover:not(:disabled) {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 8px rgba(0, 0, 0, 0.32), 0 16px 28px rgba(0, 0, 0, 0.35), 0 8px 18px rgba(212, 175, 55, 0.28);
+    /* Bootstraps .btn:hover (0,2,0) slår annars .button-copy (0,1,0) och återställer
+       texten till ärvd ljus färg - oläsligt mot det guldiga underlaget. */
+    color: var(--background-color-1);
 }
 
 .button-secondary:hover:not(:disabled) {
@@ -137,6 +140,21 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
+/* AI-assistansens knapprad (ResultPage) - låg helt utan CSS tidigare, så knapparna
+   hamnade vänsterställda utan mellanrum. */
+.ai-analysis-section {
+    text-align: center;
+    margin-block-end: 2rem;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-block: 1rem;
+}
+
 .table-actions {
     display: flex;
     flex-wrap: wrap;
@@ -149,9 +167,11 @@
         flex: 1 1 auto;
     }
 
-/* Samma brytpunkt som sidomenyn (MainLayout/NavMenu) - under den är
-   skärmen för smal för att tvinga åtgärdsknapparna till en enda rad. */
-@media (min-width: 641px) {
+/* Knapparna hålls på en enda rad först från 1600px. Tidigare gällde det från
+   641px, men då blev åtgärdskolumnen ~220px bredare än nödvändigt och sköt ut
+   hela frågetabellen utanför bild på 1440px-skärmar - knapparna hamnade utom
+   synhåll till höger. Under 1600px får de radbrytas i cellen i stället. */
+@media (min-width: 1600px) {
     .table-actions {
         flex-wrap: nowrap;
     }
@@ -228,8 +248,12 @@
 /* Tabeller kräver sidledsscroll för att nå knapparna så fort skärmen inte
    är full desktop-bredd (surfplatta, mindre bärbara) - man ser dem aldrig
    utan att veta att man ska svepa i sidled. Bygger om varje rad till ett
-   stapelbart kort istället. Kräver data-label="..." på varje <td>. */
-@media (max-width: 1024px) {
+   stapelbart kort istället. Kräver data-label="..." på varje <td>.
+
+   Brytpunkten är 1400px, inte 1024px: sidomenyn äter ~364px av bredden, så
+   åtgärdsknapparna i frågelistan hamnade utanför bild ända upp till ~1400px
+   trots att kortläget "borde" ha tagit över långt tidigare. */
+@media (max-width: 1399.98px) {
     .table-responsive table,
     .table-responsive thead,
     .table-responsive tbody,
@@ -712,6 +736,14 @@ select:not(:disabled) {
     color: var(--text-color-secondary);
 }
 
+/* Litet löpnummer under enkätnamnet på resultatsidan (ResultPage) - visar att en
+   rad är ETT av flera utskick av samma enkät, inte en egen enkät. */
+.dispatch-ordinal {
+    display: inline-block;
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+}
+
 /* ---- Statusbadgar med AA-kontrast ----
    Bootstraps .bg-secondary (#6c757d + vit text, ~4.0:1) och .bg-success
    klarar inte 4.5:1-kravet i dark-läge. */
@@ -755,7 +787,7 @@ select:not(:disabled) {
 /* Kortläget för tabeller (samma brytpunkt som blocket längre upp) staplar
    varje rad som ett kort - då måste nowrap/minbredd släppas, annars sticker
    innehållet ut utanför kortet på smala telefoner. */
-@media (max-width: 1024px) {
+@media (max-width: 1399.98px) {
     .table-responsive .cell-nowrap,
     .table-responsive .col-text {
         white-space: normal;

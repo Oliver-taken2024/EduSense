@@ -744,6 +744,7 @@ namespace EduSense.DAL.Data
             // Enkät 2 - föräldraenkät, skol-/fritidsrelaterade frågor
             var survey2 = await EnsureSurveyAsync(context, "Föräldraenkät - skola och fritids", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey2, [q3, q4, q5, q6, q7, q8, q9, q10, q11]);
+            await LinkQuestionsToSurveyAsync(context, survey2, new[] { qNps });
             var dispatch2 = await EnsureDispatchAsync(context, survey2, DateTime.UtcNow.AddDays(14), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatch2, "respondent3@test.com", "token-789", RespondentSegment.GradeFTo6);
             await EnsureRespondentAsync(context, dispatch2, "respondent4@test.com", "token-101", RespondentSegment.GradeFTo6);
@@ -783,6 +784,7 @@ namespace EduSense.DAL.Data
             // ---- Nya standardenkäter per segment + uppföljningsenkät ----
             var surveyMed = await EnsureSurveyAsync(context, "Medarbetarenkät", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qMed1, qMed2, qMed3, qMed4, qMed5, qMed6, qMed7 });
+            await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qNps });
             var dispatchMed = await EnsureDispatchAsync(context, surveyMed, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchMed, "respondent-med1@test.com", "token-med-1", RespondentSegment.Personal);
             var surveyMedQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyMed.Id).ToListAsync();
@@ -790,6 +792,7 @@ namespace EduSense.DAL.Data
 
             var survey79 = await EnsureSurveyAsync(context, "Elevenkät åk 7-9", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey79, new[] { q79_1, q79_2, q79_3, q79_4, q79_5, q79_6, q79_7 });
+            await LinkQuestionsToSurveyAsync(context, survey79, new[] { qNps });
             var dispatch79 = await EnsureDispatchAsync(context, survey79, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatch79, "respondent-79-1@test.com", "token-79-1", RespondentSegment.Grade7To9);
             var survey79Questions = await context.SurveyQuestions.Where(x => x.SurveyId == survey79.Id).ToListAsync();
@@ -797,6 +800,7 @@ namespace EduSense.DAL.Data
 
             var surveyGym = await EnsureSurveyAsync(context, "Elevenkät gymnasiet", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qGym1, qGym2, qGym3, qGym4, qGym5, qGym6, qGym7 });
+            await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qNps });
             var dispatchGym = await EnsureDispatchAsync(context, surveyGym, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchGym, "respondent-gym1@test.com", "token-gym-1", RespondentSegment.Gymnasiet);
             var surveyGymQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyGym.Id).ToListAsync();
@@ -804,6 +808,7 @@ namespace EduSense.DAL.Data
 
             var surveyVux = await EnsureSurveyAsync(context, "Enkät vuxenutbildning", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qVux1, qVux2, qVux3, qVux4, qVux5, qVux6, qVux7 });
+            await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qNps });
             var dispatchVux = await EnsureDispatchAsync(context, surveyVux, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchVux, "respondent-vux1@test.com", "token-vux-1", RespondentSegment.Vuxenutbildning);
             var surveyVuxQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyVux.Id).ToListAsync();
@@ -811,6 +816,7 @@ namespace EduSense.DAL.Data
 
             var surveyIntro = await EnsureSurveyAsync(context, "Uppföljningsenkät efter nystart", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qIntro1, qIntro2, qIntro3, qIntro4, qIntro5, qIntro6 });
+            await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qNps });
             var dispatchIntro = await EnsureDispatchAsync(context, surveyIntro, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchIntro, "respondent-intro1@test.com", "token-intro-1", RespondentSegment.GradeFTo6);
             var surveyIntroQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyIntro.Id).ToListAsync();
@@ -1026,22 +1032,40 @@ namespace EduSense.DAL.Data
                 });
             }
 
-            if (newRespondents.Count == 0)
+            if (newRespondents.Count > 0)
+            {
+                // En enda rundtur för samtliga nya respondenter - EF fyller i alla genererade Id:n på en gång.
+                context.Respondents.AddRange(newRespondents);
+                await context.SaveChangesAsync();
+            }
+
+            // Även redan seedade respondenter tas med: frågor som kopplats till enkäten efter
+            // att de skapades (t.ex. NPS-frågan) saknar annars svar för all framtid, eftersom
+            // körningen tidigare avbröts så fort inga nya respondenter behövde läggas till.
+            var answeredRespondents = await context.Respondents
+                .Where(r => r.SurveyDispatchId == dispatch.Id && r.TokenIsUsed)
+                .ToListAsync();
+
+            if (answeredRespondents.Count == 0)
                 return;
 
-            // En enda rundtur för samtliga nya respondenter - EF fyller i alla genererade Id:n på en gång.
-            context.Respondents.AddRange(newRespondents);
-            await context.SaveChangesAsync();
+            var answeredIds = answeredRespondents.Select(r => r.Id).ToList();
+            var existingPairs = (await context.Responses
+                    .Where(resp => answeredIds.Contains(resp.RespondentId))
+                    .Select(resp => new { resp.RespondentId, resp.SurveyQuestionId })
+                    .ToListAsync())
+                .Select(x => (x.RespondentId, x.SurveyQuestionId))
+                .ToHashSet();
 
             var newResponses = new List<ResponseModel>();
 
-            foreach (var respondent in newRespondents)
+            foreach (var respondent in answeredRespondents)
             {
-                if (!respondent.TokenIsUsed)
-                    continue;
-
                 foreach (var surveyQuestion in surveyQuestions)
                 {
+                    if (existingPairs.Contains((respondent.Id, surveyQuestion.Id)))
+                        continue;
+
                     var options = qaoByQuestionId[surveyQuestion.QuestionId];
                     var isCritical = criticalQuestionIds.Contains(surveyQuestion.QuestionId);
                     var isNps = npsQuestionIds.Contains(surveyQuestion.QuestionId);
@@ -1058,6 +1082,9 @@ namespace EduSense.DAL.Data
                     });
                 }
             }
+
+            if (newResponses.Count == 0)
+                return;
 
             // En enda rundtur för samtliga svar, istället för en per respondent.
             context.Responses.AddRange(newResponses);

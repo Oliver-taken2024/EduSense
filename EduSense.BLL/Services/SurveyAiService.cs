@@ -1,6 +1,9 @@
 ﻿using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.Shared;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace EduSense.BLL.Services
@@ -10,6 +13,11 @@ namespace EduSense.BLL.Services
         // DI av ISurveyDispatchRepository och IOllamaClient via konstruktor
         private readonly ISurveyDispatchRepository _dispatchRepository;
         private readonly IOllamaClient _ollamaClient;
+
+        // Tak på antal frågor som skickas med i AI-prompten. Färre tokens i
+        // indata ger kortare prefill-tid för modellen - vid en stor enkät är
+        // det ändå extremfallen (lägst nöjdhet) som är relevanta att lyfta.
+        private const int MaxQuestionsInPrompt = 8;
 
         // Konstruktor
         public SurveyAiService(ISurveyDispatchRepository dispatchRepository, IOllamaClient ollamaClient)
@@ -25,11 +33,25 @@ namespace EduSense.BLL.Services
             var dispatch = await _dispatchRepository.GetByIdWithResultsAsync(request.SurveyDispatchId)
                 ?? throw new InvalidOperationException("Dispatch hittades inte.");
 
+            // Sambanden och deras riktning/styrka är redan matematiskt entydiga (Pearson-r).
+            // Den lokala modellen har visat sig hitta på egna frågenamn och värden här
+            // istället för att återge de riktiga - så den rapporten byggs helt i kod,
+            // ingen AI inblandad.
+            if (request.PromptType == AiPromptType.CorrelationAnalysis)
+            {
+                var correlations = ComputeCorrelations(dispatch);
+                return new SurveyAiSummaryResultDto
+                {
+                    PromptType = request.PromptType,
+                    SummaryText = FormatCorrelationReport(correlations),
+                    GeneratedAt = DateTime.UtcNow
+                };
+            }
+
             var aggregatedData = request.PromptType switch
             {
                 AiPromptType.LowestSatisfactionActionPlan => BuildAggregatedResultsText(dispatch),
                 AiPromptType.TrendSummaryReport => BuildAggregatedResultsText(dispatch),
-                AiPromptType.CorrelationAnalysis => BuildCorrelationInput(dispatch),
                 _ => throw new ArgumentOutOfRangeException(nameof(request), request.PromptType, "Okänd prompttyp.")
             };
 
@@ -118,34 +140,8 @@ namespace EduSense.BLL.Services
         - Använd inte Markdown, asterisker eller kodblock.
         """,
 
-            AiPromptType.CorrelationAnalysis =>
-                """
-        Du är en analytiker som undersöker samband i enkätresultat.
-
-        UPPGIFT:
-        Beskriv högst tre tydliga statistiska samband mellan frågorna.
-        Använd korrelationsvärdet för att förklara sambandets riktning och styrka.
-
-        SVARSFORMAT:
-        SAMBANDSANALYS
-
-        1. [Fråga A] och [Fråga B]
-        Korrelationsvärde: [r]
-        Tolkning: [kort förklaring]
-
-        2. [Fråga A] och [Fråga B]
-        Korrelationsvärde: [r]
-        Tolkning: [kort förklaring]
-
-        SLUTSATS
-        Skriv en kort sammanfattning av de viktigaste sambanden.
-
-        REGLER:
-        - Svara endast på svenska.
-        - Ta endast med samband som finns i underlaget.
-        - Blanda inte ihop korrelation med orsakssamband.
-        - Använd inte Markdown, asterisker eller kodblock.
-        """,
+            // CorrelationAnalysis går inte via AI-modellen - se ComputeCorrelations/
+            // FormatCorrelationReport i GenerateSummaryAsync.
 
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
@@ -186,9 +182,19 @@ namespace EduSense.BLL.Services
             sb.AppendLine($"Enkät: {dispatch.Survey?.Title}");
             sb.AppendLine($"Antal respondenter som svarat: {dispatch.Respondents.Count(r => r.TokenIsUsed)} av {dispatch.Respondents.Count}");
             sb.AppendLine();
-            sb.AppendLine("Resultat per fråga (medelvärde på svarsskalan, lägst nöjdhet först):");
 
-            foreach (var q in perQuestion)
+            // Begränsar till de MaxQuestionsInPrompt frågorna med lägst betyg - kortare
+            // indata ger kortare prefill-tid, och det är ändå ytterligheterna som är
+            // relevanta för handlingsplan/trendanalys. perQuestion är redan sorterad
+            // lägst-först (OrderBy Average ovan).
+            var questionsToInclude = perQuestion.Take(MaxQuestionsInPrompt).ToList();
+            var wasTruncated = perQuestion.Count > questionsToInclude.Count;
+
+            sb.AppendLine(wasTruncated
+                ? $"Resultat per fråga (de {MaxQuestionsInPrompt} med lägst nöjdhet av {perQuestion.Count} totalt):"
+                : "Resultat per fråga (medelvärde på svarsskalan, lägst nöjdhet först):");
+
+            foreach (var q in questionsToInclude)
             {
                 sb.AppendLine($"- \"{q.Question}\": medel {q.Average:F1} (min {q.Min}, max {q.Max}, {q.Count} svar)");
             }
@@ -201,7 +207,7 @@ namespace EduSense.BLL.Services
             sb.AppendLine("Resultat per målgrupp:");
             foreach (var s in perSegment)
             {
-                sb.AppendLine($"- {s.Segment}: medel {s.Average:F1} ({s.Count} svar)");
+                sb.AppendLine($"- {SegmentLabel(s.Segment)}: medel {s.Average:F1} ({s.Count} svar)");
             }
 
             return sb.ToString();
@@ -210,8 +216,7 @@ namespace EduSense.BLL.Services
    
         // Beräknar Pearson-korrelation (se Wikipedia el dyl) mellan frågor baserat på per-respondent-svar,
         // och returnerar endast starka samband (|r| >= 0.5). Ingen PII inkluderas.
-      
-        private static string BuildCorrelationInput(SurveyDispatchModel dispatch)
+        private static List<(string A, string B, double Correlation)> ComputeCorrelations(SurveyDispatchModel dispatch)
         {
             var respondentAnswers = dispatch.Respondents
                 .Where(r => r.TokenIsUsed)
@@ -242,16 +247,49 @@ namespace EduSense.BLL.Services
                 }
             }
 
-            var sb = new StringBuilder();
-            sb.AppendLine("Statistiskt beräknade samband mellan frågor (Pearson-korrelation, |r| >= 0.5):");
-            foreach (var c in correlations.OrderByDescending(c => Math.Abs(c.Correlation)))
+            return correlations;
+        }
+
+        // Formaterar sambandsanalysen direkt från de beräknade värdena - ingen AI
+        // inblandad, så frågenamn och korrelationsvärden kan aldrig bli fel.
+        private static string FormatCorrelationReport(List<(string A, string B, double Correlation)> correlations)
+        {
+            if (correlations.Count == 0)
             {
-                sb.AppendLine($"- \"{c.A}\" och \"{c.B}\": r = {c.Correlation:F2}");
+                return "SAMBANDSANALYS\n\nInga starka statistiska samband (korrelationsvärde 0,5 eller högre) hittades mellan frågorna i detta underlag.\n\nSLUTSATS\nDet gick inte att identifiera några tydliga samband. Fler svar kan behövas för en tillförlitlig analys.";
             }
 
-            return correlations.Count == 0
-                ? "Inga starka statistiska samband hittades mellan frågorna."
-                : sb.ToString();
+            var top = correlations.OrderByDescending(c => Math.Abs(c.Correlation)).Take(3).ToList();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("SAMBANDSANALYS");
+            sb.AppendLine();
+
+            for (int i = 0; i < top.Count; i++)
+            {
+                var c = top[i];
+                sb.AppendLine($"{i + 1}. \"{c.A}\" och \"{c.B}\"");
+                sb.AppendLine($"Korrelationsvärde: {c.Correlation.ToString("F2", CultureInfo.GetCultureInfo("sv-SE"))}");
+                sb.AppendLine($"Tolkning: {DescribeCorrelation(c.Correlation)}");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("SLUTSATS");
+            sb.Append(top.Count == 1
+                ? "Ett tydligt samband hittades mellan frågorna ovan."
+                : $"{top.Count} tydliga samband hittades mellan frågorna ovan.");
+
+            return sb.ToString();
+        }
+
+        // Riktning och styrka är en ren funktion av korrelationsvärdet - ingen tolkning
+        // som kan hittas på.
+        private static string DescribeCorrelation(double r)
+        {
+            var styrka = Math.Abs(r) >= 0.7 ? "starkt" : "medelstarkt";
+            return r >= 0
+                ? $"Det finns ett {styrka} positivt samband: högre svar på den ena frågan hänger ihop med högre svar på den andra."
+                : $"Det finns ett {styrka} negativt samband: högre svar på den ena frågan hänger ihop med lägre svar på den andra.";
         }
 
         private static double PearsonCorrelation(List<(double X, double Y)> pairs)
@@ -264,6 +302,14 @@ namespace EduSense.BLL.Services
             var denomY = Math.Sqrt(pairs.Sum(p => Math.Pow(p.Y - avgY, 2)));
 
             return denomX == 0 || denomY == 0 ? 0 : numerator / (denomX * denomY);
+        }
+
+        // Läser [Display(Name=...)] från RespondentSegment-enumet, så AI-underlaget
+        // blir svenskt (annars skickas t.ex. "GradeFTo6" rakt in i prompten).
+        private static string SegmentLabel(RespondentSegment segment)
+        {
+            var member = typeof(RespondentSegment).GetMember(segment.ToString())[0];
+            return member.GetCustomAttribute<DisplayAttribute>()?.Name ?? segment.ToString();
         }
     }
 }
