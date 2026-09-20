@@ -57,7 +57,6 @@ namespace EduSense.API.Controllers
         {
             AiPromptType.LowestSatisfactionActionPlan => "Handlingsplan för lägst nöjdhet",
             AiPromptType.TrendSummaryReport => "Trendrapport",
-            AiPromptType.CorrelationAnalysis => "Sambandsanalys",
             _ => type.ToString()
         };
     }

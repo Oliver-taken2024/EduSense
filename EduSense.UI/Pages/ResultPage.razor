@@ -9,49 +9,6 @@
 
 <button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
 
-<h2 class="section-title">AI-assistans</h2>
-<div class="ai-analysis-section">
-    @if (_promptTypes.Count > 0)
-    {
-        <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
-        <div class="button-group">
-            @foreach (var promptType in _promptTypes)
-            {
-                <button type="button"
-                        class="btn button-login"
-                        @onclick="() => GenerateAiAnalysisAsync(promptType.Value)"
-                        disabled="@_isLoadingAiAnalysis">
-                    🤖 @promptType.DisplayName
-                </button>
-            }
-        </div>
-
-        @if (_isLoadingAiAnalysis)
-        {
-            <div class="spinner-container">
-                <div class="spinner"></div>
-                <p role="status">Analyserar med AI...</p>
-            </div>
-        }
-        else if (_aiAnalysisError is not null)
-        {
-            <p class="text-danger" role="alert">@_aiAnalysisError</p>
-        }
-        else if (_aiAnalysisResult is not null)
-        {
-            <div class="ai-result-box">
-                <h3>@_selectedPromptType?.ToString()</h3>
-                <p>@_aiAnalysisResult.SummaryText</p>
-                <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
-            </div>
-        }
-    }
-    else
-    {
-        <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
-    }
-</div>
-
 @if (_selectedDispatchId is null)
 {
     <div class="page-header">
@@ -139,7 +96,7 @@ else
                 {
                     <button type="button"
                             class="btn button-login"
-                            @onclick="() => GenerateAiAnalysisAsync(promptType.Value)"
+                            @onclick="() => GenerateAiAnalysisAsync(promptType)"
                             disabled="@_isLoadingAiAnalysis">
                         🤖 @promptType.DisplayName
                     </button>
@@ -160,8 +117,11 @@ else
             else if (_aiAnalysisResult is not null)
             {
                 <div class="ai-result-box">
-                    <h3>@_selectedPromptType?.ToString()</h3>
-                    <p>@_aiAnalysisResult.SummaryText</p>
+                    <h3>@_selectedPromptDisplayName</h3>
+                    @foreach (var paragraph in SplitIntoParagraphs(_aiAnalysisResult.SummaryText))
+                    {
+                        <p>@paragraph</p>
+                    }
                     <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
                 </div>
             }
@@ -188,7 +148,7 @@ else
                     <tr><th>Totala svar</th><td>@_result.TotalResponses @ChangeSuffix(_result.TotalResponsesChangePercent, "%")</td></tr>
                     <tr><th>Svarsfrekvens</th><td>@_result.ResponseRate.ToString("0.0")% @ChangeSuffix(_result.ResponseRateChangePoints, " p.e.")</td></tr>
                     <tr><th>Snittbetyg</th><td>@_result.AverageScore.ToString("0.0") / 5 @ChangeSuffix(_result.AverageScoreChangePoints, "")</td></tr>
-                    <tr><th>NPS</th><td>@(_result.Nps.HasValue ? _result.Nps.Value.ToString("0") : "-") @ChangeSuffix(_result.NpsChangePoints, "")</td></tr>
+                    <tr><th title="@NpsExplanation">NPS ⓘ</th><td>@(_result.Nps.HasValue ? _result.Nps.Value.ToString("0") : "-") @ChangeSuffix(_result.NpsChangePoints, "")</td></tr>
                     <tr><th>Kritiska områden</th><td>@_result.CriticalAreasCount @ChangeSuffix(_result.CriticalAreasCountChange, "")</td></tr>
                 </tbody>
             </table>
@@ -258,7 +218,7 @@ else
             <div class="table-responsive">
                 <table class="table">
                     <thead>
-                        <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th>NPS</th></tr>
+                        <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th title="@NpsExplanation">NPS ⓘ</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var s in _result.SegmentResults)
@@ -266,9 +226,21 @@ else
                             <tr>
                                 <td data-label="Segment">@SegmentLabel(s.Segment)</td>
                                 <td data-label="Antal svar">@s.RespondentCount</td>
-                                <td data-label="Svarsfrekvens">@s.ResponseRate.ToString("0.0")%</td>
-                                <td data-label="Snittbetyg">@s.AverageScore.ToString("0.0")</td>
-                                <td data-label="NPS">@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</td>
+                                <td data-label="Svarsfrekvens">
+                                    <div class="score-bar-track">
+                                        <div class="score-bar-fill bar-fill-neutral" style="width:@(BarWidthPercent(s.ResponseRate, 100))%"></div>
+                                    </div>
+                                    <span>@s.ResponseRate.ToString("0.0")%</span>
+                                </td>
+                                <td data-label="Snittbetyg">
+                                    <div class="score-bar-track">
+                                        <div class="score-bar-fill @ScoreBarClass(s.AverageScore)" style="width:@(BarWidthPercent(s.AverageScore, 5))%"></div>
+                                    </div>
+                                    <span>@s.AverageScore.ToString("0.0")</span>
+                                </td>
+                                <td data-label="NPS">
+                                    <span class="nps-badge @NpsClass(s.Nps)">@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</span>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -281,6 +253,9 @@ else
 }
 
 @code {
+    // Kort förklaring till "ⓘ"-ikonen vid NPS-rubrikerna (visas som hover-tooltip via title-attributet).
+    private const string NpsExplanation = "NPS (Net Promoter Score) mäter hur troligt det är att respondenterna skulle rekommendera er, på en skala från -100 till +100.";
+
     [Parameter] public int? DispatchId { get; set; }
 
     [Inject] private ApiService Api { get; set; } = default!;
@@ -518,6 +493,30 @@ else
         var member = typeof(RespondentSegmentDto).GetMember(segment.ToString())[0];
         return member.GetCustomAttribute<DisplayAttribute>()?.Name ?? segment.ToString();
     }
+
+    // Samma gränser som ColorFor() i GeoDistribution.razor (>=4 bra, >=3 varning,
+    // annars kritiskt) - matchar även 3.0-gränsen i ResultService för "kritiskt område".
+    private static string ScoreBarClass(double averageScore) => averageScore switch
+    {
+        >= 4 => "bar-fill-good",
+        >= 3 => "bar-fill-warn",
+        _ => "bar-fill-critical"
+    };
+
+    // NPS är en polaritetsmätning (-100 till +100): positiv = fler promotorer än
+    // kritiker (bra), 0 = neutralt, negativ = fler kritiker (dåligt).
+    private static string NpsClass(double? nps) => nps switch
+    {
+        null => "nps-warn",
+        > 0 => "nps-good",
+        0 => "nps-warn",
+        _ => "nps-critical"
+    };
+
+    // InvariantCulture på width-procenten - annars blir decimaltecknet "," i sv-SE
+    // och CSS-värdet "width:66,7%" blir ogiltigt (samma bugg som fixades i commit 88e8955).
+    private static string BarWidthPercent(double value, double max) =>
+        Math.Clamp(value / max * 100, 0, 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
 
     private static IEnumerable<string> SplitIntoParagraphs(string text)
     {

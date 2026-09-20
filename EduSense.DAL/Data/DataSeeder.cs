@@ -969,6 +969,16 @@ namespace EduSense.DAL.Data
             (5, 5), (4, 4), (3, 3), (2, 2), (1, 3)
         ];
 
+        // Delad "nöjdhetsbias" per respondent (-1/0/+1) - utan denna lottas varje frågas
+        // svar helt oberoende, vilket gör att sambandsanalysen (Pearson-korrelation
+        // mellan frågor) aldrig hittar något att rapportera i seed-datan. Med en delad
+        // bias tenderar samma person svara åt samma håll på flera frågor, precis som i
+        // verkliga enkätsvar där en persons helhetsomdöme färgar flera svar.
+        private static readonly (int Value, int Weight)[] RespondentBiasWeights =
+        [
+            (-1, 25), (0, 50), (1, 25)
+        ];
+
         // Väger fram ett värde ur en (Value, Weight)-tabell utifrån en delad, seedad Random.
         private static int PickWeightedValue(Random random, (int Value, int Weight)[] weights)
         {
@@ -1061,6 +1071,10 @@ namespace EduSense.DAL.Data
 
             foreach (var respondent in answeredRespondents)
             {
+                // En gång per respondent - appliceras på alla frågors svar nedan så att
+                // frågorna faktiskt korrelerar för samma person (se RespondentBiasWeights).
+                var respondentBias = PickWeightedValue(random, RespondentBiasWeights);
+
                 foreach (var surveyQuestion in surveyQuestions)
                 {
                     if (existingPairs.Contains((respondent.Id, surveyQuestion.Id)))
@@ -1071,7 +1085,14 @@ namespace EduSense.DAL.Data
                     var isNps = npsQuestionIds.Contains(surveyQuestion.QuestionId);
 
                     var weights = isNps ? NpsWeights : isCritical ? CriticalScaleWeights : SatisfiedScaleWeights;
-                    var chosenValue = PickWeightedValue(random, weights);
+                    var baseValue = PickWeightedValue(random, weights);
+
+                    // NPS är en 1-10-skala - dubblar biasen så den väger lika mycket
+                    // relativt sett som på 1-5-frågorna.
+                    var chosenValue = isNps
+                        ? Math.Clamp(baseValue + respondentBias * 2, 1, 10)
+                        : Math.Clamp(baseValue + respondentBias, 1, 5);
+
                     var chosenOption = options.Single(x => x.AnswerOption!.Value == chosenValue);
 
                     newResponses.Add(new ResponseModel

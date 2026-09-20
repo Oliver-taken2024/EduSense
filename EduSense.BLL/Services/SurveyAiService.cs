@@ -2,7 +2,6 @@
 using EduSense.DAL.Repositories;
 using EduSense.Shared;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 
@@ -33,21 +32,6 @@ namespace EduSense.BLL.Services
             var dispatch = await _dispatchRepository.GetByIdWithResultsAsync(request.SurveyDispatchId)
                 ?? throw new InvalidOperationException("Dispatch hittades inte.");
 
-            // Sambanden och deras riktning/styrka är redan matematiskt entydiga (Pearson-r).
-            // Den lokala modellen har visat sig hitta på egna frågenamn och värden här
-            // istället för att återge de riktiga - så den rapporten byggs helt i kod,
-            // ingen AI inblandad.
-            if (request.PromptType == AiPromptType.CorrelationAnalysis)
-            {
-                var correlations = ComputeCorrelations(dispatch);
-                return new SurveyAiSummaryResultDto
-                {
-                    PromptType = request.PromptType,
-                    SummaryText = FormatCorrelationReport(correlations),
-                    GeneratedAt = DateTime.UtcNow
-                };
-            }
-
             var aggregatedData = request.PromptType switch
             {
                 AiPromptType.LowestSatisfactionActionPlan => BuildAggregatedResultsText(dispatch),
@@ -76,34 +60,20 @@ namespace EduSense.BLL.Services
 
         UPPGIFT:
         Identifiera de tre frågor som har lägst genomsnittligt betyg.
-        Föreslå en konkret handlingsplan för varje fråga med 2–3 korta åtgärder.
+        Föreslå en kort handlingsplan per fråga med 2 åtgärder.
 
-        SVARSFORMAT:
+        SVARSFORMAT (upprepa blocket nedan för alla tre frågor, i tur och ordning):
         HANDLINGSPLAN FÖR LÄGST NÖJDHET
 
         1. [Frågetext]
-        Genomsnittligt betyg: [värde]
-        Åtgärder:
-        - [åtgärd]
-        - [åtgärd]
-
-        2. [Frågetext]
-        Genomsnittligt betyg: [värde]
-        Åtgärder:
-        - [åtgärd]
-        - [åtgärd]
-
-        3. [Frågetext]
-        Genomsnittligt betyg: [värde]
+        Betyg: [värde]
         Åtgärder:
         - [åtgärd]
         - [åtgärd]
 
         REGLER:
-        - Svara endast på svenska.
-        - Var konkret och kortfattad.
-        - Använd endast information från underlaget.
-        - Hitta inte på värden eller orsaker.
+        - Svara endast på svenska, kortfattat.
+        - Använd endast information från underlaget, hitta inte på värden eller orsaker.
         - Använd inte Markdown, asterisker eller kodblock.
         """,
 
@@ -112,36 +82,28 @@ namespace EduSense.BLL.Services
         Du är en analytiker som sammanfattar enkätresultat för skolledning.
 
         UPPGIFT:
-        Sammanfatta de viktigaste trenderna i resultatet.
-        Lyft fram positiva resultat, förbättringsområden och eventuella skillnader
-        mellan målgrupper.
+        Sammanfatta de viktigaste trenderna: styrkor, förbättringsområden och
+        eventuella skillnader mellan målgrupper.
 
         SVARSFORMAT:
         TRENDRAPPORT
 
         SAMMANFATTNING
-        Skriv ett kort sammanhängande stycke på högst 100 ord.
+        Ett kort stycke, högst 60 ord.
 
         VIKTIGASTE TRENDER
         1. [Trend]
         2. [Trend]
         3. [Trend]
 
-        SKILLNADER MELLAN MÅLGRUPPER
-        Beskriv endast tydliga skillnader som framgår av underlaget.
-
         REKOMMENDATION
-        Skriv 2–3 konkreta rekommendationer.
+        1-2 konkreta rekommendationer.
 
         REGLER:
-        - Svara endast på svenska.
-        - Max 200 ord totalt.
+        - Svara endast på svenska, max 120 ord totalt.
         - Använd endast information från underlaget.
         - Använd inte Markdown, asterisker eller kodblock.
         """,
-
-            // CorrelationAnalysis går inte via AI-modellen - se ComputeCorrelations/
-            // FormatCorrelationReport i GenerateSummaryAsync.
 
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
@@ -211,97 +173,6 @@ namespace EduSense.BLL.Services
             }
 
             return sb.ToString();
-        }
-
-   
-        // Beräknar Pearson-korrelation (se Wikipedia el dyl) mellan frågor baserat på per-respondent-svar,
-        // och returnerar endast starka samband (|r| >= 0.5). Ingen PII inkluderas.
-        private static List<(string A, string B, double Correlation)> ComputeCorrelations(SurveyDispatchModel dispatch)
-        {
-            var respondentAnswers = dispatch.Respondents
-                .Where(r => r.TokenIsUsed)
-                .Select(r => r.Responses.ToDictionary(
-                    resp => resp.SurveyQuestion!.Question!.Text,
-                    resp => (double)resp.QuestionAnswerOption!.AnswerOption!.Value))
-                .ToList();
-
-            var questions = respondentAnswers.SelectMany(r => r.Keys).Distinct().ToList();
-            var correlations = new List<(string A, string B, double Correlation)>();
-
-            for (int i = 0; i < questions.Count; i++)
-            {
-                for (int j = i + 1; j < questions.Count; j++)
-                {
-                    var pairs = respondentAnswers
-                        .Where(r => r.ContainsKey(questions[i]) && r.ContainsKey(questions[j]))
-                        .Select(r => (X: r[questions[i]], Y: r[questions[j]]))
-                        .ToList();
-
-                    if (pairs.Count < 3) continue;
-
-                    var corr = PearsonCorrelation(pairs);
-                    if (Math.Abs(corr) >= 0.5)
-                    {
-                        correlations.Add((questions[i], questions[j], corr));
-                    }
-                }
-            }
-
-            return correlations;
-        }
-
-        // Formaterar sambandsanalysen direkt från de beräknade värdena - ingen AI
-        // inblandad, så frågenamn och korrelationsvärden kan aldrig bli fel.
-        private static string FormatCorrelationReport(List<(string A, string B, double Correlation)> correlations)
-        {
-            if (correlations.Count == 0)
-            {
-                return "SAMBANDSANALYS\n\nInga starka statistiska samband (korrelationsvärde 0,5 eller högre) hittades mellan frågorna i detta underlag.\n\nSLUTSATS\nDet gick inte att identifiera några tydliga samband. Fler svar kan behövas för en tillförlitlig analys.";
-            }
-
-            var top = correlations.OrderByDescending(c => Math.Abs(c.Correlation)).Take(3).ToList();
-
-            var sb = new StringBuilder();
-            sb.AppendLine("SAMBANDSANALYS");
-            sb.AppendLine();
-
-            for (int i = 0; i < top.Count; i++)
-            {
-                var c = top[i];
-                sb.AppendLine($"{i + 1}. \"{c.A}\" och \"{c.B}\"");
-                sb.AppendLine($"Korrelationsvärde: {c.Correlation.ToString("F2", CultureInfo.GetCultureInfo("sv-SE"))}");
-                sb.AppendLine($"Tolkning: {DescribeCorrelation(c.Correlation)}");
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("SLUTSATS");
-            sb.Append(top.Count == 1
-                ? "Ett tydligt samband hittades mellan frågorna ovan."
-                : $"{top.Count} tydliga samband hittades mellan frågorna ovan.");
-
-            return sb.ToString();
-        }
-
-        // Riktning och styrka är en ren funktion av korrelationsvärdet - ingen tolkning
-        // som kan hittas på.
-        private static string DescribeCorrelation(double r)
-        {
-            var styrka = Math.Abs(r) >= 0.7 ? "starkt" : "medelstarkt";
-            return r >= 0
-                ? $"Det finns ett {styrka} positivt samband: högre svar på den ena frågan hänger ihop med högre svar på den andra."
-                : $"Det finns ett {styrka} negativt samband: högre svar på den ena frågan hänger ihop med lägre svar på den andra.";
-        }
-
-        private static double PearsonCorrelation(List<(double X, double Y)> pairs)
-        {
-            var avgX = pairs.Average(p => p.X);
-            var avgY = pairs.Average(p => p.Y);
-
-            var numerator = pairs.Sum(p => (p.X - avgX) * (p.Y - avgY));
-            var denomX = Math.Sqrt(pairs.Sum(p => Math.Pow(p.X - avgX, 2)));
-            var denomY = Math.Sqrt(pairs.Sum(p => Math.Pow(p.Y - avgY, 2)));
-
-            return denomX == 0 || denomY == 0 ? 0 : numerator / (denomX * denomY);
         }
 
         // Läser [Display(Name=...)] från RespondentSegment-enumet, så AI-underlaget

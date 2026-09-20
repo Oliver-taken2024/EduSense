@@ -60,7 +60,6 @@ public class SurveyAiServiceTests
     [Theory]
     [InlineData(AiPromptType.LowestSatisfactionActionPlan)]
     [InlineData(AiPromptType.TrendSummaryReport)]
-    [InlineData(AiPromptType.CorrelationAnalysis)]
     public async Task GenerateSummaryAsync_supports_all_prompt_types(AiPromptType promptType)
     {
         var dispatch = new SurveyDispatchModel

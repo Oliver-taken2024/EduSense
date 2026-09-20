@@ -486,7 +486,25 @@ select:not(:disabled) {
 .geo-label {
     fill: var(--text-color);
     font-size: 10px;
+    /* Textkontur i kortets bakgrundsfärg - håller etiketten läsbar över gridlinjerna
+       utan en tung bakgrundsruta. paint-order ritar konturen bakom själva texten. */
+    paint-order: stroke;
+    stroke: var(--background-color-2, #1a1a1a);
+    stroke-width: 3px;
+    stroke-linejoin: round;
 }
+
+.geo-point {
+    transition: transform 0.15s ease, fill-opacity 0.15s ease;
+    transform-box: fill-box;
+    transform-origin: center;
+    cursor: pointer;
+}
+
+    .geo-point:hover {
+        transform: scale(1.18);
+        fill-opacity: 1;
+    }
 
 /* Ramar in varje diagram (donut/trend/geo) i ett eget lätt kort inuti
    .card-panel, så de inte flyter fritt mellan tabellerna på resultatsidan. */
@@ -557,6 +575,50 @@ select:not(:disabled) {
         color: var(--text-color-secondary);
         font-size: var(--font-size-text-medium, 0.875rem);
     }
+
+/* Score-barer och NPS-badge i "Resultat per segment" - samma grön/gul/röd-språk
+   (#2f9e44/#f59f00/#c92a2a) som ColorFor() i GeoDistribution.razor, så hela
+   resultatsidan pratar samma färgkod istället för en egen palett per tabell. */
+.score-bar-track {
+    max-width: 140px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(243, 234, 215, 0.15);
+    overflow: hidden;
+}
+
+.score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.bar-fill-good { background-color: #2f9e44; }
+.bar-fill-warn { background-color: #f59f00; }
+.bar-fill-critical { background-color: #c92a2a; }
+/* Svarsfrekvens är ett volymmått, inte ett bra/dåligt-betyg (till skillnad från
+   Snittbetyg/NPS) - får därför sidans neutrala guldaccent istället för status-färg. */
+.bar-fill-neutral { background-color: var(--accent-color-gold, #d4af37); }
+
+.nps-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+}
+
+    .nps-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: currentColor;
+        flex-shrink: 0;
+    }
+
+.nps-good { color: #2f9e44; }
+.nps-warn { color: #f59f00; }
+.nps-critical { color: #c92a2a; }
 
 /* ============================================================
    Delade layoutklasser (auth-kort, toolbar, tabeller, badgar)

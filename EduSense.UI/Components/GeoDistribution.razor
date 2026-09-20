@@ -7,16 +7,39 @@
 else
 {
     <svg viewBox="0 0 300 200" width="100%" height="220" role="img" aria-label="Geografisk fördelning">
+        <defs>
+            @* Mjuk skugga under punkterna så kartan känns lite mer "3D" istället för platta cirklar. *@
+            <filter id="geoPointShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.35" />
+            </filter>
+        </defs>
+
         <rect x="0" y="0" width="300" height="200" fill="var(--geo-bg, #f1f3f5)" rx="8" />
+
+        @* Diskreta hjälplinjer, samma variabel som TrendChart använder för sina axlar -
+           ger kartan lite djup utan att dra uppmärksamhet från punkterna. *@
+        @for (var gx = 0; gx <= 4; gx++)
+        {
+            var x = 10 + gx * 70;
+            <line x1="@x" y1="10" x2="@x" y2="190" stroke="var(--trend-gridline, #e5e7eb)" stroke-width="1" />
+        }
+        @for (var gy = 0; gy <= 3; gy++)
+        {
+            var y = 10 + gy * 60;
+            <line x1="10" y1="@y" x2="290" y2="@y" stroke="var(--trend-gridline, #e5e7eb)" stroke-width="1" />
+        }
+
         @foreach (var point in _points)
         {
-            <circle cx="@point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+            <circle class="geo-point"
+                    cx="@point.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                     cy="@point.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                     r="@point.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                     fill="@point.Color"
                     fill-opacity="0.85"
                     stroke="@point.Color"
-                    stroke-width="1.5">
+                    stroke-width="1.5"
+                    filter="url(#geoPointShadow)">
                 <title>@point.Name: snitt @point.AverageScore.ToString("0.0")</title>
             </circle>
             @* <text> är ett Razor-reserverat taggnamn - kan inte ha @-bundna attribut direkt,
