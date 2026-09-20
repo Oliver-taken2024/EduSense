@@ -31,7 +31,7 @@ public class AuthControllerTests
             _userManagerMock.Object, 
             _refreshTokenRepoMock.Object, 
             _configurationMock.Object, 
-            _passwordResetServiceMock.Object, 
+            _passwordResetServiceMock.Object,
             _webHostEnvironmentMock.Object);
     }
 

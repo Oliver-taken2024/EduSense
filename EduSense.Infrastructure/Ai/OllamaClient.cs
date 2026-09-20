@@ -12,6 +12,19 @@ namespace EduSense.Infrastructure.Ai
     {
         public string BaseUrl { get; set; } = "http://localhost:11434";
         public string Model { get; set; } = "llama3";
+
+        // Hur länge HttpClient väntar på svar från Ollama innan anropet kapas.
+        // CPU-körda modeller som mistral:7b kan ta flera minuter - 2 min (tidigare
+        // hårdkodat värde) var för snålt och gav ett missvisande 404 i UI:t.
+        public int TimeoutSeconds { get; set; } = 300;
+
+        // Tak på antal genererade tokens. Både 150 och 260 klippte svaren mitt i en
+        // mening - den lokala modellen (t.ex. llama3.2:3b) struntar ofta i
+        // "kortfattat"/"ingen Markdown" i REGLER och skriver ut fulla meningar med
+        // fetstil ändå, särskilt för handlingsplanens tre frågeblock. 380 ger
+        // rimlig marginal; GenerateAsync klipper dessutom till sista hela meningen
+        // om taket ändå nås, så ett trasigt ord aldrig visas i UI:t.
+        public int NumPredict { get; set; } = 380;
     }
 
     // Implementation av IOllamaClient som använder HttpClient för att kommunicera med Ollama API.
@@ -41,7 +54,8 @@ namespace EduSense.Infrastructure.Ai
                 Model = _options.Model,
                 System = systemPrompt,
                 Prompt = userContent,
-                Stream = false
+                Stream = false,
+                Options = new OllamaGenerateOptions { NumPredict = _options.NumPredict }
             };
 
             try
@@ -50,13 +64,37 @@ namespace EduSense.Infrastructure.Ai
                 response.EnsureSuccessStatusCode();
 
                 var result = await response.Content.ReadFromJsonAsync<OllamaGenerateResponse>(cancellationToken: cancellationToken);
-                return result?.Response?.Trim() ?? string.Empty;
+                var text = result?.Response?.Trim() ?? string.Empty;
+
+                // done_reason == "length" betyder att NumPredict-taket nåddes mitt i
+                // genereringen - klipp bort den avhuggna sista meningen istället för
+                // att visa t.ex. "...Försök att förbät" i UI:t.
+                if (string.Equals(result?.DoneReason, "length", StringComparison.OrdinalIgnoreCase))
+                {
+                    text = TrimToLastCompleteSentence(text);
+                }
+
+                return text;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fel vid anrop till Ollama.");
-                throw new InvalidOperationException("Kunde inte generera AI-sammanfattning just nu.", ex);
+                throw new OllamaUnavailableException("Kunde inte generera AI-sammanfattning just nu.", ex);
             }
+        }
+
+        // Klipper bort en ofullständig sista mening (hittar sista '.', '!' eller '?'
+        // och tar bort allt efter). Om inget meningsslut alls hittas returneras texten
+        // oförändrad - bättre att visa ett avhugget svar än ett tomt.
+        private static string TrimToLastCompleteSentence(string text)
+        {
+            var lastSentenceEnd = text.LastIndexOfAny(['.', '!', '?']);
+            if (lastSentenceEnd < 0 || lastSentenceEnd == text.Length - 1)
+            {
+                return text;
+            }
+
+            return text[..(lastSentenceEnd + 1)].TrimEnd();
         }
 
         // Interna klasser för att representera request och response för Ollama API.
@@ -73,12 +111,26 @@ namespace EduSense.Infrastructure.Ai
 
             [JsonPropertyName("stream")]
             public bool Stream { get; set; }
+
+            [JsonPropertyName("options")]
+            public OllamaGenerateOptions? Options { get; set; }
+        }
+
+        private class OllamaGenerateOptions
+        {
+            [JsonPropertyName("num_predict")]
+            public int NumPredict { get; set; }
         }
 
         private class OllamaGenerateResponse
         {
             [JsonPropertyName("response")]
             public string? Response { get; set; }
+
+            // "length" = NumPredict-taket nåddes innan modellen var klar, "stop" =
+            // modellen avslutade själv. Äldre Ollama-versioner kan sakna fältet.
+            [JsonPropertyName("done_reason")]
+            public string? DoneReason { get; set; }
         }
     }
 }

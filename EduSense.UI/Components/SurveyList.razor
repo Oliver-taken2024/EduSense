@@ -17,10 +17,7 @@ else
             <tr>
                 <th>Titel</th>
                 <th>Organisation</th>
-                <th>Sista svarsdatum</th>
                 <th>Antal frågor</th>
-                <th>Skapad av</th>
-                <th>Skapad</th>
                 <th><span class="visually-hidden">Åtgärder</span></th>
             </tr>
         </thead>
@@ -28,10 +25,10 @@ else
             @foreach (var survey in PagedSurveys)
             {
                 <tr>
-                    <td>@survey.Title</td>
-                    <td>@survey.Organisation?.Name</td>
-                    <td>@survey.SurveyQuestions.Count</td>
-                    <td>
+                    <td data-label="Titel" class="col-text">@survey.Title</td>
+                    <td data-label="Organisation" class="cell-nowrap">@survey.Organisation?.Name</td>
+                    <td data-label="Antal frågor" class="cell-nowrap">@survey.SurveyQuestions.Count</td>
+                    <td data-label="Åtgärder">
                         <div class="table-actions">
                             <button type="button" class="btn button-login"
                                     aria-label="@($"Redigera enkäten {survey.Title}")" @onclick="() => OnEdit.InvokeAsync(survey)">

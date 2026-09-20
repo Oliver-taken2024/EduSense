@@ -68,7 +68,10 @@ builder.Services.AddScoped<ISurveyDispatchService, SurveyDispatchService>();
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
 builder.Services.AddHttpClient<IOllamaClient, OllamaClient>(client =>
 {
-    client.Timeout = TimeSpan.FromMinutes(2);
+    // Konfigurerbar istället för hårdkodad 2 min - mistral:7b (CPU) kan ta längre
+    // tid än så, se OllamaOptions.TimeoutSeconds (default 300s / 5 min).
+    var timeoutSeconds = builder.Configuration.GetValue("Ollama:TimeoutSeconds", 300);
+    client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
 });
 builder.Services.AddScoped<ISurveyAiService, SurveyAiService>();
 

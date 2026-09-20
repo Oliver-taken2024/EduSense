@@ -1,4 +1,5 @@
 @page "/results"
+@page "/results/{DispatchId:int}"
 @attribute [Authorize]
 @using System.ComponentModel.DataAnnotations
 @using System.Reflection
@@ -7,52 +8,6 @@
 <PageTitle>Resultat</PageTitle>
 
 <button type="button" class="btn button-secondary back-link" @onclick='() => Navigation.NavigateTo("/")'>← Tillbaka</button>
-
-<h2 class="section-title">AI-assistans</h2>
-<div class="ai-analysis-section">
-    @if (_promptTypes.Count > 0)
-    {
-        <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
-        <div class="button-group">
-            @foreach (var promptType in _promptTypes)
-            {
-                <button type="button"
-                        class="btn button-login"
-                        @onclick="() => GenerateAiAnalysisAsync(promptType)"
-                        disabled="@_isLoadingAiAnalysis">
-                    🤖 @promptType.DisplayName
-                </button>
-            }
-        </div>
-
-        @if (_isLoadingAiAnalysis)
-        {
-            <div class="spinner-container">
-                <div class="spinner"></div>
-                <p role="status">Analyserar med AI...</p>
-            </div>
-        }
-        else if (_aiAnalysisError is not null)
-        {
-            <p class="text-danger" role="alert">@_aiAnalysisError</p>
-        }
-        else if (_aiAnalysisResult is not null)
-        {
-            <div class="ai-result-box">
-                <h3>@_selectedPromptDisplayName</h3>
-                @foreach (var paragraph in SplitIntoParagraphs(_aiAnalysisResult.SummaryText))
-                {
-                    <p>@paragraph</p>
-                }
-                <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
-            </div>
-        }
-    }
-    else
-    {
-        <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
-    }
-</div>
 
 @if (_selectedDispatchId is null)
 {
@@ -94,11 +49,19 @@
                     @foreach (var dispatch in _dispatches)
                     {
                         <tr>
-                            <td>@dispatch.SurveyTitle</td>
-                            <td>@dispatch.SentAt.ToString("yyyy-MM-dd")</td>
-                            <td>@dispatch.ResponseDeadline.ToString("yyyy-MM-dd")</td>
-                            <td>@dispatch.ResponseCount / @dispatch.RespondentCount</td>
-                            <td>
+                            <td data-label="Enkät">
+                                @dispatch.SurveyTitle
+                                @{ var dispatchCount = DispatchCountBySurveyId.GetValueOrDefault(dispatch.SurveyId); }
+                                @if (dispatchCount > 1)
+                                {
+                                    <br />
+                                    <span class="cell-muted dispatch-ordinal">Utskick @GetDispatchOrdinal(dispatch) av @dispatchCount</span>
+                                }
+                            </td>
+                            <td data-label="Skickad" class="cell-nowrap">@dispatch.SentAt.ToString("yyyy-MM-dd")</td>
+                            <td data-label="Sista svarsdatum" class="cell-nowrap">@dispatch.ResponseDeadline.ToString("yyyy-MM-dd")</td>
+                            <td data-label="Svar" class="cell-nowrap">@dispatch.ResponseCount / @dispatch.RespondentCount</td>
+                            <td data-label="Åtgärder">
                                 <div class="table-actions">
                                     <button type="button" class="btn button-login" @onclick="() => SelectDispatch(dispatch.Id)">
                                         Visa resultat
@@ -123,6 +86,52 @@ else
         <button type="button" class="btn button-secondary" @onclick="BackToList">← Alla utskick</button>
     </div>
 
+    <div class="chart-section ai-analysis-section">
+        <h2 class="section-title">AI-assistans</h2>
+        @if (_promptTypes.Count > 0)
+        {
+            <p class="page-subtitle">Välj en analystyp för AI-assisterad insikt:</p>
+            <div class="button-group">
+                @foreach (var promptType in _promptTypes)
+                {
+                    <button type="button"
+                            class="btn button-login"
+                            @onclick="() => GenerateAiAnalysisAsync(promptType)"
+                            disabled="@_isLoadingAiAnalysis">
+                        🤖 @promptType.DisplayName
+                    </button>
+                }
+            </div>
+
+            @if (_isLoadingAiAnalysis)
+            {
+                <div class="spinner-container">
+                    <div class="spinner"></div>
+                    <p role="status">Analyserar med AI...</p>
+                </div>
+            }
+            else if (_aiAnalysisError is not null)
+            {
+                <p class="text-danger" role="alert">@_aiAnalysisError</p>
+            }
+            else if (_aiAnalysisResult is not null)
+            {
+                <div class="ai-result-box">
+                    <h3>@_selectedPromptDisplayName</h3>
+                    @foreach (var paragraph in SplitIntoParagraphs(_aiAnalysisResult.SummaryText))
+                    {
+                        <p>@paragraph</p>
+                    }
+                    <small class="text-muted">Genererad: @_aiAnalysisResult.GeneratedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">AI-assistans är inte tillgänglig för närvarande.</p>
+        }
+    </div>
+
     <div class="card-panel">
         @if (_isLoadingResult)
         {
@@ -139,7 +148,7 @@ else
                     <tr><th>Totala svar</th><td>@_result.TotalResponses @ChangeSuffix(_result.TotalResponsesChangePercent, "%")</td></tr>
                     <tr><th>Svarsfrekvens</th><td>@_result.ResponseRate.ToString("0.0")% @ChangeSuffix(_result.ResponseRateChangePoints, " p.e.")</td></tr>
                     <tr><th>Snittbetyg</th><td>@_result.AverageScore.ToString("0.0") / 5 @ChangeSuffix(_result.AverageScoreChangePoints, "")</td></tr>
-                    <tr><th>NPS</th><td>@(_result.Nps.HasValue ? _result.Nps.Value.ToString("0") : "-") @ChangeSuffix(_result.NpsChangePoints, "")</td></tr>
+                    <tr><th title="@NpsExplanation">NPS ⓘ</th><td>@(_result.Nps.HasValue ? _result.Nps.Value.ToString("0") : "-") @ChangeSuffix(_result.NpsChangePoints, "")</td></tr>
                     <tr><th>Kritiska områden</th><td>@_result.CriticalAreasCount @ChangeSuffix(_result.CriticalAreasCountChange, "")</td></tr>
                 </tbody>
             </table>
@@ -206,23 +215,37 @@ else
             </div>
 
             <h2 class="section-title">Resultat per segment</h2>
-            <table class="table">
-                <thead>
-                    <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th>NPS</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var s in _result.SegmentResults)
-                    {
-                        <tr>
-                            <td>@SegmentLabel(s.Segment)</td>
-                            <td>@s.RespondentCount</td>
-                            <td>@s.ResponseRate.ToString("0.0")%</td>
-                            <td>@s.AverageScore.ToString("0.0")</td>
-                            <td>@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th title="@NpsExplanation">NPS ⓘ</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in _result.SegmentResults)
+                        {
+                            <tr>
+                                <td data-label="Segment">@SegmentLabel(s.Segment)</td>
+                                <td data-label="Antal svar">@s.RespondentCount</td>
+                                <td data-label="Svarsfrekvens">
+                                    <div class="score-bar-track">
+                                        <div class="score-bar-fill bar-fill-neutral" style="width:@(BarWidthPercent(s.ResponseRate, 100))%"></div>
+                                    </div>
+                                    <span>@s.ResponseRate.ToString("0.0")%</span>
+                                </td>
+                                <td data-label="Snittbetyg">
+                                    <div class="score-bar-track">
+                                        <div class="score-bar-fill @ScoreBarClass(s.AverageScore)" style="width:@(BarWidthPercent(s.AverageScore, 5))%"></div>
+                                    </div>
+                                    <span>@s.AverageScore.ToString("0.0")</span>
+                                </td>
+                                <td data-label="NPS">
+                                    <span class="nps-badge @NpsClass(s.Nps)">@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
             
         }
@@ -230,12 +253,31 @@ else
 }
 
 @code {
+    // Kort förklaring till "ⓘ"-ikonen vid NPS-rubrikerna (visas som hover-tooltip via title-attributet).
+    private const string NpsExplanation = "NPS (Net Promoter Score) mäter hur troligt det är att respondenterna skulle rekommendera er, på en skala från -100 till +100.";
+
+    [Parameter] public int? DispatchId { get; set; }
+
     [Inject] private ApiService Api { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private List<SurveyDispatchDto> _dispatches = [];
     private bool _isLoadingList = true;
     private string? _listError;
+
+    // Hur många utskick varje enkät har totalt - används för att visa "Utskick X av Y"
+    // så det syns att samma enkät (t.ex. skickad om för trenddata) inte är flera enkäter.
+    private Dictionary<int, int> DispatchCountBySurveyId =>
+        _dispatches.GroupBy(d => d.SurveyId).ToDictionary(g => g.Key, g => g.Count());
+
+    // 1-baserat löpnummer för dispatchen bland alla utskick av samma enkät, sorterat
+    // efter skickad-datum - äldsta utskicket blir "1 av Y".
+    private int GetDispatchOrdinal(SurveyDispatchDto dispatch) =>
+        _dispatches
+            .Where(d => d.SurveyId == dispatch.SurveyId)
+            .OrderBy(d => d.SentAt)
+            .ToList()
+            .FindIndex(d => d.Id == dispatch.Id) + 1;
 
     private int? _selectedDispatchId;
     private string? _selectedDispatchTitle;
@@ -255,9 +297,35 @@ else
     private bool _isLoadingAiAnalysis;
     private string? _aiAnalysisError;
 
+    // Vilken DispatchId (route-parameter) som senast lästs in - så att OnParametersSetAsync
+    // (som körs vid varje URL-ändring) inte laddar om samma resultat i onödan.
+    private int? _loadedDispatchId;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadDispatchesAsync();
+    }
+
+    // Körs både vid första sidladdning (t.ex. F5 på /results/5) och vid navigering
+    // mellan /results och /results/{id} - DispatchId i URL:en är nu sanningskällan
+    // istället för bara komponentens minne, så vald vy överlever en refresh.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DispatchId == _loadedDispatchId)
+        {
+            return;
+        }
+
+        _loadedDispatchId = DispatchId;
+
+        if (DispatchId.HasValue)
+        {
+            await LoadDispatchResultAsync(DispatchId.Value);
+        }
+        else
+        {
+            ResetToListState();
+        }
     }
 
     private async Task LoadDispatchesAsync()
@@ -323,7 +391,14 @@ else
         }
     }
 
-    private async Task SelectDispatch(int id)
+    // Anropas från "Visa resultat"-knappen - navigerar bara till URL:en för utskicket,
+    // själva laddningen sker i OnParametersSetAsync när DispatchId därmed ändras.
+    private void SelectDispatch(int id)
+    {
+        Navigation.NavigateTo($"/results/{id}");
+    }
+
+    private async Task LoadDispatchResultAsync(int id)
     {
         _selectedDispatchId = id;
         _selectedDispatchTitle = _dispatches.FirstOrDefault(d => d.Id == id)?.SurveyTitle;
@@ -376,6 +451,11 @@ else
 
     private void BackToList()
     {
+        Navigation.NavigateTo("/results");
+    }
+
+    private void ResetToListState()
+    {
         _selectedDispatchId = null;
         _result = null;
         _selectedPromptType = null;
@@ -413,6 +493,30 @@ else
         var member = typeof(RespondentSegmentDto).GetMember(segment.ToString())[0];
         return member.GetCustomAttribute<DisplayAttribute>()?.Name ?? segment.ToString();
     }
+
+    // Samma gränser som ColorFor() i GeoDistribution.razor (>=4 bra, >=3 varning,
+    // annars kritiskt) - matchar även 3.0-gränsen i ResultService för "kritiskt område".
+    private static string ScoreBarClass(double averageScore) => averageScore switch
+    {
+        >= 4 => "bar-fill-good",
+        >= 3 => "bar-fill-warn",
+        _ => "bar-fill-critical"
+    };
+
+    // NPS är en polaritetsmätning (-100 till +100): positiv = fler promotorer än
+    // kritiker (bra), 0 = neutralt, negativ = fler kritiker (dåligt).
+    private static string NpsClass(double? nps) => nps switch
+    {
+        null => "nps-warn",
+        > 0 => "nps-good",
+        0 => "nps-warn",
+        _ => "nps-critical"
+    };
+
+    // InvariantCulture på width-procenten - annars blir decimaltecknet "," i sv-SE
+    // och CSS-värdet "width:66,7%" blir ogiltigt (samma bugg som fixades i commit 88e8955).
+    private static string BarWidthPercent(double value, double max) =>
+        Math.Clamp(value / max * 100, 0, 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
 
     private static IEnumerable<string> SplitIntoParagraphs(string text)
     {
