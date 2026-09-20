@@ -380,7 +380,7 @@ body {
     /* Mörk overlay ovanpå bilden - annars kan bildens ljusa guldstreck/vågor
        (som flyttar sig med "cover" beroende på skärmstorlek) hamna bakom text
        och göra kontrasten omöjlig att garantera (WCAG 1.4.3). */
-    background-image: linear-gradient(rgba(15, 46, 51, 0.65), rgba(15, 46, 51, 0.65)), url("/Images/EduSenseBackground.png");
+    background-image: linear-gradient(rgba(15, 46, 51, 0.65), rgba(15, 46, 51, 0.65)), url("/Images/Background.png");
     background-repeat: no-repeat, no-repeat;
     background-position: top right, top right;
     background-size: cover, cover;

@@ -1,4 +1,5 @@
 @* Linjediagram över kategori-snitt per månad, ren SVG (inget chart-bibliotek). *@
+@using System.Globalization
 
 @if (Points.Count == 0)
 {
@@ -14,8 +15,8 @@ else
             @for (var score = 1; score <= 5; score++)
             {
                 var y = YFor(score);
-                <line x1="30" y1="@y" x2="390" y2="@y" stroke="var(--trend-gridline, #e5e7eb)" stroke-width="1" />
-                <g transform="@($"translate(24,{(y + 3).ToString(System.Globalization.CultureInfo.InvariantCulture)})")">
+                <line x1="30" y1="@F(y)" x2="390" y2="@F(y)" stroke="var(--trend-gridline, #e5e7eb)" stroke-width="1" />
+                <g transform="@($"translate(24,{F(y + 3)})")">
                     <text text-anchor="end" class="trend-axis-label">@score</text>
                 </g>
             }
@@ -25,13 +26,13 @@ else
                 <polyline points="@line.PointsAttr" fill="none" stroke="@line.Color" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                 @foreach (var (x, y) in line.Coordinates)
                 {
-                    <circle cx="@x" cy="@y" r="3.5" fill="@line.Color" stroke="var(--background-color-2)" stroke-width="1.5" />
+                   <circle cx="@F(x)" cy="@F(y)" r="3.5" fill="@line.Color" stroke="var(--background-color-2)" stroke-width="1.5" />
                 }
             }
 
             @for (var i = 0; i < _periods.Count; i++)
             {
-                <g transform="@($"translate({XFor(i).ToString(System.Globalization.CultureInfo.InvariantCulture)},212)")">
+                <g transform="@($"translate({F(XFor(i))},212)")">
                     <text text-anchor="middle" class="trend-axis-label">@_periods[i].ToString("MMM")</text>
                 </g>
             }
@@ -57,6 +58,8 @@ else
 
 @code {
     [Parameter] public IReadOnlyList<TrendPointDto> Points { get; set; } = [];
+    private static string F(double value) => value.ToString(CultureInfo.InvariantCulture);
+
 
     private const double ChartLeft = 30;
     private const double ChartRight = 390;
@@ -116,4 +119,4 @@ else
     }
 
     private record TrendLine(string CategoryName, string Color, string PointsAttr, List<(double X, double Y)> Coordinates);
-}
+  }

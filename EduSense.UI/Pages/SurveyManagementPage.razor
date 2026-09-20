@@ -1,5 +1,5 @@
 ﻿@page "/survey-management"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "AdminOnly")]
 @inject NavigationManager Navigation
 
 <PageTitle>Enkäthantering</PageTitle>

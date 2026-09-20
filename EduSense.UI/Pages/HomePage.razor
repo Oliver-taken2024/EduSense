@@ -11,10 +11,18 @@
     <p class="Welcome-text">Välj vad du vill hantera.</p>
 
     <div class="Welcome-actions">
-        <a class="button-hub" href="/user-management">Användarhantering</a>
-        <a class="button-hub" href="/survey-management">Enkäthantering</a>
-        <a class="button-hub" href="/question-management">Frågehantering</a>
-        <a class="button-hub" href="/survey-sending">Enkätutskick</a>
-        <a class="button-hub" href="/results">Resultat</a>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <a class="button-hub" href="/user-management">Användarhantering</a>
+                <a class="button-hub" href="/question-management">Frågehantering</a>
+                <a class="button-hub" href="/survey-management">Enkäthantering</a>
+                <a class="button-hub" href="/survey-sending">Enkätutskick</a>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Admin, Analyst">
+            <Authorized>
+                <a class="button-hub" href="/results">Enkätresultat</a>
+            </Authorized>
+        </AuthorizeView>
     </div>
 </div>
