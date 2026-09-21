@@ -19,11 +19,14 @@ namespace EduSense.DAL.Repositories
 
         public async Task<IReadOnlyList<SurveyModel>> GetAllAsync()
         {
+            // Nyast överst - utan OrderBy är ordningen odefinierad (råkar bli
+            // infogningsordning i praktiken), så nya enkäter hamnade sist i listan.
             return await _context.Surveys
                 .AsNoTracking()
                 .Include(s => s.Organisation)
                 .Include(s => s.SurveyQuestions)
                     .ThenInclude(sq => sq.Question)
+                .OrderByDescending(s => s.Id)
                 .ToListAsync();
         }
 

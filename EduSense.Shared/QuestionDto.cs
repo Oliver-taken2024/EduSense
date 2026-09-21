@@ -11,5 +11,6 @@ namespace EduSense.Shared
         public string CreatedByUserId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public OrganisationDto? Organisation { get; set; } // härledd, read-only
+        public CategoryDto? Category { get; set; } // härledd, read-only
     }
 }

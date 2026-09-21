@@ -7,15 +7,6 @@
             <input id="questionText" class="form-control" @bind="_text" @bind:event="oninput" />
         </div>
 
-        @if (!IsEditing)
-        {
-            <div class="mb-3">
-                <label class="form-label" for="createdByUserId">Skapad av (user id)</label>
-                <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
-                <div class="form-text">Tillfälligt fält tills inloggningen kopplas på.</div>
-            </div>
-        }
-
         @if (_errors.Count > 0)
         {
             <ul class="text-danger" role="alert">
@@ -33,17 +24,18 @@
     </form>
 </div>
 
+@using System.Security.Claims
 @code {
     [Parameter] public QuestionDto? Question { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
     [Inject] private ApiService Api { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     private bool IsEditing => Question is not null && Question.Id != 0;
 
     private string _text = string.Empty;
-    private string _createdByUserId = string.Empty;
     private List<string> _errors = [];
     private bool _isSaving;
     private int? _loadedQuestionId;
@@ -57,7 +49,6 @@
 
         _loadedQuestionId = Question?.Id;
         _text = Question?.Text ?? string.Empty;
-        _createdByUserId = string.Empty;
     }
 
     private async Task SaveAsync()
@@ -65,11 +56,15 @@
         _errors = [];
         _isSaving = true;
 
+        // Skapad-av ska vara den faktiskt inloggade användaren, inte ett manuellt fält.
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var createdByUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
         var dto = new QuestionDto
         {
             Id = Question?.Id ?? 0,
             Text = _text,
-            CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : _createdByUserId,
+            CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : createdByUserId,
             Organisation = Question?.Organisation
         };
 

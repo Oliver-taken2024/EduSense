@@ -45,10 +45,27 @@ namespace EduSense.API.Controllers
                 return BadRequest("Ogiltig länk.");
             }
 
+            // Kontrollera att önskat användarnamn inte redan används av någon annan -
+            // annars vinner den som råkar spara sist tyst över den andra (FindByNameAsync
+            // matchar på NormalizedUserName, så jämförelsen är skiftlägesokänslig).
+            var existingUser = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUser is not null && existingUser.Id != user.Id)
+            {
+                return BadRequest(new[] { "Användarnamnet är redan taget." });
+            }
+
             var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors.Select(e => e.Description));
+            }
+
+            // SetUserNameAsync istället för att sätta user.UserName direkt - den uppdaterar
+            // även NormalizedUserName, annars matchar inte FindByNameAsync/inloggning.
+            var userNameResult = await _userManager.SetUserNameAsync(user, dto.UserName);
+            if (!userNameResult.Succeeded)
+            {
+                return BadRequest(userNameResult.Errors.Select(e => e.Description));
             }
 
             user.EmailConfirmed = true;

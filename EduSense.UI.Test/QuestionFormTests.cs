@@ -1,4 +1,5 @@
 ﻿using Bunit;
+using Bunit.TestDoubles;
 using EduSense.Shared;
 using EduSense.UI.Components;
 using EduSense.UI.Services;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Security.Claims;
 using TestContext = Bunit.TestContext;
 
 namespace EduSense.UI.Test;
@@ -54,6 +56,9 @@ public class QuestionFormTests : TestContext
         // Testar att komponenten anropar OnSaved när en ny fråga sparas med lyckat svar från API:t
 
         RegisterApiService(HttpStatusCode.OK, new QuestionDto { Id = 1, Text = "Ny text" });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
         var saved = false;
 
         var cut = RenderComponent<QuestionForm>(parameters => parameters
@@ -71,6 +76,9 @@ public class QuestionFormTests : TestContext
         // Testar att komponenten visar felmeddelanden och inte anropar OnSaved när API:t returnerar ett fel
 
         RegisterApiService(HttpStatusCode.BadRequest, new List<string> { "Frågetext får inte vara tom." });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
         var saved = false;
 
         var cut = RenderComponent<QuestionForm>(parameters => parameters

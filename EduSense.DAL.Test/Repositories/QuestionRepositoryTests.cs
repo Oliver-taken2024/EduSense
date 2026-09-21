@@ -77,6 +77,44 @@ public class QuestionRepositoryTests
     }
 
     [Fact]
+    public async Task CreateAsync_links_standard_five_point_answer_scale()
+    {
+        // Utan den här kopplingen har en nyskapad fråga inga svarsalternativ alls,
+        // och respondenter kan då inte välja något på frågesidan.
+        using var scope = TestDbContextFactory.CreateAppContext();
+        var context = scope.Context;
+        var repository = new QuestionRepository(context);
+
+        var created = await repository.CreateAsync(new QuestionModel
+        {
+            Text = "Ny fråga",
+            CreatedByUserId = "user-1"
+        });
+
+        var linkedValues = await context.QuestionAnswerOptions
+            .Where(x => x.QuestionId == created.Id)
+            .Include(x => x.AnswerOption)
+            .Select(x => x.AnswerOption!.Value)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal([1, 2, 3, 4, 5], linkedValues.OrderBy(v => v));
+    }
+
+    [Fact]
+    public async Task CreateAsync_reuses_existing_answer_options_instead_of_duplicating()
+    {
+        // Två frågor ska dela samma 5 AnswerOption-rader, inte skapa nya dubbletter varje gång.
+        using var scope = TestDbContextFactory.CreateAppContext();
+        var context = scope.Context;
+        var repository = new QuestionRepository(context);
+
+        await repository.CreateAsync(new QuestionModel { Text = "Fråga A", CreatedByUserId = "user-1" });
+        await repository.CreateAsync(new QuestionModel { Text = "Fråga B", CreatedByUserId = "user-1" });
+
+        Assert.Equal(5, await context.AnswerOptions.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task DeleteAsync_removes_question()
     {
         using var scope = TestDbContextFactory.CreateAppContext();

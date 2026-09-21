@@ -733,6 +733,12 @@ namespace EduSense.DAL.Data
 
             await context.SaveChangesAsync();
 
+            // Engångsbackfill: frågor skapade via admin-UI:t innan QuestionRepository.CreateAsync
+            // började länka svarsalternativ automatiskt saknar helt QuestionAnswerOptions-rader,
+            // så respondenter kunde inte välja något på frågesidan. Körs additivt (-- --seed) och
+            // rör bara frågor som fortfarande saknar alternativ - påverkar inte de redan länkade ovan.
+            await BackfillMissingAnswerOptionsAsync(context, allAnswerOptions);
+
             // Enkät 1 - alla 11 frågor + NPS
             var survey1 = await EnsureSurveyAsync(context, "Kundnöjdhetsenkät", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey1, allQuestions);
@@ -823,7 +829,33 @@ namespace EduSense.DAL.Data
             await SeedBulkRespondentsAsync(context, dispatchIntro, surveyIntroQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 60, random);
         }
 
+        // Se anropsplatsen ovan för bakgrund. Letar upp alla frågor som saknar länkade
+        // QuestionAnswerOptions helt (inte bara de kända seed-frågorna) och länkar dem
+        // mot standardskalan 1-5, precis som QuestionRepository.CreateAsync gör för nya frågor.
+        private static async Task BackfillMissingAnswerOptionsAsync(EduSenseDbContext context, IReadOnlyList<AnswerOptionModel> standardScale)
+        {
+            var orphanedQuestionIds = await context.Questions
+                .Where(q => !context.QuestionAnswerOptions.Any(qao => qao.QuestionId == q.Id))
+                .Select(q => q.Id)
+                .ToListAsync();
 
+            foreach (var questionId in orphanedQuestionIds)
+            {
+                foreach (var option in standardScale)
+                {
+                    context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel
+                    {
+                        QuestionId = questionId,
+                        AnswerOptionId = option.Id
+                    });
+                }
+            }
+
+            if (orphanedQuestionIds.Count > 0)
+            {
+                await context.SaveChangesAsync();
+            }
+        }
 
         private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId)
         {

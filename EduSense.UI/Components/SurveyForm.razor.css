@@ -1,3 +1,20 @@
+/* Kategorirubrik ovanför varje grupp av frågor. Egen färg + kant istället
+   för en vanlig <p> så grupperna faktiskt syns som avgränsade avsnitt. */
+.question-group-heading {
+    color: var(--accent-color-gold);
+    font-weight: 600;
+    font-size: var(--font-size-text-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 1rem 0 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+    .question-group-heading:first-of-type {
+        margin-top: 0;
+    }
+
 .form-check {
     padding-left: 2em;
     margin-bottom: 0.5rem;

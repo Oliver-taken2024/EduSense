@@ -29,7 +29,10 @@ namespace EduSense.BLL.Services
                     CreatedAt = q.Question.CreatedAt,
                     Organisation = q.Organisation is null
                 ? null
-                : new OrganisationDto { Id = q.Organisation.Id, Name = q.Organisation.Name }
+                : new OrganisationDto { Id = q.Organisation.Id, Name = q.Organisation.Name },
+                    Category = q.Question.Category is null
+                ? null
+                : new CategoryDto { Id = q.Question.Category.Id, Name = q.Question.Category.Name }
                 })];
         }
 
@@ -49,7 +52,10 @@ namespace EduSense.BLL.Services
                 CreatedAt = question.Question.CreatedAt,
                 Organisation = question.Organisation is null
             ? null
-            : new OrganisationDto { Id = question.Organisation.Id, Name = question.Organisation.Name }
+            : new OrganisationDto { Id = question.Organisation.Id, Name = question.Organisation.Name },
+                Category = question.Question.Category is null
+            ? null
+            : new CategoryDto { Id = question.Question.Category.Id, Name = question.Question.Category.Name }
             };
         }
 

@@ -68,17 +68,37 @@ public class AuthControllerTests
     {
         var user = new ApplicationUser { Id = "user-1", Email = "ny@edusense.se", EmailConfirmed = false, IsActive = false };
         _userManagerMock.Setup(m => m.FindByIdAsync("user-1")).ReturnsAsync(user);
+        _userManagerMock.Setup(m => m.FindByNameAsync("nyanvandare")).ReturnsAsync((ApplicationUser?)null);
         _userManagerMock.Setup(m => m.ResetPasswordAsync(user, "giltig-token", "Nytt123!"))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(m => m.SetUserNameAsync(user, "nyanvandare"))
             .ReturnsAsync(IdentityResult.Success);
         _userManagerMock.Setup(m => m.UpdateAsync(user))
             .ReturnsAsync(IdentityResult.Success);
 
-        var dto = new SetInitialPasswordRequestDto { UserId = "user-1", Token = "giltig-token", NewPassword = "Nytt123!" };
+        var dto = new SetInitialPasswordRequestDto { UserId = "user-1", Token = "giltig-token", NewPassword = "Nytt123!", UserName = "nyanvandare" };
         var result = await _sut.SetInitialPassword(dto);
 
         Assert.IsType<OkObjectResult>(result);
         Assert.True(user.EmailConfirmed);
         Assert.True(user.IsActive);
+        _userManagerMock.Verify(m => m.SetUserNameAsync(user, "nyanvandare"), Times.Once);
         _userManagerMock.Verify(m => m.UpdateAsync(user), Times.Once);
+    }
+
+    // Testar att ett redan upptaget användarnamn avvisas innan lösenordet ens byts
+    [Fact]
+    public async Task SetInitialPassword_WhenUserNameTaken_ReturnsBadRequest()
+    {
+        var user = new ApplicationUser { Id = "user-1", Email = "ny@edusense.se" };
+        var otherUser = new ApplicationUser { Id = "user-2", Email = "annan@edusense.se", UserName = "upptaget" };
+        _userManagerMock.Setup(m => m.FindByIdAsync("user-1")).ReturnsAsync(user);
+        _userManagerMock.Setup(m => m.FindByNameAsync("upptaget")).ReturnsAsync(otherUser);
+
+        var dto = new SetInitialPasswordRequestDto { UserId = "user-1", Token = "giltig-token", NewPassword = "Nytt123!", UserName = "upptaget" };
+        var result = await _sut.SetInitialPassword(dto);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        _userManagerMock.Verify(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }
