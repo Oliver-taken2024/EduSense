@@ -32,7 +32,8 @@ namespace EduSense.BLL.Services
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
-                return false;
+                return false; 
+            token = await _userManager.GeneratePasswordResetTokenAsync(user);
             token = token.Replace(" ", "+");
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
