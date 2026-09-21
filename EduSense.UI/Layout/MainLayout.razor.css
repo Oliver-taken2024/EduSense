@@ -2,6 +2,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
 main {
@@ -11,36 +12,27 @@ main {
        (t.ex. tre nowrap-knappar i .table-actions) hela layouten bredare än
        skärmen istället för att låta .table-responsive scrolla lokalt. */
     min-width: 0;
-}
-
-.sidebar {
-    background: linear-gradient(180deg, var(--background-color-2), var(--background-color-1) 140%);
-    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.25);
+    /* Reserverar plats längst ned så den flytande navbaren (position: fixed,
+       se NavMenu.razor.css) aldrig hamnar ovanpå sidans sista innehåll/knappar. */
+    padding-bottom: 7.5rem;
 }
 
 article {
     /* Utan tak sträcks tabeller och formulär över hela bredden på en stor
        skärm - rubrik och åtgärdsknapp hamnar då decimeter från varandra. */
     max-width: 1400px;
+    /* Sidomenyn är borta (navbaren är nu en flytande overlay, inte en kolumn),
+       men article saknade fortfarande centrering - på skärmar bredare än
+       1400px+padding blev den kvar mot vänsterkanten istället för mitten. */
+    margin-inline: auto;
     padding-bottom: 3rem;
 }
 
 @media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
     article {
-        /* 2rem satt sidans rubriker (t.ex. "Användarhantering") väldigt nära
-           sidomenyns högra kant - höjt till 3rem för mer luft mellan dem. */
-        padding-left: 3rem !important;
+        /* Symmetrisk padding - det asymmetriska 3rem/2rem-värdet var till för
+           att ge luft mot den gamla sidomenyns högra kant, som inte finns kvar. */
+        padding-left: 2rem !important;
         padding-right: 2rem !important;
         padding-top: 2rem;
     }

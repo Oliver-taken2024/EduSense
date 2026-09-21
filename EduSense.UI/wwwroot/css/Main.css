@@ -25,6 +25,20 @@
     --font-size-question: 2rem; /* 32px */
     --font-size-small-logo: 4rem; /* 64px */
     --font-size-edusense-desktop: 6rem; /* 96px */
+
+    /* Global knappluft - variabler istället för att .button-group/
+       .table-actions/.form-actions/Bootstraps modal-footer varsin
+       hårdkodar sitt eget gap-/padding-värde. Håller alla knapprader i
+       appen konsekventa, och gör det enkelt att justera avståndet på
+       ett enda ställe framöver.
+
+       FÖRRA VERSIONEN av detta satte bara padding-block (och 0 i sidled) på
+       wrapper-klasserna - knapparna låg därför fortfarande kant i kant med
+       sin container horisontellt. --button-row-padding-inline finns nu
+       specifikt för det. */
+    --button-gap: 1.25rem; /* 20px mellan knappar på samma rad - inom kravade 16-24px */
+    --button-row-padding-inline: 1.5rem; /* 24px - horisontell luft i knapp-wrappern */
+    --button-row-padding-block: 1rem; /* 16px vertikalt i tätare rader (tabellrader) */
 }
 
 [data-bs-theme="dark"] {
@@ -131,6 +145,15 @@
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
 }
 
+/* Bootstraps standard-gap mellan modalens fotknappar (0.5rem) är snålare än
+   resten av appens knapprader - matchar här mot samma --button-gap istället
+   för att ConfirmDialog (appens enda modal) sticker ut med ett tightare
+   avstånd. Bootstraps egen padding-formel för .modal-footer kompenserar
+   automatiskt så det yttre avståndet mot modalkanten hålls konstant. */
+.modal {
+    --bs-modal-footer-gap: var(--button-gap);
+}
+
 .button-login:active:not(:disabled),
 .button-logout:active:not(:disabled),
 .button-copy:active:not(:disabled),
@@ -148,23 +171,63 @@
 }
 
 .button-group {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.75rem;
+    gap: var(--button-gap);
     margin-block: 1rem;
+    padding: var(--button-row-padding-block) var(--button-row-padding-inline);
 }
 
+    .button-group > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+/* Åtgärdsknapparna i tabellrader (Redigera/Kopiera/Ta bort/Inaktivera/Visa
+   resultat sitter i den här wrappern, inuti <td data-label="Åtgärder">).
+   padding-inline saknades helt i förra versionen (bara padding-block+0 i
+   sidled) - knapparna låg därför kant i kant med cellen/radkortet
+   horisontellt. .table-responsive är overflow-x:auto (Bootstrap), så en
+   bredare kolumn scrollar i sidled istället för att bryta layouten. */
 .table-actions {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.85rem;
-    padding-block: 0.5rem;
+    gap: var(--button-gap);
+    padding: var(--button-row-padding-block) var(--button-row-padding-inline);
 }
 
+    .table-actions > * {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Mindre padding än basknappen (0.7rem/1rem känns för brett när tre
+       åtgärder ska dela en rad), men höjden hålls kvar på 2.75rem/44px
+       (WCAG 2.5.8) - att krympa den under 44px bara för att det är en
+       tabellrad vore precis den träffyta-brist kravet ska förhindra. */
     .table-actions .btn {
-        white-space: nowrap;
+        padding: 0.55rem 1.75rem;
+        min-height: 2.75rem;
+        font-size: var(--font-size-text-medium);
+        /* Flex-barn krymper aldrig under sitt innehålls naturliga bredd som
+           standard (min-width: auto) - en lång, nowrap-satt knapptext
+           ("Skicka inbjudan igen") tvingade HELA raden (.table-actions,
+           <td>, <tr>/kortet) bredare än sin container och ut över kanten,
+           istället för att bara fylla tillgänglig bredd. */
+        min-width: 0;
+        /* nowrap borttaget av samma anledning - får texten inte plats
+           bryts den till en andra rad istället för att tvinga fram overflow. */
+        white-space: normal;
         flex: 1 1 auto;
+        text-align: center;
     }
 
 /* Knapparna hålls på en enda rad först från 1600px. Tidigare gällde det från
@@ -207,6 +270,14 @@
     }
 
 .card-panel {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    /* Hård spärr: oavsett vad som händer inuti (lång text, en knapp som
+       vägrar krympa) kan inget barn någonsin rendera synligt utanför det
+       här kortets egen box och ut över skärmkanten. overflow-x (inte
+       overflow) så kortets vertikala skugga inte klipps. */
+    overflow-x: hidden;
     background-color: var(--background-color-2);
     border-radius: 16px;
     padding: 1.5rem;
@@ -267,9 +338,17 @@
         display: none;
     }
 
+    /* Det mörka "användarkortet"/radkortet - den faktiska innercontainer som
+       låg kant i kant med .card-panel innan. box-sizing/max-width är
+       explicita här (inte bara Bootstraps globala *{box-sizing:border-box})
+       så padding garanterat räknas in i bredden och aldrig knuffar kortet
+       bredare än sin förälder. */
     .table-responsive tbody tr {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
         margin-bottom: 1rem;
-        padding: 1rem;
+        padding: 1.5rem;
         border: 1px solid rgba(212, 175, 55, 0.15);
         border-radius: 12px;
         background-color: rgba(255, 255, 255, 0.03);
@@ -278,6 +357,8 @@
     }
 
     .table-responsive td {
+        box-sizing: border-box;
+        max-width: 100%;
         border: none;
         padding: 0.35rem 0;
     }
@@ -290,8 +371,14 @@
             color: var(--text-color-secondary);
         }
 
+    /* Radkortet (.table-responsive tbody tr, se ovan) ger redan 24px padding
+       runt om sig självt i kortläget - .table-actions egen padding-inline
+       (24px) skulle annars läggas ovanpå det och ge 48px, bara i just det
+       här nästlade fallet. Gäller alla sidor som använder kortläget, inte
+       en enskild sida. */
     .table-responsive .table-actions {
-        margin-top: 0.5rem;
+        padding-inline: 0;
+        margin-top: 0.75rem;
     }
 }
 
@@ -525,13 +612,10 @@ select:not(:disabled) {
     text-align: center;
 }
 
-.ai-analysis-section .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-    margin: 1rem 0;
-}
+/* .ai-analysis-section .button-group hade tidigare en egen kopia av precis
+   samma display/gap/margin som basklassen .button-group - borttagen, båda
+   pekar nu på samma regel (och samma --button-gap) istället för att
+   duplicera den. */
 
 .ai-analysis-section .ai-result-box {
     text-align: left;
@@ -725,7 +809,9 @@ select:not(:disabled) {
 .auth-card .button-login,
 .auth-card .button-secondary {
     width: 100%;
-    margin-top: 0.5rem;
+    /* Samma luft mot fältet ovanför som resten av appens knapprader
+       (--button-row-padding-block), istället för det tidigare snävare 0.5rem. */
+    margin-top: var(--button-row-padding-block);
 }
 
 .auth-links {
@@ -773,13 +859,23 @@ select:not(:disabled) {
 
 /* ---- Knappraden i formulär ---- */
 .form-actions {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: var(--button-gap);
     margin-top: 1.5rem;
-    padding-top: 1.25rem;
+    /* padding-inline saknades helt tidigare (0 i sidled) - Spara/Avbryt låg
+       därför i linje med kortkanten så fort formuläret nådde full bredd. */
+    padding: 1.25rem var(--button-row-padding-inline) var(--button-row-padding-block);
     border-top: 1px solid rgba(212, 175, 55, 0.15);
 }
+
+    .form-actions > * {
+        min-width: 0;
+        max-width: 100%;
+    }
 
 /* ---- Tabeller ---- */
 .table > thead > tr > th {
@@ -849,16 +945,6 @@ select:not(:disabled) {
     background-color: rgba(243, 234, 215, 0.12);
     color: var(--text-color); /* 6.0:1 */
     border: 1px solid rgba(243, 234, 215, 0.3);
-}
-
-/* Mindre knappar i tabellrader - smalare padding (0.7rem/1rem känns för brett
-   när tre åtgärder ska dela en rad), men höjden hålls kvar på 2.75rem/44px
-   (WCAG 2.5.8) - att krympa den under 44px enbart för att det är en tabellrad
-   vore precis den typen av träffyta-brist kravet ska förhindra. */
-.table-actions .btn {
-    padding: 0.55rem 1.75rem;
-    min-height: 2.75rem;
-    font-size: var(--font-size-text-medium);
 }
 
 /* Kortläget för tabeller (samma brytpunkt som blocket längre upp) staplar
