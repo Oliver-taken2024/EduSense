@@ -855,4 +855,16 @@ select:not(:disabled) {
         white-space: normal;
         min-width: 0;
     }
+    .table-responsive td:not(:last-child) {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+
+    .table-responsive td:last-child {
+        padding-top: 0.5rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
 }
