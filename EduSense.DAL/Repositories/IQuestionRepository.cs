@@ -10,7 +10,7 @@ namespace EduSense.DAL.Repositories
         Task<IReadOnlyList<QuestionWithOrganisationModel>> GetAllWithOrganisationAsync();
         Task<QuestionWithOrganisationModel?> GetByIdWithOrganisationAsync(int id);
         Task<QuestionModel?> GetByIdAsync(int id);
-        Task<QuestionModel> CreateAsync(QuestionModel question);
+        Task<QuestionModel> CreateAsync(QuestionModel question, AnswerScaleType scaleType = AnswerScaleType.Standard1To5);
         Task<QuestionModel> UpdateAsync(QuestionModel question);
         Task DeleteAsync(QuestionModel question);
     }

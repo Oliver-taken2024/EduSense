@@ -78,6 +78,27 @@ namespace EduSense.API.Test.EndpointTests
         }
 
         [Fact]
+        public async Task Post_AsAdmin_IgnoresClientSuppliedCreatedByUserId()
+        {
+            // CreatedByUserId ska alltid komma från den inloggade användarens claims,
+            // inte från vad klienten råkar skicka med i request-bodyn.
+            var adminClient = await CreateAdminClientAsync();
+
+            var response = await adminClient.PostAsJsonAsync("/api/question", new QuestionDto
+            {
+                Text = $"Förfalskat user-id {Guid.NewGuid()}",
+                CreatedByUserId = "Someone"
+            },
+            TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var question = await response.Content.ReadFromJsonAsync<QuestionDto>(cancellationToken: TestContext.Current.CancellationToken);
+            Assert.NotNull(question);
+            Assert.NotEqual("Someone", question!.CreatedByUserId);
+            Assert.False(string.IsNullOrWhiteSpace(question.CreatedByUserId));
+        }
+
+        [Fact]
         public async Task Post_AsAdmin_EmptyText_ReturnsBadRequest()
         {
             var client = await CreateAdminClientAsync();

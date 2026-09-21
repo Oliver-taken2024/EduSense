@@ -1,4 +1,5 @@
 ﻿using Bunit;
+using Bunit.TestDoubles;
 using EduSense.Shared;
 using EduSense.UI.Components;
 using EduSense.UI.Services;
@@ -7,18 +8,21 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Security.Claims;
 using TestContext = Bunit.TestContext;
 
 namespace EduSense.UI.Test;
 
 public class QuestionFormTests : TestContext
 {
-    // Registrerar en ApiService med en fejkad HttpMessageHandler som returnerar ett fast svar
-    private void RegisterApiService(HttpStatusCode statusCode, object? content = null)
+    // Registrerar en ApiService med en fejkad HttpMessageHandler som returnerar ett fast svar.
+    // Returnerar handlern så tester kan inspektera LastRequest (t.ex. request-bodyn).
+    private FakeHttpMessageHandler RegisterApiService(HttpStatusCode statusCode, object? content = null)
     {
         var handler = new FakeHttpMessageHandler(statusCode, content);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
         Services.AddSingleton(new ApiService(httpClient));
+        return handler;
     }
 
     [Fact]
@@ -54,6 +58,9 @@ public class QuestionFormTests : TestContext
         // Testar att komponenten anropar OnSaved när en ny fråga sparas med lyckat svar från API:t
 
         RegisterApiService(HttpStatusCode.OK, new QuestionDto { Id = 1, Text = "Ny text" });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
         var saved = false;
 
         var cut = RenderComponent<QuestionForm>(parameters => parameters
@@ -66,11 +73,57 @@ public class QuestionFormTests : TestContext
     }
 
     [Fact]
+    public async Task Save_new_question_with_NpsScaleSelected_sends_IsNpsTrue()
+    {
+        // Testar att valet av NPS-skala i formuläret faktiskt skickas med i request-bodyn.
+
+        var handler = RegisterApiService(HttpStatusCode.OK, new QuestionDto { Id = 1, Text = "Rekommenderar du oss?" });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
+
+        var cut = RenderComponent<QuestionForm>();
+
+        cut.Find("input.form-control").Input("Rekommenderar du oss?");
+        cut.Find("#scaleNps").Change(true);
+        await cut.Find("form").SubmitAsync();
+
+        var body = await handler.LastRequest!.Content!.ReadAsStringAsync();
+        var sent = System.Text.Json.JsonSerializer.Deserialize<QuestionDto>(body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.True(sent!.IsNps);
+    }
+
+    [Fact]
+    public async Task Save_new_question_without_touching_scale_sends_IsNpsFalse()
+    {
+        // Standardskalan ska vara förvalet - IsNps ska vara false om man inte aktivt väljer NPS.
+
+        var handler = RegisterApiService(HttpStatusCode.OK, new QuestionDto { Id = 1, Text = "Hur trivs du?" });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
+
+        var cut = RenderComponent<QuestionForm>();
+
+        cut.Find("input.form-control").Input("Hur trivs du?");
+        await cut.Find("form").SubmitAsync();
+
+        var body = await handler.LastRequest!.Content!.ReadAsStringAsync();
+        var sent = System.Text.Json.JsonSerializer.Deserialize<QuestionDto>(body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.False(sent!.IsNps);
+    }
+
+    [Fact]
     public async Task Save_shows_errors_and_does_not_call_OnSaved_on_ApiException()
     {
         // Testar att komponenten visar felmeddelanden och inte anropar OnSaved när API:t returnerar ett fel
 
         RegisterApiService(HttpStatusCode.BadRequest, new List<string> { "Frågetext får inte vara tom." });
+        this.AddTestAuthorization()
+            .SetAuthorized("test-user")
+            .SetClaims(new Claim(ClaimTypes.NameIdentifier, "user-1"));
         var saved = false;
 
         var cut = RenderComponent<QuestionForm>(parameters => parameters

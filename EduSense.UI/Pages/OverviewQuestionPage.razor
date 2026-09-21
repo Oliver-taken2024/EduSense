@@ -16,41 +16,46 @@
 }
 else
 {
-    <main id="main-content"> 
-        <h1>Granska dina svar</h1>
+    <div class="Review-container">
+        <div class="Review-box card-panel fade-in-up" lang="sv">
+            <main id="main-content">
+                <h1>Granska dina svar</h1>
+                <p class="page-subtitle">Kontrollera dina svar innan du skickar in enkäten.</p>
 
-        @foreach (var question in _survey.Questions)
-        {
-            <section class="card p-3 mb-3" aria-labelledby="@($"question-{question.SurveyQuestionId}")">
-                <h2 id="@($"question-{question.SurveyQuestionId}")">@question.QuestionText</h2>
+                @foreach (var question in _survey.Questions)
+                {
+                    <section class="Review-question" aria-labelledby="@($"question-{question.SurveyQuestionId}")">
+                        <h2 id="@($"question-{question.SurveyQuestionId}")">@question.QuestionText</h2>
 
-                <fieldset>
-                    <legend class="visually-hidden">Svarsalternativ för: @question.QuestionText</legend>
-                    @foreach (var option in question.AnswerOptions)
-                    {
-                        <label class="d-block">
-                            <input type="radio"
-                                   name="@($"question-{question.SurveyQuestionId}")"
-                                   value="@option.Id"
-                                   checked="@(question.AnsweredQuestionAnswerOptionId == option.Id)"
-                                   @onchange="() => UpdateAnswer(question, option.Id)"
-                                   aria-label="@option.Description" />
-                            <span>@option.Description</span>
-                        </label>
-                    }
-                </fieldset>
-            </section>
-        }
+                        <fieldset class="Review-options">
+                            <legend class="visually-hidden">Svarsalternativ för: @question.QuestionText</legend>
+                            @foreach (var option in question.AnswerOptions)
+                            {
+                                <label class="Review-option">
+                                    <input type="radio"
+                                           name="@($"question-{question.SurveyQuestionId}")"
+                                           value="@option.Id"
+                                           checked="@(question.AnsweredQuestionAnswerOptionId == option.Id)"
+                                           @onchange="() => UpdateAnswer(question, option.Id)"
+                                           aria-label="@option.Description" />
+                                    <span>@option.Description</span>
+                                </label>
+                            }
+                        </fieldset>
+                    </section>
+                }
 
-        <div class="button-group">
-            <button type="button"
-                    class="btn btn-primary"
-                    @onclick="SubmitSurvey"
-                    aria-label="Skicka in enkät">
-                Skicka in enkät
-            </button>
+                <div class="button-group">
+                    <button type="button"
+                            class="button-login Review-submit-button"
+                            @onclick="SubmitSurvey"
+                            aria-label="Skicka in enkät">
+                        Skicka in enkät
+                    </button>
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 }
 
 @code {

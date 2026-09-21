@@ -3,6 +3,7 @@ using EduSense.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace EduSense.API.Controllers
 {
@@ -29,7 +30,11 @@ namespace EduSense.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<QuestionDto>> Post([FromBody] QuestionDto question)
         {
-            // Skapa ny fråga
+            // Skapa ny fråga. CreatedByUserId sätts alltid från den inloggade användarens
+            // claims - aldrig från vad klienten skickade in i request-bodyn (samma mönster
+            // som SurveyDispatchController använder för SentByUserId).
+            question.CreatedByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
             try
             {
                 var created = await _questionService.CreateAsync(question);
