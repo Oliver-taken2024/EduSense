@@ -24,6 +24,8 @@ namespace EduSense.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IPasswordResetService _passwordResetService;
 
+       
+
         private readonly IWebHostEnvironment _environment;
 
         public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService, IWebHostEnvironment environment)
@@ -33,6 +35,7 @@ namespace EduSense.API.Controllers
             _configuration = configuration;
             _passwordResetService = passwordResetService;
             _environment = environment;
+            
          }
 
         [HttpPost("set-initial-password")]
