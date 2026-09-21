@@ -32,16 +32,24 @@
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 1rem;
     width: 100%;
-    max-width: 480px;
+    max-width: 492px;
 }
 
     /* Udda antal knappar (t.ex. Admin: 4 + "Enkätresultat" = 5) gör att den sista
        annars hamnar ensam i vänsterkolumnen på sin egen rad - grid fyller rader
        vänster->höger utan att veta att raden bara har en knapp. Centrera den
        istället, med bredd som matchar en vanlig kolumn så den inte sticker ut. */
+    /*.Welcome-actions > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: 100%;
+        max-width: 480px; *//*calc((100% - 1rem) / 2);*/
+    
+@media (min-width: 492px) {
     .Welcome-actions > :last-child:nth-child(odd) {
         grid-column: 1 / -1;
         justify-self: center;
         width: 100%;
         max-width: calc((100% - 1rem) / 2);
     }
+}
