@@ -25,14 +25,16 @@ namespace EduSense.API.Controllers
         private readonly IPasswordResetService _passwordResetService;
 
         private readonly IWebHostEnvironment _environment;
+        private readonly EduSense.BLL.Services.IEmailSender _emailSender;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService, IWebHostEnvironment environment)
+        public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService, IWebHostEnvironment environment, EduSense.BLL.Services.IEmailSender emailSender)
         {
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
             _passwordResetService = passwordResetService;
             _environment = environment;
+            _emailSender = emailSender;
          }
 
         [HttpPost("set-initial-password")]
@@ -196,11 +198,22 @@ namespace EduSense.API.Controllers
         {
             var token = await _passwordResetService.ForgotPasswordAsync(dto.Email);
 
-            if (token==null)
+            // Säkerhet: svara alltid OK för att inte läcka om e-post finns.
+            if (token is not null)
             {
-                return NotFound();
+                var baseUrl = _configuration["ClientApp:BaseUrl"] ?? "https://localhost:7289";
+                var url = $"{baseUrl}/reset-password?email={Uri.EscapeDataString(dto.Email)}&token={Uri.EscapeDataString(token)}";
+
+                var body = $"""
+            <p>Du har begärt återställning av lösenord.</p>
+            <p><a href="{url}">Klicka här för att byta lösenord</a></p>
+            <p>Om du inte begärde detta kan du ignorera mailet.</p>
+            """;
+
+                await _emailSender.SendAsync(dto.Email, "Återställ lösenord", body);
             }
-            return Ok(new { Token = token });
+
+            return Ok();
         }
 
         [HttpPost("reset-password")]
