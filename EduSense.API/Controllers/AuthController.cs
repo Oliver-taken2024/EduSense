@@ -30,7 +30,7 @@ namespace EduSense.API.Controllers
 
         public AuthController(UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration, IPasswordResetService passwordResetService, IWebHostEnvironment environment)
         {
-            _userManager = userManager
+            _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
             _passwordResetService = passwordResetService;
