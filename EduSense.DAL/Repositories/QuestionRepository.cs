@@ -62,35 +62,21 @@ namespace EduSense.DAL.Repositories
             return await _context.Questions.FirstOrDefaultAsync(q => q.Id == id);
         }
 
-        // Samma fasta 1-5-skala som DataSeeder länkar de fröade frågorna mot. Utan denna
-        // koppling saknar en fråga skapad via admin-UI:t svarsalternativ helt, och
-        // respondenter kan inte välja något på frågesidan.
-        private static readonly (string Description, int Value)[] StandardAnswerScale =
-        [
-            ("Mycket missnöjd", 1),
-            ("Missnöjd", 2),
-            ("Neutral", 3),
-            ("Nöjd", 4),
-            ("Mycket nöjd", 5)
-        ];
-
-        public async Task<QuestionModel> CreateAsync(QuestionModel question)
+        public async Task<QuestionModel> CreateAsync(QuestionModel question, AnswerScaleType scaleType = AnswerScaleType.Standard1To5)
         {
             _context.Questions.Add(question);
             await _context.SaveChangesAsync();
 
-            foreach (var (description, value) in StandardAnswerScale)
+            // Skalan (standard 1-5 eller NPS 1-10) ska alltid finnas - seedad av
+            // DataSeeder. Identifieras via ScaleType-kolumnen i DB, inte hårdkodad
+            // Description-text här - annars saknar en fråga skapad via admin-UI:t
+            // svarsalternativ helt, och respondenter kan inte välja något på frågesidan.
+            var scale = await _context.AnswerOptions
+                .Where(x => x.ScaleType == scaleType)
+                .ToListAsync();
+
+            foreach (var option in scale)
             {
-                var option = await _context.AnswerOptions
-                    .SingleOrDefaultAsync(x => x.Description == description && x.Value == value);
-
-                if (option is null)
-                {
-                    option = new AnswerOptionModel { Description = description, Value = value };
-                    _context.AnswerOptions.Add(option);
-                    await _context.SaveChangesAsync();
-                }
-
                 _context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel
                 {
                     QuestionId = question.Id,

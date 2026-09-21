@@ -73,7 +73,8 @@ namespace EduSense.BLL.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _questionRepository.CreateAsync(question);
+            var scaleType = dto.IsNps ? AnswerScaleType.Nps1To10 : AnswerScaleType.Standard1To5;
+            await _questionRepository.CreateAsync(question, scaleType);
 
             return new QuestionDto
             {
@@ -81,7 +82,8 @@ namespace EduSense.BLL.Services
                 Text = question.Text,
                 CreatedByUserId = question.CreatedByUserId,
                 CreatedAt = question.CreatedAt,
-                Organisation = dto.Organisation
+                Organisation = dto.Organisation,
+                IsNps = dto.IsNps
             };
         }
 

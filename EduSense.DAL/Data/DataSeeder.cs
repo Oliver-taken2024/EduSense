@@ -625,35 +625,35 @@ namespace EduSense.DAL.Data
             var ans1 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Mycket nöjd" && x.Value == 5);
             if (ans1 is null)
             {
-                ans1 = new AnswerOptionModel { Description = "Mycket nöjd", Value = 5 };
+                ans1 = new AnswerOptionModel { Description = "Mycket nöjd", Value = 5, ScaleType = AnswerScaleType.Standard1To5 };
                 context.AnswerOptions.Add(ans1);
             }
 
             var ans2 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Nöjd" && x.Value == 4);
             if (ans2 is null)
             {
-                ans2 = new AnswerOptionModel { Description = "Nöjd", Value = 4 };
+                ans2 = new AnswerOptionModel { Description = "Nöjd", Value = 4, ScaleType = AnswerScaleType.Standard1To5 };
                 context.AnswerOptions.Add(ans2);
             }
 
             var ans3 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Neutral" && x.Value == 3);
             if (ans3 is null)
             {
-                ans3 = new AnswerOptionModel { Description = "Neutral", Value = 3 };
+                ans3 = new AnswerOptionModel { Description = "Neutral", Value = 3, ScaleType = AnswerScaleType.Standard1To5 };
                 context.AnswerOptions.Add(ans3);
             }
 
             var ans4 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Missnöjd" && x.Value == 2);
             if (ans4 is null)
             {
-                ans4 = new AnswerOptionModel { Description = "Missnöjd", Value = 2 };
+                ans4 = new AnswerOptionModel { Description = "Missnöjd", Value = 2, ScaleType = AnswerScaleType.Standard1To5 };
                 context.AnswerOptions.Add(ans4);
             }
 
             var ans5 = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == "Mycket missnöjd" && x.Value == 1);
             if (ans5 is null)
             {
-                ans5 = new AnswerOptionModel { Description = "Mycket missnöjd", Value = 1 };
+                ans5 = new AnswerOptionModel { Description = "Mycket missnöjd", Value = 1, ScaleType = AnswerScaleType.Standard1To5 };
                 context.AnswerOptions.Add(ans5);
             }
 
@@ -693,20 +693,7 @@ namespace EduSense.DAL.Data
             org2.Longitude = 13.19500;
             await context.SaveChangesAsync();
 
-            // NPS-fråga med egen 1-10-skala (delas inte med de övriga frågornas 1-5-svarsalternativ)
-            var qNps = await context.Questions.SingleOrDefaultAsync(x => x.Text == "Hur sannolikt är det att du skulle rekommendera oss till en vän eller kollega?");
-            if (qNps is null)
-            {
-                qNps = new QuestionModel
-                {
-                    Text = "Hur sannolikt är det att du skulle rekommendera oss till en vän eller kollega?",
-                    CreatedByUserId = "admin@edusense.com",
-                    CreatedAt = NpsQuestionCreatedAt
-                };
-                context.Questions.Add(qNps);
-                await context.SaveChangesAsync();
-            }
-
+            // Delad uppsättning svarsalternativ (1-10) för alla NPS-frågor, oavsett målgrupp.
             var npsAnswerOptions = new List<AnswerOptionModel>();
             for (var value = 1; value <= 10; value++)
             {
@@ -714,7 +701,7 @@ namespace EduSense.DAL.Data
                 var option = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == description && x.Value == value);
                 if (option is null)
                 {
-                    option = new AnswerOptionModel { Description = description, Value = value };
+                    option = new AnswerOptionModel { Description = description, Value = value, ScaleType = AnswerScaleType.Nps1To10 };
                     context.AnswerOptions.Add(option);
                 }
 
@@ -723,15 +710,11 @@ namespace EduSense.DAL.Data
 
             await context.SaveChangesAsync();
 
-            foreach (var option in npsAnswerOptions)
-            {
-                if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == qNps.Id && x.AnswerOptionId == option.Id))
-                {
-                    context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = qNps.Id, AnswerOptionId = option.Id });
-                }
-            }
-
-            await context.SaveChangesAsync();
+            // Tre NPS-frågor, en per målgrupp - egen fråga ger ett meningsfullt mätvärde per
+            // segment istället för att alla delar samma "rekommendera oss"-fråga.
+            var qNpsParent = await EnsureNpsQuestionAsync(context, "Hur sannolikt är det att du skulle rekommendera oss till en vän eller kollega?", NpsQuestionCreatedAt, npsAnswerOptions);
+            var qNpsMed = await EnsureNpsQuestionAsync(context, "Hur sannolikt är det att du skulle rekommendera den här arbetsplatsen till en vän eller bekant?", ExpandedSurveysCreatedAt, npsAnswerOptions);
+            var qNpsElev = await EnsureNpsQuestionAsync(context, "Hur sannolikt är det att du skulle rekommendera den här skolan eller utbildningen till en vän?", ExpandedSurveysCreatedAt, npsAnswerOptions);
 
             // Engångsbackfill: frågor skapade via admin-UI:t innan QuestionRepository.CreateAsync
             // började länka svarsalternativ automatiskt saknar helt QuestionAnswerOptions-rader,
@@ -742,7 +725,7 @@ namespace EduSense.DAL.Data
             // Enkät 1 - alla 11 frågor + NPS
             var survey1 = await EnsureSurveyAsync(context, "Kundnöjdhetsenkät", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey1, allQuestions);
-            await LinkQuestionsToSurveyAsync(context, survey1, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, survey1, new[] { qNpsParent });
             var dispatch1 = await EnsureDispatchAsync(context, survey1, DateTime.UtcNow.AddDays(30), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatch1, "respondent1@test.com", "token-123", RespondentSegment.Personal);
             await EnsureRespondentAsync(context, dispatch1, "respondent2@test.com", "token-456", RespondentSegment.Personal);
@@ -750,7 +733,7 @@ namespace EduSense.DAL.Data
             // Enkät 2 - föräldraenkät, skol-/fritidsrelaterade frågor
             var survey2 = await EnsureSurveyAsync(context, "Föräldraenkät - skola och fritids", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey2, [q3, q4, q5, q6, q7, q8, q9, q10, q11]);
-            await LinkQuestionsToSurveyAsync(context, survey2, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, survey2, new[] { qNpsParent });
             var dispatch2 = await EnsureDispatchAsync(context, survey2, DateTime.UtcNow.AddDays(14), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatch2, "respondent3@test.com", "token-789", RespondentSegment.GradeFTo6);
             await EnsureRespondentAsync(context, dispatch2, "respondent4@test.com", "token-101", RespondentSegment.GradeFTo6);
@@ -765,7 +748,7 @@ namespace EduSense.DAL.Data
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             var criticalQuestionIds = new HashSet<int> { q4.Id, q5.Id, q6.Id }; // Lokaler & Miljö - skevas mot sämre snitt
-            var npsQuestionIds = new HashSet<int> { qNps.Id };
+            var npsQuestionIds = new HashSet<int> { qNpsParent.Id, qNpsMed.Id, qNpsElev.Id };
 
             var survey1Questions = await context.SurveyQuestions.Where(x => x.SurveyId == survey1.Id).ToListAsync();
             var survey2Questions = await context.SurveyQuestions.Where(x => x.SurveyId == survey2.Id).ToListAsync();
@@ -790,7 +773,7 @@ namespace EduSense.DAL.Data
             // ---- Nya standardenkäter per segment + uppföljningsenkät ----
             var surveyMed = await EnsureSurveyAsync(context, "Medarbetarenkät", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qMed1, qMed2, qMed3, qMed4, qMed5, qMed6, qMed7 });
-            await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, surveyMed, new[] { qNpsMed });
             var dispatchMed = await EnsureDispatchAsync(context, surveyMed, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchMed, "respondent-med1@test.com", "token-med-1", RespondentSegment.Personal);
             var surveyMedQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyMed.Id).ToListAsync();
@@ -798,7 +781,7 @@ namespace EduSense.DAL.Data
 
             var survey79 = await EnsureSurveyAsync(context, "Elevenkät åk 7-9", org1.Id);
             await LinkQuestionsToSurveyAsync(context, survey79, new[] { q79_1, q79_2, q79_3, q79_4, q79_5, q79_6, q79_7 });
-            await LinkQuestionsToSurveyAsync(context, survey79, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, survey79, new[] { qNpsElev });
             var dispatch79 = await EnsureDispatchAsync(context, survey79, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatch79, "respondent-79-1@test.com", "token-79-1", RespondentSegment.Grade7To9);
             var survey79Questions = await context.SurveyQuestions.Where(x => x.SurveyId == survey79.Id).ToListAsync();
@@ -806,7 +789,7 @@ namespace EduSense.DAL.Data
 
             var surveyGym = await EnsureSurveyAsync(context, "Elevenkät gymnasiet", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qGym1, qGym2, qGym3, qGym4, qGym5, qGym6, qGym7 });
-            await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, surveyGym, new[] { qNpsElev });
             var dispatchGym = await EnsureDispatchAsync(context, surveyGym, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchGym, "respondent-gym1@test.com", "token-gym-1", RespondentSegment.Gymnasiet);
             var surveyGymQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyGym.Id).ToListAsync();
@@ -814,7 +797,7 @@ namespace EduSense.DAL.Data
 
             var surveyVux = await EnsureSurveyAsync(context, "Enkät vuxenutbildning", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qVux1, qVux2, qVux3, qVux4, qVux5, qVux6, qVux7 });
-            await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, surveyVux, new[] { qNpsElev });
             var dispatchVux = await EnsureDispatchAsync(context, surveyVux, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchVux, "respondent-vux1@test.com", "token-vux-1", RespondentSegment.Vuxenutbildning);
             var surveyVuxQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyVux.Id).ToListAsync();
@@ -822,7 +805,7 @@ namespace EduSense.DAL.Data
 
             var surveyIntro = await EnsureSurveyAsync(context, "Uppföljningsenkät efter nystart", org1.Id);
             await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qIntro1, qIntro2, qIntro3, qIntro4, qIntro5, qIntro6 });
-            await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qNps });
+            await LinkQuestionsToSurveyAsync(context, surveyIntro, new[] { qNpsParent });
             var dispatchIntro = await EnsureDispatchAsync(context, surveyIntro, DateTime.UtcNow.AddDays(21), "admin@edusense.com");
             await EnsureRespondentAsync(context, dispatchIntro, "respondent-intro1@test.com", "token-intro-1", RespondentSegment.GradeFTo6);
             var surveyIntroQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyIntro.Id).ToListAsync();
@@ -855,6 +838,37 @@ namespace EduSense.DAL.Data
             {
                 await context.SaveChangesAsync();
             }
+        }
+
+        // Hittar eller skapar en NPS-fråga och länkar den mot den delade uppsättningen
+        // NPS-svarsalternativ - så flera målgrupper kan ha varsin fråga utan att
+        // duplicera alternativraderna i databasen.
+        private static async Task<QuestionModel> EnsureNpsQuestionAsync(
+            EduSenseDbContext context, string text, DateTime createdAt, IReadOnlyList<AnswerOptionModel> npsAnswerOptions)
+        {
+            var question = await context.Questions.SingleOrDefaultAsync(x => x.Text == text);
+            if (question is null)
+            {
+                question = new QuestionModel
+                {
+                    Text = text,
+                    CreatedByUserId = "admin@edusense.com",
+                    CreatedAt = createdAt
+                };
+                context.Questions.Add(question);
+                await context.SaveChangesAsync();
+            }
+
+            foreach (var option in npsAnswerOptions)
+            {
+                if (!await context.QuestionAnswerOptions.AnyAsync(x => x.QuestionId == question.Id && x.AnswerOptionId == option.Id))
+                {
+                    context.QuestionAnswerOptions.Add(new QuestionAnswerOptionModel { QuestionId = question.Id, AnswerOptionId = option.Id });
+                }
+            }
+
+            await context.SaveChangesAsync();
+            return question;
         }
 
         private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId)

@@ -7,6 +7,26 @@
             <input id="questionText" class="form-control" @bind="_text" @bind:event="oninput" />
         </div>
 
+        @if (!IsEditing)
+        {
+            <div class="mb-3">
+                <span class="form-label" id="answerScaleLabel">Svarsskala</span>
+                <div role="radiogroup" aria-labelledby="answerScaleLabel">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="scaleStandard" name="answerScale"
+                               checked="@(!_isNps)" @onchange="() => _isNps = false" />
+                        <label class="form-check-label" for="scaleStandard">Standard (1–5, nöjdhetsskala)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="scaleNps" name="answerScale"
+                               checked="@_isNps" @onchange="() => _isNps = true" />
+                        <label class="form-check-label" for="scaleNps">NPS (1–10, rekommendationsfråga)</label>
+                    </div>
+                </div>
+                <div class="form-text">Skalan sätts vid skapande och går inte att ändra senare.</div>
+            </div>
+        }
+
         @if (_errors.Count > 0)
         {
             <ul class="text-danger" role="alert">
@@ -36,6 +56,7 @@
     private bool IsEditing => Question is not null && Question.Id != 0;
 
     private string _text = string.Empty;
+    private bool _isNps;
     private List<string> _errors = [];
     private bool _isSaving;
     private int? _loadedQuestionId;
@@ -49,6 +70,7 @@
 
         _loadedQuestionId = Question?.Id;
         _text = Question?.Text ?? string.Empty;
+        _isNps = false;
     }
 
     private async Task SaveAsync()
@@ -65,7 +87,8 @@
             Id = Question?.Id ?? 0,
             Text = _text,
             CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : createdByUserId,
-            Organisation = Question?.Organisation
+            Organisation = Question?.Organisation,
+            IsNps = _isNps
         };
 
         try
