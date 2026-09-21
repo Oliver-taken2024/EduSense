@@ -53,7 +53,7 @@
 .button-secondary {
     color: var(--text-color);
     border-radius: 999px;
-    padding: 0.7rem 1.6rem;
+    padding: 0.7rem 2.25rem;
     /* Golv på höjden så alla knappvarianter blir exakt lika höga oavsett om de
        innehåller ikon+text eller bara text, och når 44px träffyta (WCAG 2.5.8). */
     min-height: 2.75rem;
@@ -181,7 +181,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 1.5rem;
+    padding: 0.9rem 2.25rem;
     border-radius: 12px;
     background-color: var(--button-link-color);
     color: #fff;
@@ -856,7 +856,7 @@ select:not(:disabled) {
    (WCAG 2.5.8) - att krympa den under 44px enbart för att det är en tabellrad
    vore precis den typen av träffyta-brist kravet ska förhindra. */
 .table-actions .btn {
-    padding: 0.45rem 0.95rem;
+    padding: 0.55rem 1.75rem;
     min-height: 2.75rem;
     font-size: var(--font-size-text-medium);
 }
