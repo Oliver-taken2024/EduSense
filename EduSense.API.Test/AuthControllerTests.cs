@@ -19,6 +19,7 @@ public class AuthControllerTests
     private readonly Mock<IConfiguration> _configurationMock = new();
     private readonly Mock<IPasswordResetService> _passwordResetServiceMock = new();
     private readonly Mock<IWebHostEnvironment> _webHostEnvironmentMock = new();
+    private readonly Mock<IEmailSender> _emailSenderMock = new();
     private readonly AuthController _sut;
    
     public AuthControllerTests()
@@ -32,7 +33,8 @@ public class AuthControllerTests
             _refreshTokenRepoMock.Object, 
             _configurationMock.Object, 
             _passwordResetServiceMock.Object,
-            _webHostEnvironmentMock.Object);
+            _webHostEnvironmentMock.Object,
+            _emailSenderMock.Object);
     }
 
     [Fact]

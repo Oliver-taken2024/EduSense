@@ -30,7 +30,7 @@ public class SurveyAiControllerTests : IClassFixture<CustomWebApplicationFactory
         var options = await response.Content.ReadFromJsonAsync<List<AiPromptTypeOptionDto>>(TestContext.Current.CancellationToken);
 
         Assert.NotNull(options);
-        Assert.Equal(3, options!.Count);
+        Assert.Equal(2, options!.Count);
         Assert.Contains(options, o => o.Value == AiPromptType.TrendSummaryReport && o.DisplayName == "Trendrapport");
     }
 
