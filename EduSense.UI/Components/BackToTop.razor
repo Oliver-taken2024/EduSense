@@ -1,0 +1,51 @@
+@* Knapp som bara syns när man scrollat ner en bit - scrollar mjukt tillbaka till toppen. *@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@if (_isVisible)
+{
+    <button type="button" class="back-to-top" @onclick="ScrollToTopAsync" aria-label="Till toppen av sidan">
+        <img src="/Images/Arrow.png" alt="" />
+    </button>
+}
+
+@code {
+    // Hur långt ner man måste scrolla innan knappen dyker upp.
+    private const int ThresholdPx = 400;
+
+    private DotNetObjectReference<BackToTop>? _dotNetRef;
+    private bool _isVisible;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("eduSenseBackToTop.init", _dotNetRef, ThresholdPx);
+        }
+    }
+
+    // Anropas från JS varje gång scroll-läget passerar tröskeln (se backToTop.js).
+    [JSInvokable]
+    public void OnScroll(bool isPastThreshold)
+    {
+        if (_isVisible == isPastThreshold)
+        {
+            return;
+        }
+
+        _isVisible = isPastThreshold;
+        StateHasChanged();
+    }
+
+    private async Task ScrollToTopAsync()
+    {
+        await JS.InvokeVoidAsync("eduSenseBackToTop.scrollToTop");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JS.InvokeVoidAsync("eduSenseBackToTop.release");
+        _dotNetRef?.Dispose();
+    }
+}

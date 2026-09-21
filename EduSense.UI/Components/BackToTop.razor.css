@@ -1,0 +1,70 @@
+/* Placerad uppe till höger istället för nere - undviker att krocka med den
+   flytande bottom-navbaren (NavMenu.razor.css), som redan äger hela nedre
+   kanten och kan bli nästan skärmbred på mobil. */
+.back-to-top {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    /* Under floating-nav (1030) och modaler, men ovanför sidans eget innehåll. */
+    z-index: 1020;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    background: rgba(15, 46, 51, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    animation: back-to-top-fade-in 0.2s ease;
+}
+
+    .back-to-top:hover {
+        background: rgba(212, 175, 55, 0.18);
+        transform: translateY(-2px);
+    }
+
+    .back-to-top:active {
+        transform: translateY(0) scale(0.95);
+    }
+
+    .back-to-top img {
+        width: 1.3rem;
+        height: 1.3rem;
+        /* Arrow.png pekar åt vänster som standard (se Question-nav-pilarna) -
+           90° medurs vrider den uppåt. */
+        transform: rotate(90deg);
+    }
+
+@keyframes back-to-top-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smala mobilskärmar - samma brytpunkt som NavMenu.razor.css använder för
+   sin egen förminskning, så proportionerna känns konsekventa. */
+@media (max-width: 400px) {
+    .back-to-top {
+        width: 2.6rem;
+        height: 2.6rem;
+        top: 1rem;
+        right: 1rem;
+    }
+
+        .back-to-top img {
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+}

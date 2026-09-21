@@ -3,6 +3,12 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    width: 100%;
+    /* Egen bredd-tak + auto-marginal - centrerar innehållsgruppen mot hela
+       viewporten oavsett hur brett den omgivande article-elementet är,
+       istället för att bara centrera barnen inom vad som råkar vara kvar. */
+    max-width: 640px;
+    margin-inline: auto;
     padding: 3rem 1.5rem;
 }
 
