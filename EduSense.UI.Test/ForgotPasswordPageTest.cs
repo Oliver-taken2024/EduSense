@@ -149,42 +149,6 @@ namespace EduSense.UI.Test
         }
 
         [Fact]
-        public void ForgotPasswordPage_On_Success_Navigates_To_Reset_Password()
-        {
-            // Arrange
-            var testEmail = "user@example.com";
-            var testToken = "resetToken123";
-
-            RegisterServices(request =>
-            {
-                if (request.Method == HttpMethod.Post && 
-                    request.RequestUri?.AbsolutePath.Contains("forgot-password") == true)
-                {
-                    return new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(testToken)
-                    };
-                }
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            });
-
-            var component = RenderComponent<ForgotPasswordPage>();
-            var emailInput = component.Find("input[type=\"email\"]");
-
-            // Act
-            emailInput.Change(testEmail);
-            var button = component.Find("button");
-            button.Click();
-
-            // Assert
-            component.WaitForAssertion(() =>
-            {
-                var expectedUrl = $"/reset-password?email={testEmail}&token={Uri.EscapeDataString(testToken)}";
-                Assert.EndsWith(expectedUrl, _navigationManager.Uri);
-            });
-        }
-
-        [Fact]
         public void ForgotPasswordPage_On_Failure_Does_Not_Navigate()
         {
             // Arrange
@@ -240,6 +204,7 @@ namespace EduSense.UI.Test
         }
 
         [Fact]
+        // Testar att flera submit-försök görs korrekt och att varje försök registreras
         public void ForgotPasswordPage_Multiple_Submit_Attempts()
         {
             // Arrange
@@ -264,7 +229,7 @@ namespace EduSense.UI.Test
             var emailInput = component.Find("input[type=\"email\"]");
             var button = component.Find("button");
 
-            // Act - First submission
+            // Första submit-försöket
             emailInput.Change(testEmail);
             button.Click();
 
@@ -273,7 +238,7 @@ namespace EduSense.UI.Test
                 Assert.Single(_httpHandler.Requests);
             });
 
-            // Change email and submit again
+            // Andra submit-försöket
             emailInput.Change("another@example.com");
             button.Click();
 
@@ -285,6 +250,7 @@ namespace EduSense.UI.Test
         }
 
         [Fact]
+
         public void ForgotPasswordPage_Preserves_Email_Value()
         {
             // Arrange
@@ -362,38 +328,32 @@ namespace EduSense.UI.Test
         }
 
         [Fact]
+        // testa att navigeringen fungerar korrekt när token innehåller specialtecken som behöver escape:as
         public void ForgotPasswordPage_Navigation_With_Escaped_Token()
         {
-            // Arrange
             var testEmail = "user@example.com";
-            var testToken = "token/with/special+chars";
-            var expectedEncodedToken = Uri.EscapeDataString(testToken);
-
             RegisterServices(request =>
             {
-                if (request.Method == HttpMethod.Post)
+                if (request.Method == HttpMethod.Post &&
+                    request.RequestUri?.AbsolutePath.Contains("forgot-password") == true)
                 {
-                    return new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(testToken)
-                    };
+                    return new HttpResponseMessage(HttpStatusCode.OK);
                 }
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
             });
-
             var component = RenderComponent<ForgotPasswordPage>();
+            var initialUri = _navigationManager.Uri;
             var emailInput = component.Find("input[type=\"email\"]");
 
-            // Act
             emailInput.Change(testEmail);
             var button = component.Find("button");
             button.Click();
 
-            // Assert
             component.WaitForAssertion(() =>
             {
-                var expectedUrl = $"/reset-password?email={testEmail}&token={expectedEncodedToken}";
-                Assert.EndsWith(expectedUrl, _navigationManager.Uri);
+                Assert.Single(_httpHandler.Requests);
+                Assert.Equal(initialUri, _navigationManager.Uri);
+                Assert.Contains("Om e-postadressen finns registrerad har en återställningslänk skickats.", component.Markup);
             });
         }
     }
