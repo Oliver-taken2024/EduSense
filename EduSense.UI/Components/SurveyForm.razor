@@ -20,14 +20,18 @@
 
     <fieldset class="mb-3">
         <legend class="form-label">Frågor</legend>
-        @foreach (var question in Questions)
+        @foreach (var group in QuestionsByCategory)
         {
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="@($"question-{question.Id}")"
-                       checked="@_selectedQuestionIds.Contains(question.Id)"
-                       @onchange="@(e => ToggleQuestion(question.Id, (bool)e.Value!))" />
-                <label class="form-check-label" for="@($"question-{question.Id}")">@question.Text</label>
-            </div>
+            <p class="question-group-heading">@group.Key</p>
+            @foreach (var question in group)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="@($"question-{question.Id}")"
+                           checked="@_selectedQuestionIds.Contains(question.Id)"
+                           @onchange="@(e => ToggleQuestion(question.Id, (bool)e.Value!))" />
+                    <label class="form-check-label" for="@($"question-{question.Id}")">@question.Text</label>
+                </div>
+            }
         }
     </fieldset>
 
@@ -58,6 +62,15 @@
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     private bool IsEditing => Survey is not null;
+
+    // Grupperar frågorna per kategori (samma kategorier som redan finns i
+    // frågebanken/backend) istället för en enda lång omärkt lista.
+    // Okategoriserade frågor hamnar sist, kategorierna sorteras alfabetiskt.
+    private IEnumerable<IGrouping<string, QuestionDto>> QuestionsByCategory =>
+        Questions
+            .GroupBy(q => q.Category?.Name ?? "Okategoriserad")
+            .OrderBy(g => g.Key == "Okategoriserad" ? 1 : 0)
+            .ThenBy(g => g.Key);
 
     private string _title = string.Empty;
     private DateTime _surveyExpiryDate = DateTime.Today;

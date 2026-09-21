@@ -13,6 +13,8 @@ namespace EduSense.DAL.Models
 
         public int Value { get; set; }
 
+        public AnswerScaleType ScaleType { get; set; }
+
         public ICollection<QuestionAnswerOptionModel> QuestionAnswerOptions { get; set; } = [];
     }
 }

@@ -72,7 +72,7 @@ namespace EduSense.BLL.Services
         - [åtgärd]
 
         REGLER:
-        - Svara endast på svenska, kortfattat.
+        - Svara endast på svenska, max 150 ord totalt.
         - Använd endast information från underlaget, hitta inte på värden eller orsaker.
         - Använd inte Markdown, asterisker eller kodblock.
         """,

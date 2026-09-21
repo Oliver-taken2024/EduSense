@@ -216,7 +216,7 @@ else
 
             <h2 class="section-title">Resultat per segment</h2>
             <div class="table-responsive">
-                <table class="table">
+                <table class="table segment-table">
                     <thead>
                         <tr><th>Segment</th><th>Antal svar</th><th>Svarsfrekvens</th><th>Snittbetyg</th><th title="@NpsExplanation">NPS ⓘ</th></tr>
                     </thead>
@@ -227,16 +227,20 @@ else
                                 <td data-label="Segment">@SegmentLabel(s.Segment)</td>
                                 <td data-label="Antal svar">@s.RespondentCount</td>
                                 <td data-label="Svarsfrekvens">
-                                    <div class="score-bar-track">
-                                        <div class="score-bar-fill bar-fill-neutral" style="width:@(BarWidthPercent(s.ResponseRate, 100))%"></div>
+                                    <div class="score-cell">
+                                        <div class="score-bar-track">
+                                            <div class="score-bar-fill bar-fill-neutral" style="width:@(BarWidthPercent(s.ResponseRate, 100))%"></div>
+                                        </div>
+                                        <span>@s.ResponseRate.ToString("0.0")%</span>
                                     </div>
-                                    <span>@s.ResponseRate.ToString("0.0")%</span>
                                 </td>
                                 <td data-label="Snittbetyg">
-                                    <div class="score-bar-track">
-                                        <div class="score-bar-fill @ScoreBarClass(s.AverageScore)" style="width:@(BarWidthPercent(s.AverageScore, 5))%"></div>
+                                    <div class="score-cell">
+                                        <div class="score-bar-track">
+                                            <div class="score-bar-fill @ScoreBarClass(s.AverageScore)" style="width:@(BarWidthPercent(s.AverageScore, 5))%"></div>
+                                        </div>
+                                        <span>@s.AverageScore.ToString("0.0")</span>
                                     </div>
-                                    <span>@s.AverageScore.ToString("0.0")</span>
                                 </td>
                                 <td data-label="NPS">
                                     <span class="nps-badge @NpsClass(s.Nps)">@(s.Nps.HasValue ? s.Nps.Value.ToString("0") : "-")</span>

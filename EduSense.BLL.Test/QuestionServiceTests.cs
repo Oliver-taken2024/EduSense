@@ -31,13 +31,31 @@ public class QuestionServiceTests
     {
         var dto = new QuestionDto { Text = "Hur trivs du?", CreatedByUserId = "user-1" };
         _repoMock
-            .Setup(r => r.CreateAsync(It.IsAny<QuestionModel>()))
-            .ReturnsAsync((QuestionModel q) => { q.Id = 42; return q; });
+            .Setup(r => r.CreateAsync(It.IsAny<QuestionModel>(), AnswerScaleType.Standard1To5))
+            .ReturnsAsync((QuestionModel q, AnswerScaleType _) => { q.Id = 42; return q; });
 
         var result = await _questionService.CreateAsync(dto);
 
         Assert.Equal(42, result.Id);
         Assert.Equal("Hur trivs du?", result.Text);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithIsNpsTrue_LinksNpsScaleInsteadOfStandard()
+    {
+        // IsNps styr vilken skala frågan länkas mot - utan detta skulle en NPS-fråga
+        // av misstag få standardskalan 1-5 istället för 1-10.
+        var dto = new QuestionDto { Text = "Rekommenderar du oss?", CreatedByUserId = "user-1", IsNps = true };
+        _repoMock
+            .Setup(r => r.CreateAsync(It.IsAny<QuestionModel>(), AnswerScaleType.Nps1To10))
+            .ReturnsAsync((QuestionModel q, AnswerScaleType _) => { q.Id = 7; return q; });
+
+        var result = await _questionService.CreateAsync(dto);
+
+        Assert.Equal(7, result.Id);
+        Assert.True(result.IsNps);
+        _repoMock.Verify(r => r.CreateAsync(It.IsAny<QuestionModel>(), AnswerScaleType.Nps1To10), Times.Once);
+        _repoMock.Verify(r => r.CreateAsync(It.IsAny<QuestionModel>(), AnswerScaleType.Standard1To5), Times.Never);
     }
 
     [Fact]

@@ -38,7 +38,9 @@ article {
     }
 
     article {
-        padding-left: 2rem !important;
+        /* 2rem satt sidans rubriker (t.ex. "Användarhantering") väldigt nära
+           sidomenyns högra kant - höjt till 3rem för mer luft mellan dem. */
+        padding-left: 3rem !important;
         padding-right: 2rem !important;
         padding-top: 2rem;
     }

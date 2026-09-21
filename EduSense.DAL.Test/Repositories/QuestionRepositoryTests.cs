@@ -1,4 +1,5 @@
-﻿using EduSense.DAL.Models;
+﻿using EduSense.DAL.Data;
+using EduSense.DAL.Models;
 using EduSense.DAL.Repositories;
 using EduSense.DAL.Test.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,102 @@ public class QuestionRepositoryTests
 
         Assert.True(created.Id > 0);
         Assert.Equal(1, await context.Questions.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task CreateAsync_links_standard_five_point_answer_scale()
+    {
+        // Utan den här kopplingen har en nyskapad fråga inga svarsalternativ alls,
+        // och respondenter kan då inte välja något på frågesidan.
+        // Standardskalan seedas här precis som DataSeeder gör i produktion - CreateAsync
+        // slår bara upp den, den skapar den aldrig själv.
+        using var scope = TestDbContextFactory.CreateAppContext();
+        var context = scope.Context;
+        SeedStandardAnswerScale(context);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var repository = new QuestionRepository(context);
+
+        var created = await repository.CreateAsync(new QuestionModel
+        {
+            Text = "Ny fråga",
+            CreatedByUserId = "user-1"
+        });
+
+        var linkedValues = await context.QuestionAnswerOptions
+            .Where(x => x.QuestionId == created.Id)
+            .Include(x => x.AnswerOption)
+            .Select(x => x.AnswerOption!.Value)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal([1, 2, 3, 4, 5], linkedValues.OrderBy(v => v));
+    }
+
+    [Fact]
+    public async Task CreateAsync_reuses_existing_answer_options_instead_of_duplicating()
+    {
+        // Två frågor ska dela samma 5 AnswerOption-rader, inte skapa nya dubbletter varje gång.
+        using var scope = TestDbContextFactory.CreateAppContext();
+        var context = scope.Context;
+        SeedStandardAnswerScale(context);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var repository = new QuestionRepository(context);
+
+        await repository.CreateAsync(new QuestionModel { Text = "Fråga A", CreatedByUserId = "user-1" });
+        await repository.CreateAsync(new QuestionModel { Text = "Fråga B", CreatedByUserId = "user-1" });
+
+        Assert.Equal(5, await context.AnswerOptions.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    // Samma fem rader som DataSeeder seedar i produktion - QuestionRepository.CreateAsync
+    // förutsätter att de redan finns och skapar dem aldrig själv.
+    private static void SeedStandardAnswerScale(EduSenseDbContext context)
+    {
+        context.AnswerOptions.AddRange(
+            new AnswerOptionModel { Description = "Mycket missnöjd", Value = 1, ScaleType = AnswerScaleType.Standard1To5 },
+            new AnswerOptionModel { Description = "Missnöjd", Value = 2, ScaleType = AnswerScaleType.Standard1To5 },
+            new AnswerOptionModel { Description = "Neutral", Value = 3, ScaleType = AnswerScaleType.Standard1To5 },
+            new AnswerOptionModel { Description = "Nöjd", Value = 4, ScaleType = AnswerScaleType.Standard1To5 },
+            new AnswerOptionModel { Description = "Mycket nöjd", Value = 5, ScaleType = AnswerScaleType.Standard1To5 });
+    }
+
+    // Samma 10 rader som DataSeeder seedar åt NPS-frågan i produktion.
+    private static void SeedNpsAnswerScale(EduSenseDbContext context)
+    {
+        for (var value = 1; value <= 10; value++)
+        {
+            context.AnswerOptions.Add(new AnswerOptionModel
+            {
+                Description = $"NPS: {value}",
+                Value = value,
+                ScaleType = AnswerScaleType.Nps1To10
+            });
+        }
+    }
+
+    [Fact]
+    public async Task CreateAsync_with_NpsScaleType_links_ten_point_nps_scale_instead_of_standard()
+    {
+        using var scope = TestDbContextFactory.CreateAppContext();
+        var context = scope.Context;
+        SeedStandardAnswerScale(context);
+        SeedNpsAnswerScale(context);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var repository = new QuestionRepository(context);
+
+        var created = await repository.CreateAsync(
+            new QuestionModel { Text = "Hur sannolikt är det att du rekommenderar oss?", CreatedByUserId = "user-1" },
+            AnswerScaleType.Nps1To10);
+
+        var linkedValues = await context.QuestionAnswerOptions
+            .Where(x => x.QuestionId == created.Id)
+            .Include(x => x.AnswerOption)
+            .Select(x => x.AnswerOption!.Value)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(Enumerable.Range(1, 10), linkedValues.OrderBy(v => v));
     }
 
     [Fact]

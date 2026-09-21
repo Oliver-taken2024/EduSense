@@ -10,9 +10,20 @@
         @if (!IsEditing)
         {
             <div class="mb-3">
-                <label class="form-label" for="createdByUserId">Skapad av (user id)</label>
-                <input id="createdByUserId" class="form-control" @bind="_createdByUserId" @bind:event="oninput" />
-                <div class="form-text">Tillfälligt fält tills inloggningen kopplas på.</div>
+                <span class="form-label" id="answerScaleLabel">Svarsskala</span>
+                <div role="radiogroup" aria-labelledby="answerScaleLabel">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="scaleStandard" name="answerScale"
+                               checked="@(!_isNps)" @onchange="() => _isNps = false" />
+                        <label class="form-check-label" for="scaleStandard">Standard (1–5, nöjdhetsskala)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="scaleNps" name="answerScale"
+                               checked="@_isNps" @onchange="() => _isNps = true" />
+                        <label class="form-check-label" for="scaleNps">NPS (1–10, rekommendationsfråga)</label>
+                    </div>
+                </div>
+                <div class="form-text">Skalan sätts vid skapande och går inte att ändra senare.</div>
             </div>
         }
 
@@ -33,17 +44,19 @@
     </form>
 </div>
 
+@using System.Security.Claims
 @code {
     [Parameter] public QuestionDto? Question { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
     [Inject] private ApiService Api { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     private bool IsEditing => Question is not null && Question.Id != 0;
 
     private string _text = string.Empty;
-    private string _createdByUserId = string.Empty;
+    private bool _isNps;
     private List<string> _errors = [];
     private bool _isSaving;
     private int? _loadedQuestionId;
@@ -57,7 +70,7 @@
 
         _loadedQuestionId = Question?.Id;
         _text = Question?.Text ?? string.Empty;
-        _createdByUserId = string.Empty;
+        _isNps = false;
     }
 
     private async Task SaveAsync()
@@ -65,12 +78,17 @@
         _errors = [];
         _isSaving = true;
 
+        // Skapad-av ska vara den faktiskt inloggade användaren, inte ett manuellt fält.
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var createdByUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
         var dto = new QuestionDto
         {
             Id = Question?.Id ?? 0,
             Text = _text,
-            CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : _createdByUserId,
-            Organisation = Question?.Organisation
+            CreatedByUserId = IsEditing ? Question?.CreatedByUserId ?? string.Empty : createdByUserId,
+            Organisation = Question?.Organisation,
+            IsNps = _isNps
         };
 
         try
