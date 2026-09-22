@@ -1,8 +1,11 @@
 using EduSense.BLL.Services;
+using EduSense.DAL.Models;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace EduSense.API.Controllers
@@ -12,10 +15,12 @@ namespace EduSense.API.Controllers
     public class QuestionController : ControllerBase
     {
         private readonly IQuestionService _questionService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public QuestionController(IQuestionService questionService)
+        public QuestionController(IQuestionService questionService, UserManager<ApplicationUser> userManager)
         {
             _questionService = questionService;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -23,6 +28,19 @@ namespace EduSense.API.Controllers
         public async Task<ActionResult<IReadOnlyList<QuestionDto>>> GetAll()
         {
             var questions = await _questionService.GetAllAsync();
+
+            // CreatedByUserId är Identity-Id:t, inte lämpligt att visa i UI - slå upp
+            // e-post i en batch istället för en lookup per fråga.
+            var userIds = questions.Select(q => q.CreatedByUserId).Distinct().ToList();
+            var emailsByUserId = await _userManager.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.Email ?? string.Empty);
+
+            foreach (var question in questions)
+            {
+                question.CreatedByEmail = emailsByUserId.GetValueOrDefault(question.CreatedByUserId, question.CreatedByUserId);
+            }
+
             return Ok(questions);
         }
 
