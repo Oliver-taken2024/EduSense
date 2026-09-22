@@ -87,17 +87,25 @@ builder.Services.AddHttpClient<IOllamaClient, OllamaClient>(client =>
 });
 builder.Services.AddScoped<ISurveyAiService, SurveyAiService>();
 
+// Personlig LAN-origin sätts via miljövariabel (inte i appsettings) - så din
+// IP aldrig committas och andra utvecklares CORS-policy förblir oförändrad.
+var lanOrigin = Environment.GetEnvironmentVariable("EDUSENSE_LAN_ORIGIN");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUI", policy =>
     {
+        var origins = new List<string> { "https://localhost:7289", "http://localhost:5107" };
+        if (!string.IsNullOrWhiteSpace(lanOrigin))
+        {
+            origins.Add(lanOrigin);
+        }
+
         policy
-        .WithOrigins(
-            "https://localhost:7289",
-            "http://localhost:5107")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+            .WithOrigins(origins.ToArray())
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
