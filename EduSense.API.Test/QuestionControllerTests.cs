@@ -1,11 +1,12 @@
 ﻿using EduSense.API.Controllers;
 using EduSense.BLL.Services;
 using EduSense.Shared;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Xunit;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 public class QuestionControllerTests
 {
@@ -14,7 +15,22 @@ public class QuestionControllerTests
 
     public QuestionControllerTests()
     {
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, "test-user-id")
+                },
+                "TestAuth"));
+
         _sut = new QuestionController(_serviceMock.Object);
+        _sut.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = user
+            }
+        };
     }
 
     [Fact]
