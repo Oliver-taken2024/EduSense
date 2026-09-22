@@ -72,6 +72,11 @@ namespace EduSense.API.Controllers
                 return BadRequest(userNameResult.Errors.Select(e => e.Description));
             }
 
+            // DisplayName sattes aldrig när kontot skapades (inbjudan känner bara till
+            // e-post, inte det slutgiltiga användarnamnet) - sätts nu till samma som
+            // det valda användarnamnet, annars visas den bara som "?"/e-postadressen
+            // i UI:t (t.ex. floating-nav-avataren, "Skapad av"-kolumner).
+            user.DisplayName = dto.UserName;
             user.EmailConfirmed = true;
             user.IsActive = true;
             await _userManager.UpdateAsync(user);
@@ -186,7 +191,11 @@ namespace EduSense.API.Controllers
             Response.Cookies.Append("accessToken", accessToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                // Dynamisk istället för alltid true - annars skickar webbläsaren
+                // aldrig med cookien över vanlig http (t.ex. LAN-dev-läget i
+                // start-lan-dev.ps1), medan https-profilerna/produktion ändå
+                // alltid får Secure=true eftersom de requestarna faktiskt är https.
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = accessTokenExpiry
             });
@@ -204,7 +213,7 @@ namespace EduSense.API.Controllers
             Response.Cookies.Append("refreshToken", refreshTokenValue, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = refreshTokenExpiry
             });
