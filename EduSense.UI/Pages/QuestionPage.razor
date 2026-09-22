@@ -53,23 +53,35 @@ else if (_survey is not null)
                 var question = _survey.Questions[_currentQuestionIndex];
                 var isLastQuestion = _currentQuestionIndex == _survey.Questions.Count - 1;
 
+                // NPS-frågor har 10 svarsalternativ istället för standardskalans 5 - samma
+                // avgränsning som ResultService använder för att räkna NPS separat från 1-5.
+                var isNps = question.AnswerOptions.Count == 10;
+
                 <h1>Fråga @(_currentQuestionIndex + 1)</h1>
 
-                <fieldset class="Question-fieldset">
-                    <legend>@question.QuestionText</legend>
-                    @foreach (var option in question.AnswerOptions)
-                    {
-                        <label class="Question-option">
-                            <input type="radio"
-                                   name="@("question-" + question.SurveyQuestionId)"
-                                   checked="@(_selectedAnswerId == option.Id)"
-                                   @onchange="() => SelectAnswerAsync(question.SurveyQuestionId, option.Id)" />
-                            <!-- Value (1-5) syns bara på bredare skärmar (se .razor.css), Description bara på smala -
-                                 båda ligger alltid kvar i DOM:en så skärmläsare alltid får den fulla texten. -->
-                            <span class="Question-option-value" aria-hidden="true">@option.Value</span>
-                            <span class="Question-option-description">@option.Description</span>
-                        </label>
-                    }
+                <!-- <legend> kan inte läggas i grid/flex tillsammans med annat innehåll - webbläsare
+                     tvingar den att alltid spänna hela fieldset-bredden överst. Frågetexten är därför
+                     en vanlig div, kopplad till fieldset via aria-labelledby istället för <legend> -
+                     ger samma tillgänglighet (skärmläsare läser upp den som gruppens namn) men går
+                     att placera fritt i grid-layouten (se .razor.css). -->
+                <fieldset class="Question-fieldset" aria-labelledby="@($"question-legend-{question.SurveyQuestionId}")">
+                    <div class="Question-legend" id="@($"question-legend-{question.SurveyQuestionId}")">@question.QuestionText</div>
+                    <div class="Question-options" style="--option-count:@question.AnswerOptions.Count">
+                        @foreach (var option in question.AnswerOptions)
+                        {
+                            <label class="Question-option @(isNps ? "Question-option--nps" : "")">
+                                <input type="radio"
+                                       name="@("question-" + question.SurveyQuestionId)"
+                                       checked="@(_selectedAnswerId == option.Id)"
+                                       @onchange="() => SelectAnswerAsync(question.SurveyQuestionId, option.Id)" />
+                                <!-- Value (siffran) syns bara för NPS på bredare skärmar (se .razor.css) -
+                                     på 1-5-skalan räcker ordet i Description. Ligger alltid kvar i DOM:en
+                                     så skärmläsare alltid får den fulla texten. -->
+                                <span class="Question-option-value" aria-hidden="true">@option.Value</span>
+                                <span class="Question-option-description">@option.Description</span>
+                            </label>
+                        }
+                    </div>
                 </fieldset>
 
                 @if (_saveError is not null)

@@ -45,8 +45,8 @@ if ($isAdmin) {
 $env:ASPNETCORE_ENVIRONMENT = "Development"
 $env:EDUSENSE_LAN_ORIGIN    = "http://${lanIp}:$uiPort"
 
-Start-Process powershell -WorkingDirectory $repoRoot -ArgumentList "-NoExit", "-Command", "dotnet run --project EduSense.API --urls http://0.0.0.0:$apiPort"
-Start-Process powershell -WorkingDirectory $repoRoot -ArgumentList "-NoExit", "-Command", "dotnet run --project EduSense.UI --urls http://0.0.0.0:$uiPort"
+Start-Process powershell -WorkingDirectory $repoRoot -ArgumentList "-NoExit", "-Command", "`$env:ASPNETCORE_URLS='http://0.0.0.0:$apiPort'; dotnet run --project EduSense.API --no-launch-profile"
+Start-Process powershell -WorkingDirectory $repoRoot -ArgumentList "-NoExit", "-Command", "`$env:ASPNETCORE_URLS='http://0.0.0.0:$uiPort'; dotnet run --project EduSense.UI --no-launch-profile"
 
 Write-Host ""
 Write-Host "Ge kollegan den här länken: http://${lanIp}:$uiPort" -ForegroundColor Green

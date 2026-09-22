@@ -1,7 +1,9 @@
 ﻿using EduSense.API.Controllers;
 using EduSense.BLL.Services;
+using EduSense.DAL.Models;
 using EduSense.Shared;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.ComponentModel.DataAnnotations;
@@ -23,7 +25,13 @@ public class QuestionControllerTests
                 },
                 "TestAuth"));
 
-        _sut = new QuestionController(_serviceMock.Object);
+        // UserManager har ingen parameterlös konstruktor - Moq kräver att alla dess
+        // (nullable) beroenden anges explicit, se Identity-dokumentationens testmönster.
+        var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
+            userStoreMock.Object, null, null, null, null, null, null, null, null);
+
+        _sut = new QuestionController(_serviceMock.Object, userManagerMock.Object);
         _sut.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

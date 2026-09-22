@@ -694,15 +694,31 @@ namespace EduSense.DAL.Data
             await context.SaveChangesAsync();
 
             // Delad uppsättning svarsalternativ (1-10) för alla NPS-frågor, oavsett målgrupp.
+            // Endast ändpunkterna får text (standardmönstret för NPS-skalor) - övriga visar
+            // bara siffran, precis som i det fysiska/vanliga NPS-formuläret.
             var npsAnswerOptions = new List<AnswerOptionModel>();
             for (var value = 1; value <= 10; value++)
             {
-                var description = $"NPS: {value}";
-                var option = await context.AnswerOptions.SingleOrDefaultAsync(x => x.Description == description && x.Value == value);
+                var description = value switch
+                {
+                    1 => "Inte alls sannolikt",
+                    10 => "Mycket sannolikt",
+                    _ => value.ToString()
+                };
+
+                // Slår upp på Value+ScaleType, inte Description - annars skapas en ny
+                // dubblettrad varje gång beskrivningstexten ändras här (miljön är seedad
+                // sen tidigare och --seed är additivt, se DataSeeder-kommentarer nedan).
+                var option = await context.AnswerOptions
+                    .SingleOrDefaultAsync(x => x.Value == value && x.ScaleType == AnswerScaleType.Nps1To10);
                 if (option is null)
                 {
                     option = new AnswerOptionModel { Description = description, Value = value, ScaleType = AnswerScaleType.Nps1To10 };
                     context.AnswerOptions.Add(option);
+                }
+                else
+                {
+                    option.Description = description;
                 }
 
                 npsAnswerOptions.Add(option);
