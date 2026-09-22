@@ -108,7 +108,7 @@ namespace EduSense.UI.Test
 
             var cut = RenderComponent<CreatePasswordPage>();
 
-            Assert.Contains("Nytt lösenord", cut.Markup);
+            Assert.Contains("Skapa lösenord", cut.Markup);
             Assert.Contains("Bekräfta lösenord", cut.Markup);
         }
 
