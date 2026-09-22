@@ -9,7 +9,13 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? throw new InvalidOperationException("API base URL is not configured.");
+var apiBaseUrlSetting = builder.Configuration["ApiBaseUrl"] ?? throw new InvalidOperationException("API base URL is not configured.");
+
+// Byt ut host-delen mot den host webbläsaren faktiskt öppnade UI:t via
+// (localhost, din LAN-IP, ...) - "localhost" i appsettings.json betyder
+// annars alltid webbläsarens EGEN maskin, inte servern som levererade sidan.
+var uiHost = new Uri(builder.HostEnvironment.BaseAddress).Host;
+var apiBaseUrl = new UriBuilder(new Uri(apiBaseUrlSetting)) { Host = uiHost }.Uri.ToString();
 
 builder.Services.AddScoped(sp => new HttpClient(new CookieHandler { InnerHandler = new HttpClientHandler() })
 {

@@ -95,7 +95,6 @@
                 <tr>
                     <th>Användarnamn</th>
                     <th>E-post</th>
-                    <th>Namn</th>
                     <th>Roll</th>
                     <th>Status</th>
                     <th><span class="visually-hidden">Åtgärder</span></th>
@@ -107,7 +106,6 @@
                     <tr>
                         <td data-label="Användarnamn" class="cell-nowrap">@user.Username</td>
                         <td data-label="E-post" class="cell-nowrap">@user.Email</td>
-                        <td data-label="Namn">@(user.DisplayName ?? "-")</td>
                         <td data-label="Roll" class="cell-nowrap">@string.Join(", ", user.Roles)</td>
                         <td data-label="Status">
                             @if (!user.EmailConfirmed)

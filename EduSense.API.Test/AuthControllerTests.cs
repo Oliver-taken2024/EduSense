@@ -84,6 +84,8 @@ public class AuthControllerTests
         Assert.IsType<OkObjectResult>(result);
         Assert.True(user.EmailConfirmed);
         Assert.True(user.IsActive);
+        // DisplayName sattes aldrig alls tidigare - ska nu matcha det valda användarnamnet.
+        Assert.Equal("nyanvandare", user.DisplayName);
         _userManagerMock.Verify(m => m.SetUserNameAsync(user, "nyanvandare"), Times.Once);
         _userManagerMock.Verify(m => m.UpdateAsync(user), Times.Once);
     }
