@@ -810,6 +810,18 @@ namespace EduSense.DAL.Data
             await EnsureRespondentAsync(context, dispatchIntro, "respondent-intro1@test.com", "token-intro-1", RespondentSegment.GradeFTo6);
             var surveyIntroQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == surveyIntro.Id).ToListAsync();
             await SeedBulkRespondentsAsync(context, dispatchIntro, surveyIntroQuestions, qaoByQuestionId, criticalQuestionIds, npsQuestionIds, 60, random);
+
+            // ---- Demo-organisationer spridda inom Skåne (bara för GeoDistribution-kartan på
+            // resultatsidan) - Malmö/Lund (org1/org2) låg för nära varandra för att kartan skulle
+            // visa något meningsfullt. Varierat snittbetyg (Demo*Weights) ger en verklig blandning
+            // av grönt/gult/rött istället för att alla organisationer ser likadana ut.
+            var demoQuestions = new[] { q1, q2, q3, q7, q8, q9 };
+
+            await SeedDemoOrganisationAsync(context, "Helsingborgs Utbildning AB", 56.0465, 12.6945, demoQuestions, qNpsParent, qaoByQuestionId, DemoHighWeights, 45, random);
+            await SeedDemoOrganisationAsync(context, "Kristianstads Skolkoncern", 56.0294, 14.1567, demoQuestions, qNpsParent, qaoByQuestionId, DemoMidWeights, 40, random);
+            await SeedDemoOrganisationAsync(context, "Ystads Lärcentrum", 55.4295, 13.8204, demoQuestions, qNpsParent, qaoByQuestionId, DemoLowWeights, 30, random);
+            await SeedDemoOrganisationAsync(context, "Trelleborgs Kunskapshus", 55.3753, 13.1569, demoQuestions, qNpsParent, qaoByQuestionId, DemoMidWeights, 30, random);
+            await SeedDemoOrganisationAsync(context, "Ängelholms Utbildningscentrum", 56.2428, 12.8611, demoQuestions, qNpsParent, qaoByQuestionId, DemoHighWeights, 35, random);
         }
 
         // Se anropsplatsen ovan för bakgrund. Letar upp alla frågor som saknar länkade
@@ -869,6 +881,56 @@ namespace EduSense.DAL.Data
 
             await context.SaveChangesAsync();
             return question;
+        }
+
+        private static async Task<OrganisationModel> EnsureOrganisationAsync(EduSenseDbContext context, string name, double latitude, double longitude)
+        {
+            var organisation = await context.Organisations.SingleOrDefaultAsync(o => o.Name == name);
+            if (organisation is null)
+            {
+                organisation = new OrganisationModel { Name = name };
+                context.Organisations.Add(organisation);
+                await context.SaveChangesAsync();
+            }
+
+            organisation.Latitude = latitude;
+            organisation.Longitude = longitude;
+            await context.SaveChangesAsync();
+
+            return organisation;
+        }
+
+        // Skapar en komplett demo-organisation (egen enkät, utskick och respondenter) på en given
+        // ort - används för att ge GeoDistribution-kartan (ResultPage) fler, geografiskt utspridda
+        // punkter med varierat snittbetyg istället för bara Malmö/Lund som såg identiska ut.
+        private static async Task SeedDemoOrganisationAsync(
+            EduSenseDbContext context,
+            string organisationName,
+            double latitude,
+            double longitude,
+            IReadOnlyList<QuestionModel> questions,
+            QuestionModel npsQuestion,
+            IReadOnlyDictionary<int, List<QuestionAnswerOptionModel>> qaoByQuestionId,
+            (int Value, int Weight)[] satisfactionWeights,
+            int respondentCount,
+            Random random)
+        {
+            var organisation = await EnsureOrganisationAsync(context, organisationName, latitude, longitude);
+
+            var survey = await EnsureSurveyAsync(context, $"Kundnöjdhetsenkät - {organisationName}", organisation.Id);
+            await LinkQuestionsToSurveyAsync(context, survey, questions);
+            await LinkQuestionsToSurveyAsync(context, survey, new[] { npsQuestion });
+
+            var dispatch = await EnsureDispatchAsync(context, survey, DateTime.UtcNow.AddDays(30), "admin@edusense.com");
+            var surveyQuestions = await context.SurveyQuestions.Where(x => x.SurveyId == survey.Id).ToListAsync();
+
+            HashSet<int> noCriticalQuestions = [];
+            HashSet<int> npsQuestionIds = [npsQuestion.Id];
+
+            await SeedBulkRespondentsAsync(
+                context, dispatch, surveyQuestions, qaoByQuestionId,
+                noCriticalQuestions, npsQuestionIds,
+                respondentCount, random, satisfactionWeights);
         }
 
         private static async Task<SurveyModel> EnsureSurveyAsync(EduSenseDbContext context, string title, int organisationId)
@@ -1015,6 +1077,24 @@ namespace EduSense.DAL.Data
             (5, 5), (4, 4), (3, 3), (2, 2), (1, 3)
         ];
 
+        // Tre nöjdhetsprofiler för demo-organisationerna (se SeedDemoOrganisationAsync) - ger
+        // ett snittbetyg runt 4.3/3.3/2.3, så geo-kartan visar en verklig blandning av
+        // grönt/gult/rött istället för att alla organisationer trendar mot samma färg.
+        private static readonly (int Value, int Weight)[] DemoHighWeights =
+        [
+            (5, 45), (4, 35), (3, 12), (2, 5), (1, 3)
+        ];
+
+        private static readonly (int Value, int Weight)[] DemoMidWeights =
+        [
+            (5, 10), (4, 25), (3, 35), (2, 20), (1, 10)
+        ];
+
+        private static readonly (int Value, int Weight)[] DemoLowWeights =
+        [
+            (5, 3), (4, 10), (3, 20), (2, 32), (1, 35)
+        ];
+
         // Delad "nöjdhetsbias" per respondent (-1/0/+1) - utan denna lottas varje frågas
         // svar helt oberoende, vilket gör att sambandsanalysen (Pearson-korrelation
         // mellan frågor) aldrig hittar något att rapportera i seed-datan. Med en delad
@@ -1044,6 +1124,9 @@ namespace EduSense.DAL.Data
 
         // Seedar ett antal nya respondenter på ett utskick, med spritt Segment och en realistisk
         // svarsfrekvens (~65-75%) - obesvarade respondenter får inga Response-rader.
+        // satisfactionWeights: valfri override av vikttabellen för icke-kritiska/icke-NPS-frågor
+        // (default null = SatisfiedScaleWeights, oförändrat för alla befintliga anrop) - används av
+        // demo-organisationerna för att ge varierat snittbetyg (grönt/gult/rött) på geo-kartan.
         private static async Task SeedBulkRespondentsAsync(
             EduSenseDbContext context,
             SurveyDispatchModel dispatch,
@@ -1052,8 +1135,10 @@ namespace EduSense.DAL.Data
             HashSet<int> criticalQuestionIds,
             HashSet<int> npsQuestionIds,
             int respondentCount,
-            Random random)
+            Random random,
+            (int Value, int Weight)[]? satisfactionWeights = null)
         {
+            satisfactionWeights ??= SatisfiedScaleWeights;
             const double answeredRatio = 0.70; // ca 65-75% av nya respondenter har svarat
 
             // En enda rundtur för befintlighetskollen istället för en AnyAsync per respondent.
@@ -1130,7 +1215,7 @@ namespace EduSense.DAL.Data
                     var isCritical = criticalQuestionIds.Contains(surveyQuestion.QuestionId);
                     var isNps = npsQuestionIds.Contains(surveyQuestion.QuestionId);
 
-                    var weights = isNps ? NpsWeights : isCritical ? CriticalScaleWeights : SatisfiedScaleWeights;
+                    var weights = isNps ? NpsWeights : isCritical ? CriticalScaleWeights : satisfactionWeights;
                     var baseValue = PickWeightedValue(random, weights);
 
                     // NPS är en 1-10-skala - dubblar biasen så den väger lika mycket

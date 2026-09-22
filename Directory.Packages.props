@@ -21,6 +21,7 @@
     <!-- DAL -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.11" />
 
     <!-- UI -->
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.11" />

@@ -123,6 +123,7 @@ namespace EduSense.UI.Test
 
             var cut = RenderComponent<CreatePasswordPage>();
 
+            cut.Find("#username").Change("nyanvandare");
             cut.Find("#new-password").Change("Password123!");
             cut.Find("#confirm-password").Change("SomethingElse123!");
             cut.Find("form").Submit();
@@ -142,12 +143,13 @@ namespace EduSense.UI.Test
 
             var cut = RenderComponent<CreatePasswordPage>();
 
+            cut.Find("#username").Change("nyanvandare");
             cut.Find("#new-password").Change("Password123!");
             cut.Find("#confirm-password").Change("Password123!");
             cut.Find("form").Submit();
 
             cut.WaitForAssertion(
-                () => Assert.Contains("Lösenordet är skapat", cut.Markup),
+                () => Assert.Contains("Användarnamn och lösenord är skapade", cut.Markup),
                 timeout: TimeSpan.FromSeconds(5));
 
             var navigationManager = Services.GetRequiredService<FakeNavigationManager>();
@@ -171,6 +173,7 @@ namespace EduSense.UI.Test
 
             var cut = RenderComponent<CreatePasswordPage>();
 
+            cut.Find("#username").Change("nyanvandare");
             cut.Find("#new-password").Change("Password123!");
             cut.Find("#confirm-password").Change("Password123!");
             cut.Find("form").Submit();

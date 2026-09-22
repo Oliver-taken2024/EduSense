@@ -159,6 +159,10 @@
     color: var(--text-color);
     opacity: 0.85;
     white-space: nowrap;
+    /* Explicit här också (utöver .floating-nav-link/.floating-nav-logout) -
+       Bootstraps reboot sätter `a { text-decoration: underline; }` och
+       etiketten ska aldrig visa ett streck under texten, i något tillstånd. */
+    text-decoration: none;
 }
 
 .floating-nav .bi {

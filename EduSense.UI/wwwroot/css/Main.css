@@ -226,7 +226,10 @@
         /* nowrap borttaget av samma anledning - får texten inte plats
            bryts den till en andra rad istället för att tvinga fram overflow. */
         white-space: normal;
-        flex: 1 1 auto;
+        /* grow:0 (inte 1) - en ensam knapp i raden (t.ex. "Visa resultat" i
+           resultatöversikten) ska inte sträcka ut sig till hela kolumnens
+           bredd bara för att den är flex-barn i en bred tabell. */
+        flex: 0 1 auto;
         text-align: center;
     }
 

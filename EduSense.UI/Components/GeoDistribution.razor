@@ -95,7 +95,9 @@ else
             var x = maxLng == minLng ? 150.0 : 20 + (l.Longitude!.Value - minLng) / (maxLng - minLng) * 260;
             // Högre latitud (norrut) ska hamna högre upp på bilden, dvs mindre y-värde.
             var y = maxLat == minLat ? 100.0 : 20 + (maxLat - l.Latitude!.Value) / (maxLat - minLat) * 160;
-            var radius = 8 + (maxScore == minScore ? 4 : (l.AverageScore - minScore) / (maxScore - minScore) * 10);
+            // Tidigare 8-18px var för stort för det 300x200-fältet, särskilt med fler
+            // organisationer nära varandra geografiskt - krympt till 4-10px.
+            var radius = 4 + (maxScore == minScore ? 3 : (l.AverageScore - minScore) / (maxScore - minScore) * 6);
 
             return new GeoPoint(l.OrganisationName, x, y, radius, ColorFor(l.AverageScore), l.AverageScore, l.RespondentCount);
         }).ToList();
