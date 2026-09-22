@@ -13,6 +13,8 @@ using EduSense.Infrastructure.Email;
 using EduSense.Infrastructure.Ai;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 
 
 static string ToDirectConnectionString(string pooledConnectionString)
@@ -35,6 +37,16 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<EduSenseDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDbContext<EduSenseUserDbContext>(options => options.UseNpgsql(connectionString));
+
+// Delad nyckelring i databasen istället för lokal fil per maskin - annars kan en
+// utvecklares API-instans inte validera en invite-/reset-token som skapats av en
+// annan utvecklares API-instans ("invalid token" trots korrekt token).
+// SetApplicationName måste vara identiskt på alla instanser (annars särnycklar
+// nyckelringen per app-namn, som annars härleds från content root-sökvägen och
+// skiljer sig mellan maskiner/klonade repo-sökvägar).
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<EduSenseUserDbContext>()
+    .SetApplicationName("EduSense");
 
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddSignInManager()
