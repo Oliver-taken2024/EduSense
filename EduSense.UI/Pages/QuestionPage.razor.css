@@ -12,6 +12,14 @@
     text-align: center;
 }
 
+/* ≥640px: bredare kort - fråga i vänsterkolumn + svarsalternativ i högerkolumn
+   (se .Question-fieldset nedan) behöver mer plats än den smala mobilkortsbredden. */
+@media (min-width: 640px) {
+    .Question-box {
+        max-width: 900px;
+    }
+}
+
 /* Skriver över den delade --bs-danger-rgb (kalibrerad mot --background-color-1 i Main.css)
    bara i den här scoped-CSS:en - mot kortets --background-color-2 ger den delade färgen
    bara ~3.86:1, under WCAG-kravet 4.5:1. #FFA3AD ger ~5.15:1 mot #134C48. */
@@ -38,26 +46,33 @@
     margin: 1.5rem 0;
 }
 
-    .Question-fieldset legend {
-        width: 100%;
-        text-align: center;
-        font-family: var(--font-family-body);
-        font-size: 1.25rem;
-        padding: 0;
-        margin-bottom: 1.5rem;
-    }
+.Question-legend {
+    width: 100%;
+    text-align: center;
+    font-family: var(--font-family-body);
+    font-size: 1.25rem;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* Mobil (<640px): fråga ovanför, alternativ staplade i en kolumn under. */
+.Question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
 
 .Question-option {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    padding: 0.6rem 0;
 }
 
     .Question-option input[type="radio"] {
         width: 1.1rem;
         height: 1.1rem;
+        margin: 0;
         accent-color: var(--accent-color-gold);
         flex-shrink: 0;
     }
@@ -66,14 +81,27 @@
         display: none;
     }
 
-/* ≥640px: matchar tablet/desktop-designen - siffra 1-5 + liten radioruta,
-   ingen synlig beskrivningstext (den finns kvar för skärmläsare, se nedan). */
+/* ≥640px: fråga i egen vänsterkolumn, svarsalternativen i en högerkolumn som i sin tur
+   är ett rutnät med exakt en kolumn per alternativ (--option-count, satt inline från
+   Razor) - garanterar att alla fem ryms på samma rad, oavsett textlängd. Tidigare
+   flex-wrap+justify-center kunde radbryta ojämnt (t.ex. 4+1, "Mycket nöjd" ensam). */
 @media (min-width: 640px) {
     .Question-fieldset {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: minmax(160px, 1fr) minmax(0, 2.5fr);
+        align-items: center;
         gap: 1.5rem;
+    }
+
+    .Question-legend {
+        text-align: left;
+        margin-bottom: 0;
+    }
+
+    .Question-options {
+        display: grid;
+        grid-template-columns: repeat(var(--option-count, 5), 1fr);
+        gap: 0.75rem;
     }
 
     .Question-option {
@@ -81,7 +109,9 @@
         gap: 0.4rem;
     }
 
-    .Question-option-value {
+    /* Siffran ska bara synas för NPS (1-10) - på 1-5-skalan förklarar ordet i
+       Question-option-description värdet fullt ut, ingen siffra behövs där. */
+    .Question-option--nps .Question-option-value {
         display: block;
         font-family: var(--font-family-title);
         font-size: 1.75rem;
